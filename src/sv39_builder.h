@@ -5,7 +5,8 @@
  * Caller supplies a static, contiguous, page-aligned pool and its actual PA.
  * Context and pool must be disjoint live objects, exclusively owned and not
  * externally modified. Host tests use a synthetic PA, never a host pointer.
- * Root is pool[0], at pool_pa. No heap, remap, superpages or batch API.
+ * Root is pool[0], at pool_pa. No heap, remap or batch API; 4 KiB leaves
+ * and (v1.3) 2 MiB level-1 leaves only.
  * Each call either succeeds fully or leaves context/pool byte-identical.
  */
 struct sv39_builder {
@@ -25,5 +26,10 @@ enum sv39_result sv39_builder_init(struct sv39_builder *b,
  * W requires R; at least R or X required. A/D are explicit caller policy.
  * Duplicate mappings, including identical ones, return CONFLICT. */
 enum sv39_result sv39_map4k(struct sv39_builder *b,
+    uint64_t va, uint64_t pa, uint64_t flags);
+/* Same rules for a 2 MiB leaf (va and pa 2 MiB aligned). CONFLICT if the
+ * level-1 slot already holds a leaf or a table; a 4 KiB map inside an
+ * existing 2 MiB leaf is a CONFLICT too. */
+enum sv39_result sv39_map2m(struct sv39_builder *b,
     uint64_t va, uint64_t pa, uint64_t flags);
 #endif

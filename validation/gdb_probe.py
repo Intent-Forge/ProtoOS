@@ -83,15 +83,32 @@ def proc(i):
         'syscalls', 'rejected_syscalls', 'exit_code', 'fault_cause',
         'fault_epc', 'fault_tval', 'writes', 'bytes_written', 'sleeps', 'sleep_start',
         'wake_time', 'last_dispatch_time', 'reads', 'bytes_read', 'read_pending',
-        'read_va', 'read_len', 'block_start')}
+        'read_va', 'read_len', 'block_start', 'prog', 'killed', 'npages')}
+    out['pages'] = [ev(f'procs[{i}].pages[{k}]') for k in range(5)]
     out['addr'] = ev(f'(unsigned long)&procs[{i}]')
     return out
+
+
+def mem_state():
+    """v1.3 page allocator state, plus the bitmap bit of chosen pages."""
+    return {k: ev(f'mem.{k}') for k in ('base', 'pages', 'free', 'allocs', 'frees')}
+
+
+def page_bits(pages):
+    out = []
+    for pa in pages:
+        n = (pa - SYM_POOL) // 4096
+        out.append(ev(f'mem.bitmap[{n // 64}]') >> (n % 64) & 1 if pa >= SYM_POOL else None)
+    return out
+
+
+SYM_POOL = 0x80400000
 
 
 def sched():
     return {k: ev(f'sched.{k}') for k in (
         'quantum_ticks', 'timer_ticks', 'switches', 'idle_entered', 'verbose', 'waits',
-        'ext_irqs')}
+        'ext_irqs', 'next_pid', 'spawned', 'killed', 'reclaimed')}
 
 
 def inp():
@@ -618,6 +635,127 @@ def probe_n8():
 
 PROBES.update({'t10': probe_t10, 't11': probe_t11, 't12': probe_t12, 'n7': probe_n7,
                'n8': probe_n8})
+
+
+# ------------------------------------------------------------ v1.3 probes
+PROG_VA = 0x4000000
+SLOT2_BASE = 0xC00000        # USER_SLOT_BASE(2)
+
+
+def results(n):
+    """A's v1.3 test results: words at its data page + 0x40."""
+    return [phys_u64(SYM['user_a_data'] + 0x40 + 8 * k) for k in range(n)]
+
+
+def frame_of(i):
+    return f'((unsigned long)&procs[{i}])'
+
+
+def page_summary(pa):
+    """Physical page content: zero words, 0xa5 words, and words 2/3 (memcheck result/done)."""
+    raw = phys(pa, 4096)
+    w = [int.from_bytes(raw[k:k + 8], 'little') for k in range(0, 4096, 8)]
+    return {'zero': sum(x == 0 for x in w), 'a5': sum(x == 0xa5a5a5a5a5a5a5a5 for x in w),
+            'w0': w[0], 'w2': w[2], 'w3': w[3]}
+
+
+def instance(tag):
+    p = proc(2)
+    return dict(proc=p, mem=mem_state(), bits=page_bits(p['pages']),
+                data=page_summary(p['pages'][3]), stack=page_summary(p['pages'][4]),
+                results=results(6))
+
+
+def probe_t13():
+    step('after1', hit=stop_at(UVA['a_mem_after1']), **instance(1))
+    step('after2', hit=stop_at(UVA['a_mem_after2']), **instance(2))
+    hit = stop_at(UVA['a_mem_done'])
+    p = proc(2)
+    step('done', hit=hit, proc=p, mem=mem_state(), results=results(6), sched=sched())
+
+
+def probe_t14():
+    hit = stop_at(UVA['a_spawn_done'])
+    s = satps()
+    p = proc(2)
+    root = p['satp']
+    step('spawned', hit=hit, satps=s, proc=p, mem=mem_state(), results=results(3),
+         walk_data=walk(root, SLOT2_BASE + 0x1000), walk_stack=walk(root, SLOT2_BASE + 0x3000),
+         walk_text=walk(root, SLOT2_BASE), walk_prog=walk(root, PROG_VA),
+         walk_a_data=walk(root, 0x401000), walk_b_data=walk(root, 0x801000),
+         walk_secret=walk(root, SYM['kernel_secret']), walk_uart=walk(root, 0x10000000),
+         walk_pool_alias=walk(root, p['pages'][3]),
+         a_sees_c=walk(s['A'], SYM_C_DATA), b_sees_c=walk(s['B'], SYM_C_DATA))
+    hit = stop_at(UVA['p_worker_loop'])
+    step('C_running', hit=hit, cpu=cpu(), gprs=gprs(), proc=proc(2),
+         counter=phys_u64(p['pages'][3]), words_b=user_words('user_b_data'))
+    w = wait_ticks(30)
+    step('after', wait=w, proc=proc(2), procs=[proc(0), proc(1)],
+         counter=phys_u64(p['pages'][3]), words_b=user_words('user_b_data'))
+
+
+SYM_C_DATA = SLOT2_BASE + 0x1000
+
+
+def probe_t15():
+    hit = stop_at(UVA['a_kill_killed'])
+    p = proc(2)
+    step('killed', hit=hit, proc=p, mem=mem_state(), bits=page_bits(p['pages']),
+         results=results(4), sched=sched())
+    w = wait_ticks(15, (('dispatch_C', SYM['sched_dispatch'], f'$a0 == {frame_of(2)}'),))
+    step('quiet', wait=w, proc=proc(2))
+    hit = stop_at(UVA['a_kill_respawned'])
+    q = proc(2)
+    step('respawned', hit=hit, proc=q, mem=mem_state(), bits=page_bits(q['pages']),
+         results=results(5))
+    hit = stop_at(UVA['a_kill_done'])
+    r = proc(2)
+    step('done', hit=hit, proc=r, mem=mem_state(), bits=page_bits(r['pages']),
+         results=results(8), sched=sched())
+
+
+def probe_t16():
+    hit = stop_at(SYM['proc_fault'])
+    slot = (reg('a0') - ev('(unsigned long)&procs[0]')) // ev('sizeof(struct process)')
+    step('fault', hit=hit, slot=slot, frame=frame(slot), proc=proc(slot), mem=mem_state(),
+         b_data=user_words('user_b_data'))
+    hit = stop_at(UVA['a_multi_done'])
+    snap = [proc(i) for i in range(6)]
+    counters = [phys_u64(p['pages'][3]) if p['npages'] else None for p in snap]
+    step('done', hit=hit, procs=snap, counters=counters, mem=mem_state(), results=results(6),
+         words_b=user_words('user_b_data'))
+    w = wait_ticks(30, (('fault', SYM['proc_fault'], None),))
+    snap2 = [proc(i) for i in range(6)]
+    step('after', wait=w, procs=snap2,
+         counters=[phys_u64(p['pages'][3]) if p['npages'] else None for p in snap2],
+         words_b=user_words('user_b_data'), mem=mem_state())
+
+
+def probe_n9():
+    hit = stop_at(UVA['a_spawn_bad_done'], wall=120.0)
+    step('done', hit=hit, results=results(12), mem=mem_state(), sched=sched(),
+         procs=[proc(i) for i in range(8)])
+
+
+T17_SCRIPT = ['mem', 'run worker', 'run hello', 'ps', 'kill 3', 'run crash', 'ps', 'mem']
+
+
+def probe_t17():
+    uart = Uart()
+    ok = shell_settle(uart, 1)
+    step('first_prompt', ok=ok, mem=mem_state())
+    for n, cmd in enumerate(T17_SCRIPT, start=2):
+        uart.send(cmd.encode() + b'\r')
+        ok = shell_settle(uart, n)
+        w = wait_ticks(20)          # let run-time processes print and end
+        step(f'cmd_{n - 1}', cmd=cmd, ok=ok, wait=w, mem=mem_state(),
+             procs=[proc(i) for i in range(8)])
+    step('end', procs=[proc(i) for i in range(8)], mem=mem_state(), sched=sched(),
+         input=inp(), socket_text=uart.text())
+
+
+PROBES.update({'t13': probe_t13, 't14': probe_t14, 't15': probe_t15, 't16': probe_t16,
+               'n9': probe_n9, 't17': probe_t17})
 
 
 def main():

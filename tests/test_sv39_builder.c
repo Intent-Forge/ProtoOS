@@ -15,6 +15,14 @@ static void reject(uint64_t va,uint64_t pa,uint64_t f,enum sv39_result code)
     CHECK(memcmp(before,pool,sizeof(pool))==0);
     CHECK(memcmp(&old,&b,sizeof(b))==0);
 }
+static void reject2m(uint64_t va,uint64_t pa,uint64_t f,enum sv39_result code)
+{
+    struct sv39_builder old=b;
+    memcpy(before,pool,sizeof(pool));
+    CHECK(sv39_map2m(&b,va,pa,f)==code);
+    CHECK(memcmp(before,pool,sizeof(pool))==0);
+    CHECK(memcmp(&old,&b,sizeof(b))==0);
+}
 /* Independent literal decoder, not production macros or production traversal. */
 static void mapping(uint64_t va,uint64_t pa,uint64_t flags)
 {
@@ -84,5 +92,27 @@ int main(void)
     pool[0].entries[0]=((0x81000000ULL>>12)<<10)|1; reject(0,0,2,SV39_BAD_TABLE);
     pool[0].entries[0]=0x20000003; reject(0,0,2,SV39_CONFLICT);
     pool[0].entries[0]=0x20000011; reject(0,0,2,SV39_BAD_TABLE);
+    /* v1.3: 2 MiB leaves (level 1), decoded literally. */
+    init(8);
+    CHECK(sv39_map2m(&b,0x80400000ULL,0x80400000ULL,0xc6)==SV39_OK); CHECK(b.used==2);
+    CHECK(pool[0].entries[2]==((0x81001000ULL>>12)<<10|1));
+    CHECK(pool[1].entries[2]==((0x80400000ULL>>12)<<10|0xc7));
+    CHECK(sv39_map2m(&b,0x80600000ULL,0x80600000ULL,0xc6)==SV39_OK); CHECK(b.used==2);
+    CHECK(pool[1].entries[3]==((0x80600000ULL>>12)<<10|0xc7));
+    reject2m(0x80400000ULL,0x80400000ULL,0xc6,SV39_CONFLICT);
+    reject2m(0x80400000ULL,0x80a00000ULL,0x2,SV39_CONFLICT);
+    reject(0x80401000ULL,0x1000,2,SV39_CONFLICT);          /* 4K inside a 2M leaf */
+    CHECK(sv39_map4k(&b,0x80000000ULL,0x1000,2)==SV39_OK); CHECK(b.used==3);
+    reject2m(0x80000000ULL,0x80000000ULL,2,SV39_CONFLICT);  /* slot holds a table */
+    reject2m(0x80401000ULL,0,2,SV39_BAD_VA); reject2m(0x4000000000ULL,0,2,SV39_BAD_VA);
+    reject2m(0x80800000ULL,0x1000,2,SV39_BAD_PA); reject2m(0x80800000ULL,1ULL<<56,2,SV39_BAD_PA);
+    for(size_t i=0;i<sizeof(bad)/sizeof(bad[0]);++i) reject2m(0x80800000ULL,0,bad[i],SV39_BAD_FLAGS);
+    CHECK(sv39_map2m(NULL,0,0,2)==SV39_BAD_ARGUMENT);
+    init(1); reject2m(0,0,2,SV39_POOL_FULL);
+    init(2); CHECK(sv39_map2m(&b,0,0,2)==SV39_OK); CHECK(b.used==2);
+    CHECK(sv39_map2m(&b,0x200000,0x200000,2)==SV39_OK); CHECK(b.used==2);
+    init(8); pool[0].entries[0]=1; reject2m(0,0,2,SV39_BAD_TABLE);
+    pool[0].entries[0]=0x20000003; reject2m(0,0,2,SV39_CONFLICT);
+    pool[0].entries[0]=0x20000011; reject2m(0,0,2,SV39_BAD_TABLE);
     printf("PASS_STATIC_ONLY: %u assertions; host execution, no guest MMU\n",checks);
 }

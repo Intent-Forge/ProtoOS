@@ -26,6 +26,13 @@ SECTIONS {
     .user_b_text : { __user_b_text = .; KEEP(*(.user.b.text)) }
     . = ALIGN(4096);
     __user_b_text_end = .;
+    /* v1.3: shared program pages, mapped R X U at PROG_VA in every process. */
+    .user_prog_text : {
+        __user_prog_text = .;
+        KEEP(*(.user.prog.text))
+        . = __user_prog_text + 3 * 4096;    /* fails if the programs outgrow 3 pages */
+    }
+    __user_prog_text_end = .;
     .user_bss (NOLOAD) : { __user_bss_start = .; KEEP(*(.user.bss)) }
     . = ALIGN(4096);
     __user_bss_end = .;
@@ -34,5 +41,6 @@ SECTIONS {
 }
 ASSERT(__user_a_text_end - __user_a_text == 4096, "user A text must fit one page")
 ASSERT(__user_b_text_end - __user_b_text == 4096, "user B text must fit one page")
+ASSERT(__user_prog_text_end - __user_prog_text == 3 * 4096, "program pages: PROG_PAGES (3)")
 ASSERT(__user_bss_end - __user_bss_start == 4 * 4096, "user data/stack pages")
 ASSERT(__image_end <= 0x80400000, "kernel image exceeds reserved 2MiB")

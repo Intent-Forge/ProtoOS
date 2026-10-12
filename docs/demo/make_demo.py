@@ -22,14 +22,14 @@ OUT = ROOT / 'docs/demo/protoos-demo.svg'
 FW = os.environ.get('OPENSBI', '/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin')
 
 # Keystrokes for the shell scene: (seconds after the banner, bytes typed).
-SHELL_TYPING = [(1.2, b'help\r'), (2.6, b'ps\r'), (4.0, b'uptime\r'),
-                (5.4, b'echo Hello from user mode!\r'), (6.8, b'attack\r'), (8.6, b'ps\r')]
+SHELL_TYPING = [(1.0, b'help\r'), (2.3, b'run counter\r'), (3.4, b'run worker\r'),
+                (4.7, b'ps\r'), (6.1, b'kill 4\r'), (7.3, b'run crash\r'), (8.9, b'mem\r')]
 # (bootargs, seconds to run, max captured lines, comment, real timing?, typing)
 SCENES = [
     ('protoos.mode=demo', 9, 22,
      'demo mode: A and B print via write() and sleep(); then B attacks A', True, None),
-    ('protoos.mode=shell', 10, 22,
-     'shell mode: A is a command shell reading the keyboard; B works in the background',
+    ('protoos.mode=shell', 11, 32,
+     'shell mode: A is a command shell; it starts and stops processes on demand',
      True, SHELL_TYPING),
     ('protoos.test=umode', 2, 15,
      'two user processes, switched by the timer interrupt every 10 ms', False, None),
@@ -80,7 +80,8 @@ def style_of(line):
                         ('HEARTBEAT', 'beat'), ('MMU', 'mmu'), ('PROC', 'proc'),
                         ('EXIT', 'exit'), ('IDLE', 'exit'), ('proto> ', 'usera'),
                         ('attack:', 'attack'), ('kernel answered', 'fault'),
-                        ('pid ', 'proc')):
+                        ('pid ', 'proc'), ('started pid', 'proc'), ('killed pid', 'exit'),
+                        ('free pages', 'mmu'), ('crash:', 'attack'), ('hello from', 'userb')):
         if line.startswith(prefix):
             return cls
     return 'out'
@@ -136,7 +137,7 @@ def render(frames):
         '<circle cx="18" cy="14" r="5" fill="#ff5f57"/><circle cx="34" cy="14" r="5" fill="#febc2e"/>'
         '<circle cx="50" cy="14" r="5" fill="#28c840"/>',
         f'<text class="title" x="{width / 2:.0f}" y="18" text-anchor="middle">'
-        'ProtoOS v1.2 on QEMU virt (RISC-V RV64) - real UART output</text>',
+        'ProtoOS v1.3 on QEMU virt (RISC-V RV64) - real UART output</text>',
         f'<svg x="0" y="{TITLE_H}" width="{width}" height="{body_h}"><g class="tape">',
     ]
     for i, (screen, _) in enumerate(frames):

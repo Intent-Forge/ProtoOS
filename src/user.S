@@ -21,6 +21,15 @@
 .equ SYS_READ, 63
 .equ SYS_UPTIME, 1002
 .equ SYS_PROCINFO, 1003
+.equ SYS_SPAWN, 1004
+.equ SYS_KILL, 1005
+.equ SYS_MEMINFO, 1006
+.equ SYS_SLOTINFO, 1007
+.equ PROG_WORKER, 1     /* src/proc.h enum program_id */
+.equ PROG_HELLO, 2
+.equ PROG_COUNTER, 3
+.equ PROG_CRASH, 4
+.equ PROG_MEMCHECK, 5
 
 .equ A_BASE, 0x400000
 .equ B_BASE, 0x800000
@@ -632,255 +641,176 @@ a_flood_done:
     sd t0, D_STAGE(s11)
     j a_worker
 
-/* Shell (protoos.mode=shell). Registers kept across commands:
- *   s0 line length, s1 bytes in the current read chunk, s2 next index in
- *   it, s4 = 1 if the previous byte was CR (CR LF is one Enter). */
-.globl a_shell
-a_shell:
-    li s11, A_DATA
-    li s1, 0
-    li s2, 0
-    li s4, 0
-    WRITE_RANGE a_sh_banner, a_sh_banner_end
-.globl a_sh_prompt
-a_sh_prompt:
-    WRITE_RANGE a_sh_prompt_str, a_sh_prompt_end
-    li s0, 0
-a_sh_char:
-    bltu s2, s1, 1f
-    li a0, 0                        /* chunk used up: wait for input */
-    li a1, A_DATA + D_CHUNK
-    li a2, 16
-    li a7, SYS_READ
-.globl a_shell_read_ecall
-a_shell_read_ecall:
+/* ---------------------------------------------------------------- v1.3 */
+.macro SYSCALL1 nr, arg
+    li a0, \arg
+    li a7, \nr
     ecall
+.endm
+.macro MEMINFO_TO off
+    li a7, SYS_MEMINFO
+    ecall
+    sd a0, D_RESULTS+\off(s11)
+.endm
+.macro SPAWN_TO prog, off
+    SYSCALL1 SYS_SPAWN, \prog
+    sd a0, D_RESULTS+\off(s11)
     blez a0, a_error
+.endm
+.macro KILL_TO reg, off
+    mv a0, \reg
+    li a7, SYS_KILL
+    ecall
+    sd a0, D_RESULTS+\off(s11)
+.endm
+
+/* T13: memcheck twice in the same slot; the second instance gets the pages
+ * the first one dirtied and must still find them zeroed. */
+.globl a_mem_test
+a_mem_test:
+    li s11, A_DATA
+    MEMINFO_TO 0
+    SPAWN_TO PROG_MEMCHECK, 8
+    mv s0, a0
+    SYSCALL1 SYS_SLEEP, 100
+.globl a_mem_after1
+a_mem_after1:
+    KILL_TO s0, 16
+    bnez a0, a_error
+    SPAWN_TO PROG_MEMCHECK, 24
+    mv s0, a0
+    SYSCALL1 SYS_SLEEP, 100
+.globl a_mem_after2
+a_mem_after2:
+    KILL_TO s0, 32
+    bnez a0, a_error
+    MEMINFO_TO 40
+.globl a_mem_done
+a_mem_done:
+    li t0, 1
+    sd t0, D_STAGE(s11)
+    j a_worker
+
+/* T14: one run-time worker; A then only sleeps. */
+.globl a_spawn_test
+a_spawn_test:
+    li s11, A_DATA
+    MEMINFO_TO 0
+    SPAWN_TO PROG_WORKER, 8
+    MEMINFO_TO 16
+.globl a_spawn_done
+a_spawn_done:
+    li t0, 1
+    sd t0, D_STAGE(s11)
+1:  SYSCALL1 SYS_SLEEP, 1000
+    j 1b
+
+/* T15: kill a worker, wait, respawn into the same slot, kill again, then a
+ * hello that exits by itself; free pages must return to the baseline. */
+.globl a_kill_test
+a_kill_test:
+    li s11, A_DATA
+    MEMINFO_TO 0
+    SPAWN_TO PROG_WORKER, 8
+    mv s0, a0
+    SYSCALL1 SYS_SLEEP, 100
+    KILL_TO s0, 16
+    MEMINFO_TO 24
+.globl a_kill_killed
+a_kill_killed:
+    SYSCALL1 SYS_SLEEP, 200
+    SPAWN_TO PROG_WORKER, 32
     mv s1, a0
-    li s2, 0
-1:  li t0, A_DATA + D_CHUNK
-    add t0, t0, s2
-    lbu s3, 0(t0)
-    addi s2, s2, 1
-    mv t1, s4
-    li s4, 0
-    li t0, 13
-    beq s3, t0, a_sh_cr
-    li t0, 10
-    bne s3, t0, 2f
-    bnez t1, a_sh_char              /* LF right after CR */
-    j a_sh_enter
-a_sh_cr:
-    li s4, 1
-    j a_sh_enter
-2:  li t0, 127
-    beq s3, t0, a_sh_bs
-    li t0, 8
-    beq s3, t0, a_sh_bs
-    li t0, 32
-    bltu s3, t0, a_sh_char          /* other control bytes: ignored */
-    li t0, 126
-    bgtu s3, t0, a_sh_char          /* non-ASCII: ignored */
-    li t0, LINE_MAX
-    bgeu s0, t0, a_sh_char          /* line full: ignored */
-    li a1, A_DATA + D_LINE
-    add a1, a1, s0
-    sb s3, 0(a1)
+.globl a_kill_respawned
+a_kill_respawned:
+    SYSCALL1 SYS_SLEEP, 100
+    KILL_TO s1, 40
+    SPAWN_TO PROG_HELLO, 48
+    SYSCALL1 SYS_SLEEP, 300
+    MEMINFO_TO 56
+.globl a_kill_done
+a_kill_done:
+    li t0, 1
+    sd t0, D_STAGE(s11)
+    j a_worker
+
+/* T16: three workers and a crash; only the crash may fault. */
+.globl a_multi_test
+a_multi_test:
+    li s11, A_DATA
+    MEMINFO_TO 0
+    SPAWN_TO PROG_WORKER, 8
+    SPAWN_TO PROG_WORKER, 16
+    SPAWN_TO PROG_WORKER, 24
+    SPAWN_TO PROG_CRASH, 32
+    SYSCALL1 SYS_SLEEP, 500
+    MEMINFO_TO 40
+.globl a_multi_done
+a_multi_done:
+    li t0, 1
+    sd t0, D_STAGE(s11)
+1:  SYSCALL1 SYS_SLEEP, 1000
+    j 1b
+
+/* N9: rejected spawn/kill, the slot limit, and 200 spawn/kill cycles. */
+.globl a_spawn_bad
+a_spawn_bad:
+    li s11, A_DATA
+    MEMINFO_TO 0
+    SYSCALL1 SYS_SPAWN, 0           /* program 0 -> -22 */
+    sd a0, D_RESULTS+8(s11)
+    SYSCALL1 SYS_SPAWN, 99          /* unknown program -> -22 */
+    sd a0, D_RESULTS+16(s11)
+    SYSCALL1 SYS_KILL, 999          /* no such pid -> -3 */
+    sd a0, D_RESULTS+24(s11)
+    SYSCALL1 SYS_KILL, 1            /* itself -> -1 */
+    sd a0, D_RESULTS+32(s11)
+    SYSCALL1 SYS_KILL, 2            /* boot process B -> -1 */
+    sd a0, D_RESULTS+40(s11)
+    li s0, 0                        /* fill every free slot */
+1:  SYSCALL1 SYS_SPAWN, PROG_WORKER
+    bltz a0, 2f
+    slli t0, s0, 3
+    add t0, t0, s11
+    sd a0, D_IN(t0)
     addi s0, s0, 1
-    li a0, 1                        /* echo it */
-    li a2, 1
-    li a7, SYS_WRITE
-    ecall
-    j a_sh_char
-a_sh_bs:
-    beqz s0, a_sh_char
-    addi s0, s0, -1
-    WRITE_RANGE a_sh_bs_seq, a_sh_bs_seq_end
-    j a_sh_char
-
-a_sh_enter:
-    WRITE_RANGE a_sh_nl, a_sh_nl_end
-    li t0, A_DATA + D_LINE
-    add t0, t0, s0
-    sb zero, 0(t0)
-    beqz s0, a_sh_prompt
-    li a0, A_DATA + D_LINE
-    la a1, a_sh_c_help
-    call a_streq
-    bnez a0, a_sh_help
-    li a0, A_DATA + D_LINE
-    la a1, a_sh_c_ps
-    call a_streq
-    bnez a0, a_sh_ps
-    li a0, A_DATA + D_LINE
-    la a1, a_sh_c_uptime
-    call a_streq
-    bnez a0, a_sh_uptime
-    li a0, A_DATA + D_LINE
-    la a1, a_sh_c_attack
-    call a_streq
-    bnez a0, a_sh_attack
-    li a0, A_DATA + D_LINE
-    la a1, a_sh_c_echo
-    call a_strprefix
-    beqz a0, a_sh_unknown
-    lbu t0, 0(a0)
-    beqz t0, a_sh_echo              /* "echo" alone */
-    li t1, 32
-    bne t0, t1, a_sh_unknown        /* "echoX..." */
-    addi a0, a0, 1
-a_sh_echo:
-    mv a1, a0
-    li a0, A_DATA + D_OUT
-    call a_bufstr
-    la a1, a_demo_nl
-    call a_bufstr
-    j a_sh_out
-a_sh_unknown:
-    WRITE_RANGE a_sh_unknown_msg, a_sh_unknown_msg_end
-    j a_sh_prompt
-a_sh_help:
-    WRITE_RANGE a_sh_help_msg, a_sh_help_msg_end
-    j a_sh_prompt
-
-/* "uptime: <s>.<cc> s" from the microsecond counter */
-a_sh_uptime:
-    li a7, SYS_UPTIME
-    ecall
-    mv s5, a0
-    li a0, A_DATA + D_OUT
-    la a1, a_sh_up_prefix
-    call a_bufstr
-    li t0, 1000000
-    divu a1, s5, t0
-    call a_bufdec
-    la a1, a_sh_dot
-    call a_bufstr
-    li t0, 10000
-    divu t1, s5, t0
-    li t0, 100
-    remu s6, t1, t0
-    li t0, 10
-    bgeu s6, t0, 1f
-    la a1, a_sh_zero
-    call a_bufstr
-1:  mv a1, s6
-    call a_bufdec
-    la a1, a_sh_secs
-    call a_bufstr
-    j a_sh_out
-
-/* "pid <n> <A|B> <STATE> preempted <p> syscalls <s>" for pid 1 and 2 */
-a_sh_ps:
-    li s5, 1
-1:  mv a0, s5
-    li a1, A_DATA + D_INFO
-    li a7, SYS_PROCINFO
+    li t0, 16
+    bltu s0, t0, 1b
+2:  sd a0, D_RESULTS+48(s11)        /* first refusal -> -11 */
+    sd s0, D_RESULTS+56(s11)        /* successes -> 6 */
+    li s1, 0
+3:  bgeu s1, s0, 4f
+    slli t0, s1, 3
+    add t0, t0, s11
+    ld a0, D_IN(t0)
+    li a7, SYS_KILL
     ecall
     bnez a0, a_error
-    li a0, A_DATA + D_OUT
-    la a1, a_sh_pid
-    call a_bufstr
-    mv a1, s5
-    call a_bufdec
-    li t0, 32
-    sb t0, 0(a0)
-    addi t1, s5, 64                 /* 'A' + pid - 1 */
-    sb t1, 1(a0)
-    sb t0, 2(a0)
-    addi a0, a0, 3
-    ld s6, D_INFO+0(s11)
-    li t0, 6
-    bleu s6, t0, 2f
-    li s6, 0
-2:  la a1, a_sh_states
-3:  beqz s6, 5f
-4:  lbu t0, 0(a1)
-    addi a1, a1, 1
-    bnez t0, 4b
-    addi s6, s6, -1
+    addi s1, s1, 1
     j 3b
-5:  call a_bufstr
-    la a1, a_sh_preempted
-    call a_bufstr
-    ld a1, D_INFO+8(s11)
-    call a_bufdec
-    la a1, a_sh_syscalls
-    call a_bufstr
-    ld a1, D_INFO+16(s11)
-    call a_bufdec
-    la a1, a_demo_nl
-    call a_bufstr
-    li t0, A_DATA + D_OUT
-    sub a2, a0, t0
-    mv a1, t0
-    li a0, 1
-    li a7, SYS_WRITE
+4:  ld a0, D_IN(s11)                /* already killed -> -3 */
+    li a7, SYS_KILL
     ecall
-    addi s5, s5, 1
-    li t0, 3
-    bltu s5, t0, 1b
-    j a_sh_prompt
-
-/* Ask the kernel to print B's memory: the PT walk of A's root refuses. */
-a_sh_attack:
-    WRITE_RANGE a_sh_att_msg, a_sh_att_msg_end
-    li a0, 1
-    li a1, B_DATA
-    li a2, 8
-    li a7, SYS_WRITE
+    sd a0, D_RESULTS+64(s11)
+    li s1, 0                        /* 200 spawn/kill cycles */
+    li s2, 0
+5:  SYSCALL1 SYS_SPAWN, PROG_WORKER
+    blez a0, 6f
+    li a7, SYS_KILL
     ecall
-    mv s5, a0
-    li a0, A_DATA + D_OUT
-    la a1, a_sh_att_ans
-    call a_bufstr
-    bgez s5, 1f
-    li t0, 45                       /* '-' */
-    sb t0, 0(a0)
-    addi a0, a0, 1
-    neg s5, s5
-1:  mv a1, s5
-    call a_bufdec
-    la a1, a_sh_att_tail
-    call a_bufstr
-    j a_sh_out
-
-/* write(1, D_OUT, a0 - D_OUT), then a new prompt */
-a_sh_out:
-    li t0, A_DATA + D_OUT
-    sub a2, a0, t0
-    mv a1, t0
-    li a0, 1
-    li a7, SYS_WRITE
-    ecall
-    j a_sh_prompt
-
-/* a0, a1: NUL-terminated strings -> a0 = 1 if equal, else 0 */
-a_streq:
-1:  lbu t0, 0(a0)
-    lbu t1, 0(a1)
-    bne t0, t1, 2f
-    beqz t0, 3f
-    addi a0, a0, 1
-    addi a1, a1, 1
-    j 1b
-2:  li a0, 0
-    ret
-3:  li a0, 1
-    ret
-
-/* a0 = string, a1 = prefix -> a0 = first byte after the prefix, or 0 */
-a_strprefix:
-1:  lbu t1, 0(a1)
-    beqz t1, 2f
-    lbu t0, 0(a0)
-    bne t0, t1, 3f
-    addi a0, a0, 1
-    addi a1, a1, 1
-    j 1b
-2:  ret
-3:  li a0, 0
-    ret
+    beqz a0, 7f
+6:  addi s2, s2, 1
+7:  addi s1, s1, 1
+    li t0, 200
+    bltu s1, t0, 5b
+    sd s1, D_RESULTS+72(s11)
+    sd s2, D_RESULTS+80(s11)        /* failures -> 0 */
+    MEMINFO_TO 88
+.globl a_spawn_bad_done
+a_spawn_bad_done:
+    li t0, 1
+    sd t0, D_STAGE(s11)
+    j a_worker
 
     BUF_LIB a_bufstr, a_bufdec
 
@@ -893,43 +823,6 @@ a_n6_ok_end:
 a_demo_prefix:  .asciz "[A] pid "
 a_demo_middle:  .asciz ": hello #"
 a_demo_nl:      .asciz "\n"
-/* v1.2 shell */
-a_sh_banner:    .ascii "ProtoOS shell: process A in U-mode, B works in the background. Type help.\n"
-a_sh_banner_end:
-a_sh_prompt_str: .ascii "proto> "
-a_sh_prompt_end:
-a_sh_bs_seq:    .ascii "\b \b"
-a_sh_bs_seq_end:
-a_sh_nl:        .ascii "\n"
-a_sh_nl_end:
-a_sh_help_msg:  .ascii "commands: help, ps, uptime, echo <text>, attack\n"
-a_sh_help_msg_end:
-a_sh_unknown_msg: .ascii "unknown command (try help)\n"
-a_sh_unknown_msg_end:
-a_sh_att_msg:   .ascii "attack: asking the kernel to print 8 bytes of B's memory...\n"
-a_sh_att_msg_end:
-a_sh_c_help:    .asciz "help"
-a_sh_c_ps:      .asciz "ps"
-a_sh_c_uptime:  .asciz "uptime"
-a_sh_c_attack:  .asciz "attack"
-a_sh_c_echo:    .asciz "echo"
-a_sh_up_prefix: .asciz "uptime: "
-a_sh_dot:       .asciz "."
-a_sh_zero:      .asciz "0"
-a_sh_secs:      .asciz " s\n"
-a_sh_pid:       .asciz "pid "
-a_sh_states:    .asciz "UNUSED"
-                .asciz "READY"
-                .asciz "RUNNING"
-                .asciz "EXITED"
-                .asciz "FAULTED"
-                .asciz "SLEEPING"
-                .asciz "BLOCKED"
-a_sh_preempted: .asciz " preempted "
-a_sh_syscalls:  .asciz " syscalls "
-a_sh_att_ans:   .asciz "kernel answered "
-a_sh_att_tail:  .asciz ": access denied, B's memory is not mapped for A\n"
-
 .balign 8
 a_kernel_secret_ptr:
     .dword kernel_secret
@@ -1049,6 +942,612 @@ b_demo_middle:  .asciz ": hello #"
 b_demo_nl:      .asciz "\n"
 b_demo_attack:  .ascii "[B] pid 2: now I will try to overwrite A's memory...\n"
 b_demo_attack_end:
+.balign 4
+
+/* ===================================================================== */
+/* v1.3 shared program pages: mapped R X U at PROG_VA in every process.
+ * Position independent; a program finds its own data page in a0 and its
+ * pid in a1 at entry (set by the kernel), never at a fixed address. */
+.section .user.prog.text,"ax",@progbits
+.balign 4
+
+/* Build "<s1><dec a1><s2>" helpers on top of BUF_LIB. */
+    BUF_LIB p_bufstr, p_bufdec
+
+/* write(1, s11 + D_OUT, a0 - (s11 + D_OUT)) */
+.macro OUT_FLUSH
+    addi t0, s11, D_OUT
+    sub a2, a0, t0
+    mv a1, t0
+    li a0, 1
+    li a7, SYS_WRITE
+    ecall
+.endm
+
+/* a0 = dst, a1 = signed value -> a0 = dst end ("-" for negatives) */
+p_bufsigned:
+    bgez a1, 1f
+    li t0, 45
+    sb t0, 0(a0)
+    addi a0, a0, 1
+    neg a1, a1
+1:  j p_bufdec
+
+/* worker: count forever in its data page, no system calls */
+.globl p_worker
+p_worker:
+    mv s11, a0
+    ld s0, 0(s11)
+.globl p_worker_loop
+p_worker_loop:
+    addi s0, s0, 1
+    sd s0, 0(s11)
+    j p_worker_loop
+
+/* hello: one line, then exit(0) */
+.globl p_hello
+p_hello:
+    mv s11, a0
+    mv s10, a1
+    addi a0, s11, D_OUT
+    la a1, p_hello_msg
+    call p_bufstr
+    mv a1, s10
+    call p_bufdec
+    la a1, p_nl
+    call p_bufstr
+    OUT_FLUSH
+    li a0, 0
+    li a7, SYS_EXIT
+    ecall
+1:  j 1b
+
+/* counter: three lines one second apart, then exit(0) */
+.globl p_counter
+p_counter:
+    mv s11, a0
+    mv s10, a1
+    li s9, 1
+1:  addi a0, s11, D_OUT
+    la a1, p_pid_prefix
+    call p_bufstr
+    mv a1, s10
+    call p_bufdec
+    la a1, p_count_mid
+    call p_bufstr
+    mv a1, s9
+    call p_bufdec
+    la a1, p_nl
+    call p_bufstr
+    OUT_FLUSH
+    li a0, 1000
+    li a7, SYS_SLEEP
+    ecall
+    addi s9, s9, 1
+    li t0, 4
+    bltu s9, t0, 1b
+    li a0, 0
+    li a7, SYS_EXIT
+    ecall
+2:  j 2b
+
+/* crash: announce, then store into B's data page (unmapped here) */
+.globl p_crash
+p_crash:
+    mv s11, a0
+    mv s10, a1
+    addi a0, s11, D_OUT
+    la a1, p_crash_msg1
+    call p_bufstr
+    mv a1, s10
+    call p_bufdec
+    la a1, p_crash_msg2
+    call p_bufstr
+    OUT_FLUSH
+    li t0, B_DATA
+    li t1, 0x4343434343434343
+.globl p_crash_store
+p_crash_store:
+    sd t1, 0(t0)
+1:  j 1b
+
+/* memcheck (test program): data and stack pages must arrive all zero;
+ * result at data+0x10 (1 clean, 0xbad dirty), then dirty both pages with
+ * 0xa5 so a later owner would see them if the kernel did not clear them. */
+.globl p_memcheck
+p_memcheck:
+    mv s11, a0
+    li s0, 1
+    mv t0, s11
+    li t2, 512
+1:  ld t1, 0(t0)
+    bnez t1, 2f
+    addi t0, t0, 8
+    addi t2, t2, -1
+    bnez t2, 1b
+    j 3f
+2:  li s0, 0xbad
+3:  li t0, 0x2000                    /* stack page = data page + 0x2000 */
+    add t0, t0, s11
+    li t2, 512
+4:  ld t1, 0(t0)
+    bnez t1, 5f
+    addi t0, t0, 8
+    addi t2, t2, -1
+    bnez t2, 4b
+    j 6f
+5:  li s0, 0xbad
+6:  li t1, 0xa5a5a5a5a5a5a5a5
+    addi t0, s11, 0x40               /* keep 0x00..0x3f for results */
+    li t2, 0x1000
+    add t2, t2, s11
+7:  sd t1, 0(t0)
+    addi t0, t0, 8
+    bltu t0, t2, 7b
+    li t0, 0x2000
+    add t0, t0, s11
+    li t2, 0x3000
+    add t2, t2, s11
+8:  sd t1, 0(t0)
+    addi t0, t0, 8
+    bltu t0, t2, 8b
+    sd s0, 0x10(s11)
+    li t0, 1
+    sd t0, 0x18(s11)
+.globl p_memcheck_done
+p_memcheck_done:
+9:  li a0, 1000
+    li a7, SYS_SLEEP
+    ecall
+    j 9b
+
+/* ---------------------------------------------------------------- shell */
+/* proto> (protoos.mode=shell, process A). Registers kept across commands:
+ *   s11 data page, s0 line length, s1 bytes in the current read chunk,
+ *   s2 next index in it, s4 = 1 if the previous byte was CR. */
+.macro SH_CMD name, handler
+    addi a0, s11, D_LINE
+    la a1, \name
+    call p_streq
+    bnez a0, \handler
+.endm
+
+.globl p_shell
+p_shell:
+    mv s11, a0
+    li s1, 0
+    li s2, 0
+    li s4, 0
+    WRITE_RANGE p_sh_banner, p_sh_banner_end
+.globl p_sh_prompt
+p_sh_prompt:
+    WRITE_RANGE p_sh_prompt_str, p_sh_prompt_end
+    li s0, 0
+p_sh_char:
+    bltu s2, s1, 1f
+    li a0, 0                        /* chunk used up: wait for input */
+    addi a1, s11, D_CHUNK
+    li a2, 16
+    li a7, SYS_READ
+.globl p_shell_read_ecall
+p_shell_read_ecall:
+    ecall
+    blez a0, p_sh_fatal
+    mv s1, a0
+    li s2, 0
+1:  addi t0, s11, D_CHUNK
+    add t0, t0, s2
+    lbu s3, 0(t0)
+    addi s2, s2, 1
+    mv t1, s4
+    li s4, 0
+    li t0, 13
+    beq s3, t0, p_sh_cr
+    li t0, 10
+    bne s3, t0, 2f
+    bnez t1, p_sh_char              /* LF right after CR */
+    j p_sh_enter
+p_sh_cr:
+    li s4, 1
+    j p_sh_enter
+2:  li t0, 127
+    beq s3, t0, p_sh_bs
+    li t0, 8
+    beq s3, t0, p_sh_bs
+    li t0, 32
+    bltu s3, t0, p_sh_char          /* other control bytes: ignored */
+    li t0, 126
+    bgtu s3, t0, p_sh_char          /* non-ASCII: ignored */
+    li t0, LINE_MAX
+    bgeu s0, t0, p_sh_char          /* line full: ignored */
+    addi a1, s11, D_LINE
+    add a1, a1, s0
+    sb s3, 0(a1)
+    addi s0, s0, 1
+    li a0, 1                        /* echo it */
+    li a2, 1
+    li a7, SYS_WRITE
+    ecall
+    j p_sh_char
+p_sh_bs:
+    beqz s0, p_sh_char
+    addi s0, s0, -1
+    WRITE_RANGE p_sh_bs_seq, p_sh_bs_seq_end
+    j p_sh_char
+p_sh_fatal:
+    li a0, 0xbad
+    li a7, SYS_EXIT
+    ecall
+3:  j 3b
+
+p_sh_enter:
+    WRITE_RANGE p_sh_nl, p_sh_nl_end
+    addi t0, s11, D_LINE
+    add t0, t0, s0
+    sb zero, 0(t0)
+    beqz s0, p_sh_prompt
+    SH_CMD p_sh_c_help, p_sh_help
+    SH_CMD p_sh_c_ps, p_sh_ps
+    SH_CMD p_sh_c_uptime, p_sh_uptime
+    SH_CMD p_sh_c_attack, p_sh_attack
+    SH_CMD p_sh_c_mem, p_sh_mem
+    addi a0, s11, D_LINE
+    la a1, p_sh_c_run
+    call p_strprefix
+    bnez a0, p_sh_run
+    addi a0, s11, D_LINE
+    la a1, p_sh_c_kill
+    call p_strprefix
+    bnez a0, p_sh_kill
+    addi a0, s11, D_LINE
+    la a1, p_sh_c_echo
+    call p_strprefix
+    beqz a0, p_sh_unknown
+    lbu t0, 0(a0)
+    beqz t0, p_sh_echo              /* "echo" alone */
+    li t1, 32
+    bne t0, t1, p_sh_unknown        /* "echoX..." */
+    addi a0, a0, 1
+p_sh_echo:
+    mv a1, a0
+    addi a0, s11, D_OUT
+    call p_bufstr
+    la a1, p_nl
+    call p_bufstr
+    j p_sh_out
+p_sh_unknown:
+    WRITE_RANGE p_sh_unknown_msg, p_sh_unknown_msg_end
+    j p_sh_prompt
+p_sh_help:
+    WRITE_RANGE p_sh_help_msg, p_sh_help_msg_end
+    j p_sh_prompt
+
+/* "uptime: <s>.<cc> s" from the microsecond counter */
+p_sh_uptime:
+    li a7, SYS_UPTIME
+    ecall
+    mv s5, a0
+    addi a0, s11, D_OUT
+    la a1, p_sh_up_prefix
+    call p_bufstr
+    li t0, 1000000
+    divu a1, s5, t0
+    call p_bufdec
+    la a1, p_sh_dot
+    call p_bufstr
+    li t0, 10000
+    divu t1, s5, t0
+    li t0, 100
+    remu s6, t1, t0
+    li t0, 10
+    bgeu s6, t0, 1f
+    la a1, p_sh_zero
+    call p_bufstr
+1:  mv a1, s6
+    call p_bufdec
+    la a1, p_sh_secs
+    call p_bufstr
+    j p_sh_out
+
+/* "free pages: <free> of <total>" */
+p_sh_mem:
+    li a7, SYS_MEMINFO
+    ecall
+    mv s5, a0
+    mv s6, a1
+    addi a0, s11, D_OUT
+    la a1, p_sh_mem_prefix
+    call p_bufstr
+    mv a1, s5
+    call p_bufdec
+    la a1, p_sh_of
+    call p_bufstr
+    mv a1, s6
+    call p_bufdec
+    la a1, p_nl
+    call p_bufstr
+    j p_sh_out
+
+/* ps: one line per used slot, "pid <n> <slot letter> <STATE> preempted
+ * <p> syscalls <s>", plus the program name for run-time processes */
+p_sh_ps:
+    li s5, 0
+1:  mv a0, s5
+    addi a1, s11, D_INFO
+    li a7, SYS_SLOTINFO
+    ecall
+    bnez a0, p_sh_fatal
+    ld s6, D_INFO+8(s11)            /* state */
+    beqz s6, 9f                     /* unused slot */
+    addi a0, s11, D_OUT
+    la a1, p_sh_pid
+    call p_bufstr
+    ld a1, D_INFO+0(s11)
+    call p_bufdec
+    li t0, 32
+    sb t0, 0(a0)
+    addi t1, s5, 65                 /* slot letter 'A' + slot */
+    sb t1, 1(a0)
+    sb t0, 2(a0)
+    addi a0, a0, 3
+    li t0, 6
+    bleu s6, t0, 2f
+    li s6, 0
+2:  la a1, p_sh_states
+    mv a2, s6
+    call p_nth
+    call p_bufstr
+    la a1, p_sh_preempted
+    call p_bufstr
+    ld a1, D_INFO+24(s11)
+    call p_bufdec
+    la a1, p_sh_syscalls
+    call p_bufstr
+    ld a1, D_INFO+32(s11)
+    call p_bufdec
+    li t0, 2
+    bltu s5, t0, 3f                 /* boot processes: v1.2 format */
+    ld a2, D_INFO+16(s11)           /* program id */
+    li t0, 5
+    bleu a2, t0, 4f
+    li a2, 0
+4:  li t0, 32
+    sb t0, 0(a0)
+    addi a0, a0, 1
+    la a1, p_sh_progs
+    call p_nth
+    call p_bufstr
+3:  la a1, p_nl
+    call p_bufstr
+    OUT_FLUSH
+9:  addi s5, s5, 1
+    li t0, 8
+    bltu s5, t0, 1b
+    j p_sh_prompt
+
+/* run <program>: spawn it by name */
+p_sh_run:
+    mv s7, a0                       /* program name */
+    la s8, p_sh_progs
+    li s6, 0
+1:  addi s6, s6, 1
+    li t0, 5
+    bgtu s6, t0, 3f
+2:  lbu t0, 0(s8)                   /* next name in the list */
+    addi s8, s8, 1
+    bnez t0, 2b
+    mv a0, s7
+    mv a1, s8
+    call p_streq
+    beqz a0, 1b
+    mv a0, s6
+    li a7, SYS_SPAWN
+    ecall
+    mv s5, a0
+    addi a0, s11, D_OUT
+    blez s5, 4f
+    la a1, p_sh_started
+    call p_bufstr
+    mv a1, s5
+    call p_bufdec
+    la a1, p_nl
+    call p_bufstr
+    j p_sh_out
+4:  la a1, p_sh_run_failed
+    call p_bufstr
+    mv a1, s5
+    call p_bufsigned
+    la a1, p_nl
+    call p_bufstr
+    j p_sh_out
+3:  WRITE_RANGE p_sh_run_usage, p_sh_run_usage_end
+    j p_sh_prompt
+
+/* kill <pid>: end it and report how many pages came back */
+p_sh_kill:
+    call p_atoi
+    bltz a0, 3f
+    mv s7, a0
+    li a7, SYS_MEMINFO
+    ecall
+    mv s6, a0
+    mv a0, s7
+    li a7, SYS_KILL
+    ecall
+    mv s5, a0
+    bnez s5, 4f
+    li a7, SYS_MEMINFO
+    ecall
+    sub s6, a0, s6
+    addi a0, s11, D_OUT
+    la a1, p_sh_killed
+    call p_bufstr
+    mv a1, s7
+    call p_bufdec
+    la a1, p_sh_killed2
+    call p_bufstr
+    mv a1, s6
+    call p_bufdec
+    la a1, p_sh_returned
+    call p_bufstr
+    j p_sh_out
+4:  addi a0, s11, D_OUT
+    la a1, p_sh_kill_failed
+    call p_bufstr
+    mv a1, s5
+    call p_bufsigned
+    la a1, p_nl
+    call p_bufstr
+    j p_sh_out
+3:  WRITE_RANGE p_sh_kill_usage, p_sh_kill_usage_end
+    j p_sh_prompt
+
+/* Ask the kernel to print B's memory: the PT walk of A's root refuses. */
+p_sh_attack:
+    WRITE_RANGE p_sh_att_msg, p_sh_att_msg_end
+    li a0, 1
+    li a1, B_DATA
+    li a2, 8
+    li a7, SYS_WRITE
+    ecall
+    mv a1, a0
+    addi a0, s11, D_OUT
+    mv s5, a1
+    la a1, p_sh_att_ans
+    call p_bufstr
+    mv a1, s5
+    call p_bufsigned
+    la a1, p_sh_att_tail
+    call p_bufstr
+    j p_sh_out
+
+p_sh_out:
+    OUT_FLUSH
+    j p_sh_prompt
+
+/* a0, a1: NUL-terminated strings -> a0 = 1 if equal, else 0 */
+p_streq:
+1:  lbu t0, 0(a0)
+    lbu t1, 0(a1)
+    bne t0, t1, 2f
+    beqz t0, 3f
+    addi a0, a0, 1
+    addi a1, a1, 1
+    j 1b
+2:  li a0, 0
+    ret
+3:  li a0, 1
+    ret
+
+/* a0 = string, a1 = prefix -> a0 = first byte after the prefix, or 0 */
+p_strprefix:
+1:  lbu t1, 0(a1)
+    beqz t1, 2f
+    lbu t0, 0(a0)
+    bne t0, t1, 3f
+    addi a0, a0, 1
+    addi a1, a1, 1
+    j 1b
+2:  ret
+3:  li a0, 0
+    ret
+
+/* a1 = list of NUL-terminated strings, a2 = index -> a1 = that string */
+p_nth:
+1:  beqz a2, 3f
+2:  lbu t0, 0(a1)
+    addi a1, a1, 1
+    bnez t0, 2b
+    addi a2, a2, -1
+    j 1b
+3:  ret
+
+/* a0 = decimal string (1..9 digits, nothing else) -> a0 = value, or -1 */
+p_atoi:
+    li t2, 0
+    li t3, 0
+1:  lbu t0, 0(a0)
+    beqz t0, 2f
+    addi t0, t0, -48
+    li t1, 10
+    bgeu t0, t1, 3f
+    mul t2, t2, t1
+    add t2, t2, t0
+    addi a0, a0, 1
+    addi t3, t3, 1
+    li t1, 9
+    bgtu t3, t1, 3f
+    j 1b
+2:  beqz t3, 3f
+    mv a0, t2
+    ret
+3:  li a0, -1
+    ret
+
+p_nl:           .asciz "\n"
+p_hello_msg:    .asciz "hello from pid "
+p_pid_prefix:   .asciz "pid "
+p_count_mid:    .asciz ": count "
+p_crash_msg1:   .asciz "crash: pid "
+p_crash_msg2:   .asciz " writes into pid 2's memory...\n"
+p_sh_banner:    .ascii "ProtoOS shell: process A in U-mode, B works in the background. Type help.\n"
+p_sh_banner_end:
+p_sh_prompt_str: .ascii "proto> "
+p_sh_prompt_end:
+p_sh_bs_seq:    .ascii "\b \b"
+p_sh_bs_seq_end:
+p_sh_nl:        .ascii "\n"
+p_sh_nl_end:
+p_sh_help_msg:  .ascii "commands: help, ps, uptime, echo <text>, attack\n"
+                .ascii "processes: run <worker|hello|counter|crash>, kill <pid>, mem\n"
+p_sh_help_msg_end:
+p_sh_unknown_msg: .ascii "unknown command (try help)\n"
+p_sh_unknown_msg_end:
+p_sh_run_usage: .ascii "run: programs are worker, hello, counter, crash\n"
+p_sh_run_usage_end:
+p_sh_kill_usage: .ascii "kill: usage: kill <pid>\n"
+p_sh_kill_usage_end:
+p_sh_att_msg:   .ascii "attack: asking the kernel to print 8 bytes of B's memory...\n"
+p_sh_att_msg_end:
+p_sh_c_help:    .asciz "help"
+p_sh_c_ps:      .asciz "ps"
+p_sh_c_uptime:  .asciz "uptime"
+p_sh_c_attack:  .asciz "attack"
+p_sh_c_mem:     .asciz "mem"
+p_sh_c_echo:    .asciz "echo"
+p_sh_c_run:     .asciz "run "
+p_sh_c_kill:    .asciz "kill "
+p_sh_up_prefix: .asciz "uptime: "
+p_sh_dot:       .asciz "."
+p_sh_zero:      .asciz "0"
+p_sh_secs:      .asciz " s\n"
+p_sh_mem_prefix: .asciz "free pages: "
+p_sh_of:        .asciz " of "
+p_sh_pid:       .asciz "pid "
+p_sh_started:   .asciz "started pid "
+p_sh_run_failed: .asciz "run failed: "
+p_sh_killed:    .asciz "killed pid "
+p_sh_killed2:   .asciz ", "
+p_sh_returned:  .asciz " pages returned\n"
+p_sh_kill_failed: .asciz "kill failed: "
+p_sh_states:    .asciz "UNUSED"
+                .asciz "READY"
+                .asciz "RUNNING"
+                .asciz "EXITED"
+                .asciz "FAULTED"
+                .asciz "SLEEPING"
+                .asciz "BLOCKED"
+/* index = program id (src/proc.h); 0 is a placeholder */
+p_sh_progs:     .asciz "-"
+                .asciz "worker"
+                .asciz "hello"
+                .asciz "counter"
+                .asciz "crash"
+                .asciz "memcheck"
+p_sh_preempted: .asciz " preempted "
+p_sh_syscalls:  .asciz " syscalls "
+p_sh_att_ans:   .asciz "kernel answered "
+p_sh_att_tail:  .asciz ": access denied, B's memory is not mapped for A\n"
 .balign 4
 
 /* ===================================================================== */

@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "mem.h"
 #include "proc.h"
 #include "vm.h"
 
@@ -99,13 +100,14 @@ static _Noreturn void console_run(void) {
 }
 /* Scenarios select user entry points and logging only; the kernel image and
  * its privilege/MMU policy are identical for Normal and every Test. */
-extern char __user_a_text[], __user_b_text[];
+extern char __user_a_text[], __user_b_text[], __user_prog_text[], __user_prog_text_end[];
 extern char a_worker[], a_getpid[], a_yield[], a_exit[], a_cross_write[], a_fault[],
     a_kernel_read[], a_csr[], a_bad_syscall[], a_idle_exit[], a_idle_fault[];
 extern char b_worker[], b_getpid[], b_yield[], b_idle_exit[];
 extern char a_write[], a_write_bad[], a_sleep[], a_sleep_all[], a_demo[];
 extern char b_sleep_all[], b_demo[];
-extern char a_shell[], a_read[], a_uptime[], a_read_bad[], a_flood[];
+extern char p_shell[], a_read[], a_uptime[], a_read_bad[], a_flood[];
+extern char a_mem_test[], a_spawn_test[], a_kill_test[], a_multi_test[], a_spawn_bad[];
 enum scenario_kind { SCENARIO_NORMAL, SCENARIO_TEST, SCENARIO_BOOT, SCENARIO_BOOT_TRAP,
     SCENARIO_DEMO, SCENARIO_SHELL };
 struct scenario { const char *args; enum scenario_kind kind; char *a, *b; };
@@ -132,19 +134,28 @@ static const struct scenario scenarios[]={
     {"protoos.test=sleep",        SCENARIO_TEST, a_sleep, b_worker},
     {"protoos.test=sleep-all",    SCENARIO_TEST, a_sleep_all, b_sleep_all},
     /* v1.2 */
-    {"protoos.mode=shell",        SCENARIO_SHELL, a_shell, b_worker},
+    {"protoos.mode=shell",        SCENARIO_SHELL, p_shell, b_worker},
     {"protoos.test=read",         SCENARIO_TEST, a_read, b_worker},
     {"protoos.test=uptime",       SCENARIO_TEST, a_uptime, b_worker},
     {"protoos.test=read-bad",     SCENARIO_TEST, a_read_bad, b_worker},
     {"protoos.test=read-flood",   SCENARIO_TEST, a_flood, b_worker},
+    /* v1.3 */
+    {"protoos.test=mem",          SCENARIO_TEST, a_mem_test, b_worker},
+    {"protoos.test=spawn",        SCENARIO_TEST, a_spawn_test, b_worker},
+    {"protoos.test=kill",         SCENARIO_TEST, a_kill_test, b_worker},
+    {"protoos.test=multi",        SCENARIO_TEST, a_multi_test, b_worker},
+    {"protoos.test=spawn-bad",    SCENARIO_TEST, a_spawn_bad, b_worker},
 };
 static const struct scenario *find_scenario(const char *args) {
     for(size_t i=0;i<sizeof(scenarios)/sizeof(scenarios[0]);++i)
         if(str_equal(args,scenarios[i].args)) return &scenarios[i];
     return 0;
 }
-/* User code runs at base + its offset inside the one-page user text image. */
+/* User code runs at base + its offset inside the one-page user text image,
+ * or (v1.3) in the shared program pages at PROG_VA. */
 static uint64_t user_va(uint64_t base, const char *text, const char *entry) {
+    if (entry >= __user_prog_text && entry < __user_prog_text_end)
+        return PROG_VA + (uint64_t)(entry - __user_prog_text);
     return base + (uint64_t)(entry - text);
 }
 
@@ -174,7 +185,12 @@ void kernel_main(uint64_t hart, uintptr_t dtb) {
     const struct scenario *s=find_scenario(boot_configuration.bootargs);
     if(!s) { uart_puts("KERNEL_PANIC unknown bootargs\n"); halt(); }
     if(boot_configuration.timebase_hz<100) kernel_panic("timebase too low");
-    int vm_err=vm_init();
+    /* v1.3 page pool: up to the 2 MiB boundary below the device tree. */
+    uint64_t pool_end=(uint64_t)dtb & ~(uint64_t)0x1fffff;
+    if(pool_end>MEM_RAM_END) pool_end=MEM_RAM_END;
+    if(pool_end<=MEM_POOL_START) kernel_panic("no memory for the page pool");
+    mem_init(pool_end);
+    int vm_err=vm_init(pool_end);
     if(vm_err) { uart_puts("KERNEL_PANIC vm_init failed code="); uart_dec((uint64_t)vm_err); uart_puts("\n"); halt(); }
     vm_switch(vm_kernel_satp);
     __asm__ volatile("csrr %0, satp":"=r"(satp));

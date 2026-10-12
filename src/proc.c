@@ -1,15 +1,23 @@
 #include "kernel.h"
 #include "input.h"
+#include "mem.h"
 #include "proc.h"
 #include "sbi.h"
 #include "sv39.h"
 
-struct process procs[PROC_COUNT];
+struct process procs[PROC_MAX];
 struct process *current;
 struct sched_stats sched;
 
-static const char proc_name[PROC_COUNT] = { 'A', 'B' };
 #define HEARTBEAT_TICKS 100u
+
+/* v1.3 built-in programs in the shared program pages (src/user.S). */
+extern char __user_prog_text[];
+extern char p_worker[], p_hello[], p_counter[], p_crash[], p_memcheck[];
+static char *const programs[PROG_IDS] = {
+    [PROG_WORKER] = p_worker, [PROG_HELLO] = p_hello, [PROG_COUNTER] = p_counter,
+    [PROG_CRASH] = p_crash, [PROG_MEMCHECK] = p_memcheck,
+};
 
 static const char *state_name(uint64_t s)
 {
@@ -26,8 +34,14 @@ static const char *state_name(uint64_t s)
 
 static void log_proc(const struct process *p)
 {
-    uart_putc(proc_name[p - procs]);
+    uart_putc((char)('A' + (p - procs)));      /* slot letter: A, B, C, ... */
     uart_puts("(pid="); uart_dec(p->pid); uart_puts(")");
+}
+
+static int alive(const struct process *p)
+{
+    return p->state == PROC_READY || p->state == PROC_RUNNING ||
+           p->state == PROC_SLEEPING || p->state == PROC_BLOCKED;
 }
 
 /* Return to U-mode with interrupts taken in U, no SUM/MXR, FP/V off so any
@@ -59,7 +73,8 @@ __attribute__((noinline)) _Noreturn void sched_idle(void)
     current = 0;
     sched.idle_entered = 1;
     uart_puts("IDLE no runnable processes:");
-    for (unsigned i = 0; i < PROC_COUNT; ++i) {
+    for (unsigned i = 0; i < PROC_MAX; ++i) {
+        if (procs[i].state == PROC_UNUSED) continue;
         uart_puts(" "); log_proc(&procs[i]);
         uart_puts("="); uart_puts(state_name(procs[i].state));
     }
@@ -69,7 +84,7 @@ __attribute__((noinline)) _Noreturn void sched_idle(void)
 
 static int reader_blocked(void)
 {
-    for (unsigned i = 0; i < PROC_COUNT; ++i)
+    for (unsigned i = 0; i < PROC_MAX; ++i)
         if (procs[i].state == PROC_BLOCKED) return 1;
     return 0;
 }
@@ -133,7 +148,7 @@ static struct trap_frame *schedule(const char *reason)
     for (;;) {
         uint64_t now = csr_read(time), next_wake = UINT64_MAX;
         int blocked = 0;
-        for (unsigned i = 0; i < PROC_COUNT; ++i) {
+        for (unsigned i = 0; i < PROC_MAX; ++i) {
             struct process *p = &procs[i];
             if (p->state == PROC_BLOCKED) {
                 if (input.count) p->state = PROC_READY;
@@ -143,9 +158,9 @@ static struct trap_frame *schedule(const char *reason)
             if (p->wake_time <= now) p->state = PROC_READY;
             else if (p->wake_time < next_wake) next_wake = p->wake_time;
         }
-        size_t start = current ? (size_t)(current - procs) : PROC_COUNT - 1;
-        for (size_t k = 1; k <= PROC_COUNT; ++k) {
-            struct process *p = &procs[(start + k) % PROC_COUNT];
+        size_t start = current ? (size_t)(current - procs) : PROC_MAX - 1;
+        for (size_t k = 1; k <= PROC_MAX; ++k) {
+            struct process *p = &procs[(start + k) % PROC_MAX];
             if (p->state != PROC_READY) continue;
             /* Another reader took the input first: wait again. */
             if (p->read_pending && !input.count) { p->state = PROC_BLOCKED; blocked = 1; continue; }
@@ -158,13 +173,34 @@ static struct trap_frame *schedule(const char *reason)
     }
 }
 
+/* v1.3: give back every page of a run-time process that has ended. Its
+ * root may be the one installed (exit, fault): switch to the kernel root
+ * first, so no freed table is ever in use. */
+static void reclaim(struct process *p)
+{
+    if (!p->npages) return;
+    if (p == current || csr_read(satp) == p->satp) {
+        vm_switch(vm_kernel_satp);
+        current = 0;
+    }
+    vm_destroy(p->pages);
+    p->read_pending = 0;
+    if (sched.verbose) {
+        uart_puts("RECLAIM "); log_proc(p);
+        uart_puts(" pages="); uart_dec(p->npages);
+        uart_puts(" free="); uart_dec(mem.free); uart_puts("\n");
+    }
+    p->npages = 0;
+    sched.reclaimed++;
+}
+
 /* Copy a validated user buffer to the console. The range check walks the
  * caller's own page table first, so the SUM window never faults. */
 static uint64_t sys_write(struct process *p, uint64_t fd, uint64_t va, uint64_t len)
 {
     if (fd != 1) return SYS_EBADF;
     if (len > WRITE_MAX) return SYS_EINVAL;
-    if (!vm_user_range_ok((unsigned)(p - procs), va, len, SV39_PTE_R)) return SYS_EFAULT;
+    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R)) return SYS_EFAULT;
     csr_set(sstatus, SSTATUS_SUM);
     for (uint64_t i = 0; i < len; ++i) {
         char c = *(volatile const char *)(uintptr_t)(va + i);
@@ -186,7 +222,7 @@ static struct trap_frame *sys_read(struct process *p, struct trap_frame *f)
     uint64_t fd = f->x[10], va = f->x[11], len = f->x[12];
     if (fd != 0) { f->x[10] = SYS_EBADF; return f; }
     if (len > READ_MAX) { f->x[10] = SYS_EINVAL; return f; }
-    if (!vm_user_range_ok((unsigned)(p - procs), va, len, SV39_PTE_R | SV39_PTE_W)) {
+    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R | SV39_PTE_W)) {
         f->x[10] = SYS_EFAULT;
         return f;
     }
@@ -213,20 +249,102 @@ static uint64_t uptime_us(void)
     return d / tb * 1000000u + d % tb * 1000000u / tb;
 }
 
+/* Copy words to a user buffer the caller validated as U+R+W (bytewise:
+ * the buffer may be unaligned). */
+static void copy_words_to_user(uint64_t va, const uint64_t *w, unsigned words)
+{
+    csr_set(sstatus, SSTATUS_SUM);
+    for (unsigned i = 0; i < words * 8u; ++i)
+        *(volatile uint8_t *)(uintptr_t)(va + i) = (uint8_t)(w[i / 8] >> (8 * (i % 8)));
+    csr_clear(sstatus, SSTATUS_SUM);
+}
+
+static struct process *find_pid(uint64_t pid)
+{
+    for (unsigned i = 0; i < PROC_MAX; ++i)
+        if (procs[i].state != PROC_UNUSED && procs[i].pid == pid) return &procs[i];
+    return 0;
+}
+
 /* procinfo(pid, buf): state, preemptions, syscalls, dispatches of any pid,
  * written as 4 little-endian words into the caller's writable buffer. */
 static uint64_t sys_procinfo(struct process *p, uint64_t pid, uint64_t va)
 {
-    if (pid < 1 || pid > PROC_COUNT) return SYS_EINVAL;
-    if (!vm_user_range_ok((unsigned)(p - procs), va, PROCINFO_WORDS * 8u,
-            SV39_PTE_R | SV39_PTE_W))
+    const struct process *q = find_pid(pid);
+    if (!q) return SYS_EINVAL;
+    if (!vm_user_range_ok(p->satp, va, PROCINFO_WORDS * 8u, SV39_PTE_R | SV39_PTE_W))
         return SYS_EFAULT;
-    const struct process *q = &procs[pid - 1];
     const uint64_t w[PROCINFO_WORDS] = { q->state, q->preemptions, q->syscalls, q->dispatches };
-    csr_set(sstatus, SSTATUS_SUM);
-    for (unsigned i = 0; i < PROCINFO_WORDS * 8u; ++i)   /* bytewise: buf may be unaligned */
-        *(volatile uint8_t *)(uintptr_t)(va + i) = (uint8_t)(w[i / 8] >> (8 * (i % 8)));
-    csr_clear(sstatus, SSTATUS_SUM);
+    copy_words_to_user(va, w, PROCINFO_WORDS);
+    return 0;
+}
+
+/* v1.3 slotinfo(slot, buf): pid, state, program, preemptions, syscalls and
+ * pages owned of process-table slot 0..7 (state 0 = unused slot). */
+static uint64_t sys_slotinfo(struct process *p, uint64_t slot, uint64_t va)
+{
+    if (slot >= PROC_MAX) return SYS_EINVAL;
+    if (!vm_user_range_ok(p->satp, va, SLOTINFO_WORDS * 8u, SV39_PTE_R | SV39_PTE_W))
+        return SYS_EFAULT;
+    const struct process *q = &procs[slot];
+    const uint64_t w[SLOTINFO_WORDS] = { q->pid, q->state, q->prog, q->preemptions,
+                                         q->syscalls, q->npages };
+    copy_words_to_user(va, w, SLOTINFO_WORDS);
+    return 0;
+}
+
+/* v1.3 spawn(program): a new process in a free slot (unused, or ended and
+ * reclaimed) with a fresh address space. Returns its pid. */
+static uint64_t sys_spawn(uint64_t prog)
+{
+    if (prog == PROG_NONE || prog >= PROG_IDS) return SYS_EINVAL;
+    struct process *q = 0;
+    for (unsigned i = PROC_STATIC; i < PROC_MAX && !q; ++i)
+        if (procs[i].state == PROC_UNUSED ||
+            (!alive(&procs[i]) && procs[i].npages == 0)) q = &procs[i];
+    if (!q) return SYS_EAGAIN;
+    unsigned slot = (unsigned)(q - procs);
+    uint64_t base = USER_SLOT_BASE(slot), pages[VM_PROC_PAGES];
+    uint64_t satp = vm_create(base, pages);
+    if (!satp) return SYS_ENOMEM;
+    volatile uint64_t *w = (volatile uint64_t *)q;     /* forget the previous owner */
+    for (size_t i = 0; i < sizeof(*q) / 8u; ++i) w[i] = 0;
+    q->pid = sched.next_pid++;
+    q->prog = prog;
+    q->satp = satp;
+    q->npages = VM_PROC_PAGES;
+    for (unsigned i = 0; i < VM_PROC_PAGES; ++i) q->pages[i] = pages[i];
+    q->frame.sepc = PROG_VA + (uint64_t)(programs[prog] - __user_prog_text);
+    q->frame.x[2] = base + USER_STACK_TOP_OFF;
+    q->frame.x[10] = base + USER_DATA_OFF;      /* a0: own data page */
+    q->frame.x[11] = q->pid;                    /* a1: own pid */
+    q->state = PROC_READY;
+    sched.spawned++;
+    if (sched.verbose) {
+        uart_puts("SPAWN "); log_proc(q);
+        uart_puts(" prog="); uart_dec(prog);
+        uart_puts(" satp="); uart_hex(satp);
+        uart_puts(" free="); uart_dec(mem.free); uart_puts("\n");
+    }
+    return q->pid;
+}
+
+/* v1.3 kill(pid): end a live run-time process and reclaim its pages.
+ * The boot processes and the caller itself cannot be killed (use exit). */
+static uint64_t sys_kill(struct process *p, uint64_t pid)
+{
+    struct process *q = find_pid(pid);
+    if (!q || !alive(q)) return SYS_ESRCH;
+    if (q == p || q - procs < (ptrdiff_t)PROC_STATIC) return SYS_EPERM;
+    q->state = PROC_EXITED;
+    q->exit_code = KILLED_EXIT_CODE;
+    q->killed = 1;
+    sched.killed++;
+    if (sched.verbose) {
+        uart_puts("KILL "); log_proc(q);
+        uart_puts(" by "); log_proc(p); uart_puts("\n");
+    }
+    reclaim(q);
     return 0;
 }
 
@@ -251,6 +369,19 @@ __attribute__((noinline)) struct trap_frame *proc_syscall(struct process *p,
     case SYS_PROCINFO:
         f->x[10] = sys_procinfo(p, f->x[10], f->x[11]);
         return f;
+    case SYS_SPAWN:
+        f->x[10] = sys_spawn(f->x[10]);
+        return f;
+    case SYS_KILL:
+        f->x[10] = sys_kill(p, f->x[10]);
+        return f;
+    case SYS_MEMINFO:
+        f->x[10] = mem.free;
+        f->x[11] = mem.pages;
+        return f;
+    case SYS_SLOTINFO:
+        f->x[10] = sys_slotinfo(p, f->x[10], f->x[11]);
+        return f;
     case SYS_YIELD:
         p->yields++;
         f->x[10] = 0;
@@ -271,6 +402,7 @@ __attribute__((noinline)) struct trap_frame *proc_syscall(struct process *p,
         p->state = PROC_EXITED;
         uart_puts("EXIT "); log_proc(p);
         uart_puts(" code="); uart_dec(p->exit_code); uart_puts("\n");
+        reclaim(p);
         return schedule("exit");
     default:
         /* Documented policy: unknown numbers return -ENOSYS, process lives. */
@@ -297,6 +429,7 @@ __attribute__((noinline)) struct trap_frame *proc_fault(struct process *p,
     uart_puts(" sepc="); uart_hex(f->sepc);
     uart_puts(" stval="); uart_hex(f->stval);
     uart_puts(" -> FAULTED\n");
+    reclaim(p);
     return schedule("fault");
 }
 
@@ -304,7 +437,8 @@ static void heartbeat(void)
 {
     uart_puts("HEARTBEAT ticks="); uart_dec(sched.timer_ticks);
     uart_puts(" switches="); uart_dec(sched.switches);
-    for (unsigned i = 0; i < PROC_COUNT; ++i) {
+    for (unsigned i = 0; i < PROC_MAX; ++i) {
+        if (procs[i].state == PROC_UNUSED) continue;
         uart_puts(" "); log_proc(&procs[i]);
         uart_puts(".preempt="); uart_dec(procs[i].preemptions);
     }
@@ -340,18 +474,21 @@ struct trap_frame *trap_from_user(struct trap_frame *f)
 
 _Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int heartbeat_on)
 {
-    static const uint64_t bases[PROC_COUNT] = { USER_A_BASE, USER_B_BASE };
-    const uint64_t entries[PROC_COUNT] = { entry_a, entry_b };
+    static const uint64_t bases[PROC_STATIC] = { USER_A_BASE, USER_B_BASE };
+    const uint64_t entries[PROC_STATIC] = { entry_a, entry_b };
     /* 10 ms quantum from the DT timebase (QEMU virt: 10 MHz). */
     sched.quantum_ticks = boot_configuration.timebase_hz / 100u;
     sched.verbose = (uint64_t)verbose;
     sched.heartbeat = (uint64_t)heartbeat_on;
-    for (unsigned i = 0; i < PROC_COUNT; ++i) {
+    sched.next_pid = PROC_STATIC + 1u;
+    for (unsigned i = 0; i < PROC_STATIC; ++i) {
         struct process *p = &procs[i];
         p->pid = i + 1;
         p->satp = vm_proc_satp[i];
         p->frame.sepc = entries[i];
         p->frame.x[2] = bases[i] + USER_STACK_TOP_OFF;
+        p->frame.x[10] = bases[i] + USER_DATA_OFF;  /* a0: own data page (v1.3) */
+        p->frame.x[11] = p->pid;                     /* a1: own pid */
         p->state = PROC_READY;
         if (verbose || heartbeat_on) {
             uart_puts("PROC "); log_proc(p);

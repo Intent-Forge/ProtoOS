@@ -15,6 +15,8 @@ typedef uint64_t sv39_pte_t;
 #define SV39_PAGE_SHIFT 12u
 #define SV39_PAGE_SIZE (UINT64_C(1) << SV39_PAGE_SHIFT)
 #define SV39_PAGE_OFFSET_MASK (SV39_PAGE_SIZE - UINT64_C(1))
+#define SV39_MEGA_SIZE (UINT64_C(1) << 21)          /* level-1 leaf, 2 MiB */
+#define SV39_MEGA_OFFSET_MASK (SV39_MEGA_SIZE - UINT64_C(1))
 #define SV39_LEVELS 3u
 #define SV39_PT_ENTRIES 512u
 #define SV39_VPN_BITS 9u

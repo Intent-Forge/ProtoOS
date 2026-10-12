@@ -36,6 +36,9 @@ NM = 'riscv64-unknown-elf-nm'
 
 A_BASE, B_BASE = 0x400000, 0x800000
 A_RANGE, B_RANGE = (A_BASE, A_BASE + 0x4000), (B_BASE, B_BASE + 0x4000)
+PROG_VA, PROG_PAGES = 0x4000000, 3          # v1.3 shared program pages
+PROG_RANGE = (PROG_VA, PROG_VA + PROG_PAGES * 0x1000)
+POOL_START = 0x80400000
 A_PATTERN, B_PATTERN = 0xa1a1a1a100000000, 0xb2b2b2b200000000
 STATE = {1: 'READY', 2: 'RUNNING', 3: 'EXITED', 4: 'FAULTED', 5: 'SLEEPING', 6: 'BLOCKED'}
 EXT = (1 << 63) | 9
@@ -68,6 +71,13 @@ MATRIX = {
     'T12': [('protoos.mode=shell', 't12')],
     'N7': [('protoos.test=read-bad', 'n7')],
     'N8': [('protoos.test=read-flood', 'n8')],
+    # v1.3 (docs/SPEC_V1_3.md)
+    'T13': [('protoos.test=mem', 't13')],
+    'T14': [('protoos.test=spawn', 't14')],
+    'T15': [('protoos.test=kill', 't15')],
+    'T16': [('protoos.test=multi', 't16')],
+    'T17': [('protoos.mode=shell', 't17')],
+    'N9': [('protoos.test=spawn-bad', 'n9')],
 }
 # Scenarios whose probe types into the UART: the serial port is a UNIX
 # socket (logged to uart.log as before) instead of a plain output file.
@@ -113,8 +123,10 @@ def load_symbols(elf):
             sym[parts[2]] = int(parts[0], 16)
     uva = {}
     for name, addr in sym.items():
-        for prefix, text, base in (('a_', '__user_a_text', A_BASE), ('b_', '__user_b_text', B_BASE)):
-            if name.startswith(prefix) and sym[text] <= addr < sym[text] + 0x1000:
+        for prefix, text, base, size in (('a_', '__user_a_text', A_BASE, 0x1000),
+                                         ('b_', '__user_b_text', B_BASE, 0x1000),
+                                         ('p_', '__user_prog_text', PROG_VA, PROG_PAGES * 0x1000)):
+            if name.startswith(prefix) and text in sym and sym[text] <= addr < sym[text] + size:
                 uva[name] = base + addr - sym[text]
     return sym, uva
 
@@ -735,9 +747,13 @@ def user_exceptions(trace, rng):
     return [e for e in u_events(trace, rng) if not e['async'] and e['cause'] != 8]
 
 
+def in_user(va):
+    """User code: A's or B's own text, or (v1.3) the shared program pages."""
+    return in_range(va, A_RANGE) or in_range(va, B_RANGE) or in_range(va, PROG_RANGE)
+
+
 def ext_from_user(trace):
-    return [e for e in trace if e['async'] and e['cause'] == 9
-            and (in_range(e['epc'], A_RANGE) or in_range(e['epc'], B_RANGE))]
+    return [e for e in trace if e['async'] and e['cause'] == 9 and in_user(e['epc'])]
 
 
 def oracle_t10(c, obs, ctx):
@@ -774,7 +790,7 @@ def oracle_t10(c, obs, ctx):
     c('trace: S external interrupts (cause 9) taken from U-mode', ext_from_user(ctx['trace']),
       len(ext_from_user(ctx['trace'])))
     c('trace: no exception from user code other than ecall',
-      not user_exceptions(ctx['trace'], A_RANGE) and not user_exceptions(ctx['trace'], B_RANGE))
+      not [e for e in ctx['trace'] if not e['async'] and e['cause'] != 8 and in_user(e['epc'])])
 
 
 def oracle_t11(c, obs, ctx):
@@ -845,7 +861,7 @@ def oracle_t12(c, obs, ctx):
       last['input']['received'] == typed and last['input']['dropped'] == 0, last['input'])
     c('trace: S external interrupts (cause 9) taken from U-mode', ext_from_user(ctx['trace']))
     c('trace: no exception from user code other than ecall',
-      not user_exceptions(ctx['trace'], A_RANGE) and not user_exceptions(ctx['trace'], B_RANGE))
+      not [e for e in ctx['trace'] if not e['async'] and e['cause'] != 8 and in_user(e['epc'])])
 
 
 N7_EXPECT = [-9, -14, -14, -14, -14, -22, -14, -14, 0]
@@ -894,11 +910,229 @@ def oracle_n8(c, obs, ctx):
     c('no process faulted; B keeps running', all(p['state'] in (1, 2, 6) for p in a['procs'])
       and a['words_b'][0] > a['words_b_first'][0])
     c('trace: no exception from user code other than ecall',
-      not user_exceptions(ctx['trace'], A_RANGE) and not user_exceptions(ctx['trace'], B_RANGE))
+      not [e for e in ctx['trace'] if not e['async'] and e['cause'] != 8 and in_user(e['epc'])])
 
 
 ORACLES.update({'t10': oracle_t10, 't11': oracle_t11, 't12': oracle_t12, 'n7': oracle_n7,
                 'n8': oracle_n8})
+
+
+# ------------------------------------------------------------- v1.3 oracles
+PROG = {'worker': 1, 'hello': 2, 'counter': 3, 'crash': 4, 'memcheck': 5}
+SLOT2_BASE = 0xC00000
+VM_PROC_PAGES = 5
+NEG = lambda v: v & M64           # noqa: E731 (two's complement as the kernel returns it)
+
+
+def pages_ok(c, label, p, mem, ctx):
+    pages = p['pages']
+    end = mem['base'] + mem['pages'] * 4096
+    c(f'{label}: {VM_PROC_PAGES} distinct page-aligned pages inside the pool, outside the kernel image',
+      p['npages'] == VM_PROC_PAGES and len(set(pages)) == VM_PROC_PAGES
+      and all(pa % 4096 == 0 and mem['base'] <= pa < end for pa in pages)
+      and all(not ctx['sym']['__kernel_start'] <= pa < ctx['sym']['__image_end'] for pa in pages)
+      and mem['base'] >= ctx['sym']['__image_end'], [hex(x) for x in pages])
+
+
+def oracle_t13(c, obs, ctx):
+    st = steps(obs)
+    a1, a2, d = st['after1'], st['after2'], st['done']
+    r = d['results']
+    base = r[0]
+    for tag, s in (('instance 1', a1), ('instance 2', a2)):
+        p = s['proc']
+        c(f'{tag}: memcheck running in slot C with its own pid', s['hit'] and p['prog'] == PROG['memcheck']
+          and p['state'] in (1, 2, 5) and p['pid'] == s['results'][1 if tag.endswith('1') else 3])
+        pages_ok(c, tag, p, s['mem'], ctx)
+        c(f'{tag}: allocator counts 5 pages in use (free = baseline - 5), bitmap bits set',
+          s['mem']['free'] == base - VM_PROC_PAGES and s['bits'] == [1] * VM_PROC_PAGES,
+          (s['mem']['free'], base, s['bits']))
+        c(f'{tag}: its data and stack pages arrived zeroed (memcheck result 1)',
+          s['data']['w2'] == 1 and s['data']['w3'] == 1, hex(s['data']['w2']))
+        c(f'{tag}: it then dirtied both pages (0xa5 in physical memory)',
+          s['data']['a5'] == 512 - 8 and s['stack']['a5'] == 512, (s['data']['a5'], s['stack']['a5']))
+    p1, p2 = a1['proc']['pages'], a2['proc']['pages']
+    c('instance 2 got the physical data and stack pages instance 1 had dirtied',
+      p1[3] == p2[3] and p1[4] == p2[4], ([hex(x) for x in p1[3:]], [hex(x) for x in p2[3:]]))
+    c('kills returned 0', r[2] == 0 and r[4] == 0, r)
+    m = d['mem']
+    c('after both kills every page is back: free = baseline, 10 allocations = 10 frees',
+      r[5] == base == m['free'] and m['allocs'] == m['frees'] == 2 * VM_PROC_PAGES, (r[5], base, m))
+    c('ended process owns no pages', d['proc']['npages'] == 0 and d['proc']['state'] == 3)
+    c('trace: memcheck ran in U-mode from the program pages (sleep ecalls there)',
+      any(not e['async'] and e['cause'] == 8 and in_range(e['epc'], PROG_RANGE) for e in ctx['trace']))
+
+
+def oracle_t14(c, obs, ctx):
+    st = steps(obs)
+    s, run, a = st['spawned'], st['C_running'], st['after']
+    p, r = s['proc'], s['results']
+    c('spawn returned pid 3; free pages dropped by exactly 5', s['hit'] and r[1] == 3 and p['pid'] == 3
+      and r[2] == r[0] - VM_PROC_PAGES, r)
+    c('slot C: worker program, READY/RUNNING', p['prog'] == PROG['worker'] and p['state'] in (1, 2))
+    pages_ok(c, 'slot C', p, s['mem'], ctx)
+    sat = p['satp']
+    c('own Sv39 root, distinct from kernel, A and B', sat >> 60 == 8 and sat not in s['satps'].values()
+      and (sat & ((1 << 44) - 1)) << 12 == p['pages'][0], hex(sat))
+    c('runs in U-mode under its own root, in the program pages', run['hit'] and run['cpu']['priv'] == 0
+      and run['cpu']['satp'] == sat and in_range(run['cpu']['pc'], PROG_RANGE), hex(run['cpu']['pc']))
+    c('sp in its own stack page, s11 = its data page',
+      SLOT2_BASE + 0x3000 <= run['gprs']['x2'] <= SLOT2_BASE + 0x4000
+      and run['gprs']['x27'] == SLOT2_BASE + 0x1000, (hex(run['gprs']['x2']), hex(run['gprs']['x27'])))
+    wd, ws = s['walk_data'], s['walk_stack']
+    c('PT walk: data and stack U+R+W, backed by its own pages', wd['mapped'] and ws['mapped']
+      and set('URW') <= set(wd['flags']) and set('URW') <= set(ws['flags'])
+      and wd['pa'] == p['pages'][3] + 0 and ws['pa'] == p['pages'][4], (wd.get('flags'), ws.get('flags')))
+    c('PT walk: program page U+R+X, not writable; no private text page',
+      s['walk_prog']['mapped'] and set('URX') <= set(s['walk_prog']['flags'])
+      and 'W' not in s['walk_prog']['flags'] and not s['walk_text']['mapped'])
+    c("PT walk: A's and B's data unmapped; kernel data and UART not user-accessible",
+      not s['walk_a_data']['mapped'] and not s['walk_b_data']['mapped']
+      and 'U' not in s['walk_secret']['flags'] and 'U' not in s['walk_uart']['flags'])
+    alias = s['walk_pool_alias']
+    c('its pages are reachable only through the kernel map (2 MiB leaf, U=0) at their PA',
+      alias['mapped'] and alias['leaf_level'] == 1 and 'U' not in alias['flags'], alias.get('flags'))
+    c("its data page is not mapped in A's or B's root", not s['a_sees_c']['mapped']
+      and not s['b_sees_c']['mapped'])
+    c('preempted by the timer and keeps counting', a['wait']['reached'] and a['proc']['preemptions'] > 0
+      and a['counter'] > run['counter'], (a['proc']['preemptions'], run['counter'], a['counter']))
+    c('B keeps running', a['words_b'][0] > run['words_b'][0])
+    c('trace: timer interrupts taken from the program pages',
+      any(e['async'] and e['cause'] == 5 and in_range(e['epc'], PROG_RANGE) for e in ctx['trace']))
+
+
+def oracle_t15(c, obs, ctx):
+    st = steps(obs)
+    k, q, rs, d = st['killed'], st['quiet'], st['respawned'], st['done']
+    r = d['results']
+    p = k['proc']
+    c('kill returned 0; the process is EXITED with code 137 and marked killed', k['hit'] and r[2] == 0
+      and p['state'] == 3 and p['exit_code'] == 137 and p['killed'] == 1)
+    c('all 5 of its pages are back (bits clear, free = baseline)', p['npages'] == 0
+      and k['bits'] == [0] * VM_PROC_PAGES and r[3] == r[0] == k['mem']['free'], (k['bits'], r[:4]))
+    c('never dispatched again (15 timer ticks)', q['wait']['reached'] and q['wait']['watch_hit'] is None,
+      q['wait'])
+    n = rs['proc']
+    c('respawn reused slot C with a new pid and the same physical pages', rs['hit'] and n['pid'] == r[4]
+      and n['pid'] != p['pid'] and sorted(n['pages']) == sorted(p['pages']) and rs['bits'] == [1] * 5,
+      (n['pid'], [hex(x) for x in n['pages']]))
+    c('second kill returned 0', r[5] == 0, r[5])
+    h = d['proc']
+    c('hello ran, printed and exited by itself (code 0, not killed), pages reclaimed',
+      d['hit'] and h['pid'] == r[6] and h['state'] == 3 and h['exit_code'] == 0 and h['killed'] == 0
+      and h['npages'] == 0 and f'hello from pid {r[6]}' in ctx['uart'], (h['pid'], h['state']))
+    m = d['mem']
+    c('at the end free = baseline and allocations = frees (15)', r[7] == r[0] == m['free']
+      and m['allocs'] == m['frees'] == 3 * VM_PROC_PAGES, (r, m))
+    c('trace: no exception from user code',
+      not [e for e in ctx['trace'] if not e['async'] and e['cause'] != 8 and in_user(e['epc'])])
+
+
+def oracle_t16(c, obs, ctx):
+    st = steps(obs)
+    f, d, a = st['fault'], st['done'], st['after']
+    r = d['results']
+    fr = f['frame']
+    c('the crash program faulted: store page fault at its store, target = B data VA',
+      f['hit'] and fr['scause'] == 15 and fr['sepc'] == ctx['uva']['p_crash_store']
+      and fr['stval'] == 0x801000 and f['proc']['prog'] == PROG['crash'], (hex(fr['scause']), hex(fr['stval'])))
+    c("B's data page was not written (no 0x43 pattern)", all(w != 0x4343434343434343 for w in f['b_data']))
+    crash = [p for p in d['procs'] if p['prog'] == PROG['crash']]
+    c('crash slot FAULTED and its pages reclaimed', len(crash) == 1 and crash[0]['state'] == 4
+      and crash[0]['npages'] == 0)
+    workers = [(i, p) for i, p in enumerate(a['procs']) if p['prog'] == PROG['worker']]
+    c('three workers alive with their own pages', len(workers) == 3
+      and all(p['state'] in (1, 2) and p['npages'] == 5 for _, p in workers))
+    c('every worker keeps counting after the crash', all(a['counters'][i] > d['counters'][i]
+                                                          for i, _ in workers),
+      [(d['counters'][i], a['counters'][i]) for i, _ in workers])
+    c('B keeps running; A alive', a['words_b'][0] > d['words_b'][0] and a['procs'][0]['state'] in (1, 2, 5))
+    c('no other fault within 30 ticks', a['wait']['reached'] and a['wait']['watch_hit'] is None)
+    c('free pages = baseline - 15 (three workers)', r[5] == r[0] - 3 * VM_PROC_PAGES == a['mem']['free'], r)
+    faults = [e for e in ctx['trace'] if not e['async'] and e['cause'] != 8 and in_user(e['epc'])]
+    c('trace: exactly one user exception, the crash store', len(faults) == 1
+      and faults[0]['epc'] == ctx['uva']['p_crash_store'] and faults[0]['cause'] == 15, faults[:3])
+    c('UART: crash announcement and FAULT line', 'writes into pid 2' in ctx['uart']
+      and 'stval=0x0000000000801000 -> FAULTED' in ctx['uart'])
+
+
+def oracle_n9(c, obs, ctx):
+    d = steps(obs)['done']
+    r = d['results']
+    want = [(1, 'spawn of program 0', NEG(-22)), (2, 'spawn of unknown program 99', NEG(-22)),
+            (3, 'kill of a pid that does not exist', NEG(-3)), (4, 'kill of itself', NEG(-1)),
+            (5, 'kill of boot process B', NEG(-1)), (6, 'spawn with every slot taken', NEG(-11)),
+            (7, 'spawns that succeeded before (6 free slots)', 6),
+            (8, 'kill of an already killed pid', NEG(-3)), (9, 'spawn/kill cycles done', 200),
+            (10, 'failed cycles', 0)]
+    c('A reached the end in U-mode', d['hit'])
+    for k, name, v in want:
+        c(f'{name}: {v if v < 1 << 63 else v - (1 << 64)}', r[k] == v, hex(r[k]))
+    m, s = d['mem'], d['sched']
+    c('no page leaked: free = baseline, allocations = frees', r[11] == r[0] == m['free']
+      and m['allocs'] == m['frees'] == (6 + 200) * VM_PROC_PAGES, (r[0], r[11], m))
+    c('kernel counters: 206 spawned, 206 killed and reclaimed', s['spawned'] == s['killed']
+      == s['reclaimed'] == 206, s)
+    c('no run-time process alive, boot processes intact', all(p['state'] not in (1, 2, 5, 6)
+      for p in d['procs'][2:]) and d['procs'][1]['state'] in (1, 2))
+
+
+T17_SCRIPT = ['mem', 'run worker', 'run hello', 'ps', 'kill 3', 'run crash', 'ps', 'mem']
+PS13_RX = re.compile(r'^pid (\d+) ([A-H]) (\w+) preempted (\d+) syscalls (\d+)(?: (\w+))?$')
+
+
+def oracle_t17(c, obs, ctx):
+    st = steps(obs)
+    uart = ctx['uart'].replace('\r', '')
+    lines = uart.split('\n')
+    end = st['end']
+    c('every command finished with a new prompt', all(st[f'cmd_{k}']['ok'] for k in range(1, 9))
+      and uart.count('proto> ') == len(T17_SCRIPT) + 1)
+    mems = [tuple(map(int, m.groups())) for m in re.finditer(r'free pages: (\d+) of (\d+)', uart)]
+    c('mem printed twice; all pages free at start and again at the end', len(mems) == 2
+      and mems[0][0] == mems[0][1] == mems[1][0] == end['mem']['pages'], mems)
+    c('run worker -> started pid 3; run hello -> started pid 4; run crash -> started pid 5',
+      all(f'started pid {n}' in uart for n in (3, 4, 5)))
+    c('hello printed its line and exited', 'hello from pid 4' in uart
+      and re.search(r'EXIT [A-H]\(pid=4\) code=0', uart))
+    pss, cur = [], None
+    for ln in lines:
+        if ln.endswith('proto> ps') or ln == 'ps':
+            cur = []
+            pss.append(cur)
+        elif cur is not None:
+            m = PS13_RX.match(ln)
+            if m:
+                cur.append(m.groups())
+            elif ln.startswith('proto> '):
+                cur = None
+    c('ps printed twice', len(pss) == 2, len(pss))
+    if len(pss) == 2:
+        one = {int(g[0]): g for g in pss[0]}
+        two = {int(g[0]): g for g in pss[1]}
+        c('ps #1: shell RUNNING, B READY, pid 3 worker alive', one.get(1, ())[2:3] == ('RUNNING',)
+          and one.get(2, ())[2:3] == ('READY',) and one.get(3, ('',) * 6)[5] == 'worker'
+          and one[3][2] in ('READY', 'RUNNING'), pss[0])
+        c('ps #2: pid 5 crash FAULTED, pid 3 gone or EXITED', two.get(5, ('',) * 6)[5] == 'crash'
+          and two[5][2] == 'FAULTED' and (3 not in two or two[3][2] == 'EXITED'), pss[1])
+    c('kill 3 returned the 5 pages', 'killed pid 3, 5 pages returned' in uart)
+    c('crash announced itself and the kernel stopped only it',
+      'crash: pid 5 writes into pid 2' in uart and re.search(r'FAULT [A-H]\(pid=5\) scause=0x0+f ', uart)
+      and len(re.findall(r'FAULT [A-H]\(pid=', uart)) == 1)
+    procs = end['procs']
+    c('at the end: shell BLOCKED at its prompt, B READY/RUNNING, no run-time process owns pages',
+      procs[0]['state'] == 6 and procs[1]['state'] in (1, 2)
+      and all(p['npages'] == 0 for p in procs[2:]) and end['mem']['free'] == end['mem']['pages'])
+    typed = sum(len(x) + 1 for x in T17_SCRIPT)
+    c(f'kernel received exactly the {typed} typed bytes', end['input']['received'] == typed
+      and end['input']['dropped'] == 0)
+    faults = [e for e in ctx['trace'] if not e['async'] and e['cause'] != 8 and in_user(e['epc'])]
+    c('trace: the only user exception is the crash store', len(faults) == 1
+      and faults[0]['epc'] == ctx['uva']['p_crash_store'], faults[:3])
+
+
+ORACLES.update({'t13': oracle_t13, 't14': oracle_t14, 't15': oracle_t15, 't16': oracle_t16,
+                'n9': oracle_n9, 't17': oracle_t17})
 
 
 def judge(probe, obs, ctx):

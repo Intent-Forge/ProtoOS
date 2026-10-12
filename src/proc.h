@@ -13,6 +13,14 @@
 #define SYS_SLEEP  UINT64_C(1001)
 #define SYS_UPTIME UINT64_C(1002)
 #define SYS_PROCINFO UINT64_C(1003)
+#define SYS_SPAWN  UINT64_C(1004)
+#define SYS_KILL   UINT64_C(1005)
+#define SYS_MEMINFO UINT64_C(1006)
+#define SYS_SLOTINFO UINT64_C(1007)
+#define SYS_EPERM  ((uint64_t)-1)
+#define SYS_ESRCH  ((uint64_t)-3)
+#define SYS_EAGAIN ((uint64_t)-11)
+#define SYS_ENOMEM ((uint64_t)-12)
 #define SYS_EBADF  ((uint64_t)-9)
 #define SYS_EFAULT ((uint64_t)-14)
 #define SYS_EINVAL ((uint64_t)-22)
@@ -21,6 +29,11 @@
 #define READ_MAX   UINT64_C(256)
 #define SLEEP_MAX_MS UINT64_C(60000)
 #define PROCINFO_WORDS 4u   /* state, preemptions, syscalls, dispatches */
+#define SLOTINFO_WORDS 6u   /* pid, state, program, preemptions, syscalls, pages */
+#define KILLED_EXIT_CODE UINT64_C(137)
+/* v1.3 built-in programs (src/user.S, shared program pages) */
+enum program_id { PROG_NONE, PROG_WORKER, PROG_HELLO, PROG_COUNTER, PROG_CRASH,
+                  PROG_MEMCHECK, PROG_IDS };
 
 enum proc_state { PROC_UNUSED, PROC_READY, PROC_RUNNING, PROC_EXITED, PROC_FAULTED,
                   PROC_SLEEPING, PROC_BLOCKED };
@@ -42,6 +55,9 @@ struct process {
     uint64_t sleep_start, wake_time, last_dispatch_time;
     /* v1.2: one pending read per BLOCKED process, completed at dispatch */
     uint64_t reads, bytes_read, read_pending, read_va, read_len, block_start;
+    /* v1.3: run-time processes own their pages until they end */
+    uint64_t prog, killed, npages;
+    uint64_t pages[VM_PROC_PAGES];
 };
 _Static_assert(offsetof(struct process, frame) == 0, "trap.S frame protocol");
 
@@ -54,9 +70,11 @@ struct sched_stats {
     uint64_t heartbeat;
     uint64_t waits;         /* times the kernel waited because everyone slept */
     uint64_t ext_irqs;      /* v1.2: external interrupts taken from U-mode */
+    uint64_t next_pid;      /* v1.3: pids are never reused */
+    uint64_t spawned, killed, reclaimed;
 };
 
-extern struct process procs[PROC_COUNT];
+extern struct process procs[PROC_MAX];
 extern struct process *current;
 extern struct sched_stats sched;
 

@@ -18,7 +18,7 @@ ZIGLIB=$(dirname "$(readlink -f "$ZIG")")
   -ffile-prefix-map="$ZIGLIB"=/protoos-toolchain -fdebug-compilation-dir=. \
   -nostdlib -static -Wl,--build-id=none,-T,src/linker.ld \
   src/boot.S src/trap.S src/user.S src/kernel.c src/fdt.c src/sv39_builder.c \
-  src/vm.c src/proc.c src/input.c -o "$OUT/protoos.elf"
+  src/vm.c src/proc.c src/input.c src/mem.c -o "$OUT/protoos.elf"
 readelf -h -l -A -W "$OUT/protoos.elf" > "$OUT/elf-report.txt"
 riscv64-unknown-elf-objdump -d "$OUT/protoos.elf" > "$OUT/disassembly.txt"
 riscv64-unknown-elf-nm -n "$OUT/protoos.elf" > "$OUT/symbols.txt"
