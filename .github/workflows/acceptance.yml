@@ -1,0 +1,55 @@
+name: acceptance
+
+# Build ProtoOS, check the ELF is byte-identical to the released one, run the
+# host tests and the full acceptance matrix (T1-T7, N1-N5, 3 clean boots each)
+# under QEMU on a stock Ubuntu 24.04 runner (QEMU 8.2, OpenSBI 1.4, gdb 15).
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install QEMU, OpenSBI, GDB, binutils
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q qemu-system-misc opensbi gdb-multiarch \
+            binutils-riscv64-unknown-elf python3-venv
+          qemu-system-riscv64 --version | head -n 1
+          dpkg-query -W qemu-system-misc opensbi gdb-multiarch
+
+      - name: Install pinned Zig 0.13.0
+        run: sh build-scripts/setup-zig.sh
+
+      - name: Build
+        run: sh build-scripts/build-wsl.sh
+
+      - name: ELF is byte-identical to release/protoos.elf
+        run: |
+          want=$(cut -d' ' -f1 release/SHA256SUMS)
+          got=$(sha256sum build/protoos.elf | cut -d' ' -f1)
+          echo "release: $want"
+          echo "built:   $got"
+          test "$want" = "$got"
+
+      - name: Host tests
+        run: sh build-scripts/host-tests.sh
+
+      - name: Acceptance T1-T7, N1-N5 x3
+        run: python3 validation/run_acceptance.py --reps 3 --t7-seconds 30 --out "$RUNNER_TEMP/acceptance"
+
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-evidence
+          path: ${{ runner.temp }}/acceptance
+          if-no-files-found: warn
