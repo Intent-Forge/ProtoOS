@@ -1,10 +1,11 @@
 #include "kernel.h"
+#include "input.h"
 #include "sv39_builder.h"
 #include "vm.h"
 
-/* Static page-table pools: root, low L1, UART L0, user L0, high L1,
- * kernel L0 = 6 pages per address space; 8 leaves headroom. */
-#define AS_POOL_PAGES 8u
+/* Static page-table pools: root, low L1, UART L0, two PLIC L0 (v1.2),
+ * user L0, high L1, kernel L0 = 8 pages per address space; 10 leaves headroom. */
+#define AS_POOL_PAGES 10u
 static struct sv39_page_table kernel_pt_pool[AS_POOL_PAGES];
 static struct sv39_page_table proc_pt_pool[PROC_COUNT][AS_POOL_PAGES];
 static struct sv39_builder kernel_as, proc_as[PROC_COUNT];
@@ -40,9 +41,15 @@ static enum sv39_result map_kernel(struct sv39_builder *b)
     enum sv39_result r;
     if ((r = map_identity(b, (uintptr_t)__kernel_start, (uintptr_t)__text_end, PTE_KTEXT)) ||
         (r = map_identity(b, (uintptr_t)__text_end, (uintptr_t)__rodata_end, PTE_KRO)) ||
-        (r = map_identity(b, (uintptr_t)__rodata_end, (uintptr_t)__kernel_end, PTE_KRW)))
+        (r = map_identity(b, (uintptr_t)__rodata_end, (uintptr_t)__kernel_end, PTE_KRW)) ||
+        (r = sv39_map4k(b, UART_PHYS, UART_PHYS, PTE_KRW)))
         return r;
-    return sv39_map4k(b, UART_PHYS, UART_PHYS, PTE_KRW);
+    /* v1.2: the three PLIC pages the kernel touches (priority, S enable,
+     * S threshold/claim); kernel-only like the UART. */
+    if ((r = sv39_map4k(b, PLIC_PHYS, PLIC_PHYS, PTE_KRW)) ||
+        (r = sv39_map4k(b, PLIC_ENABLE_PAGE, PLIC_ENABLE_PAGE, PTE_KRW)))
+        return r;
+    return sv39_map4k(b, PLIC_CONTEXT_PAGE, PLIC_CONTEXT_PAGE, PTE_KRW);
 }
 
 static enum sv39_result map_user(struct sv39_builder *b, uint64_t base,

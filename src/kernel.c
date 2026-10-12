@@ -7,6 +7,7 @@ static uintptr_t uart_base=0x10000000UL;
 volatile struct trap_frame last_boot_trap;
 volatile uint64_t boot_hart, boot_dtb, boot_phase;
 struct boot_config boot_configuration;
+uint64_t boot_time;
 /* Kernel-only data (U=0) that the N2 test tries to read from U-mode. */
 __attribute__((used)) const volatile uint64_t kernel_secret=0x5ec12e7da7a00001ULL;
 
@@ -104,8 +105,9 @@ extern char a_worker[], a_getpid[], a_yield[], a_exit[], a_cross_write[], a_faul
 extern char b_worker[], b_getpid[], b_yield[], b_idle_exit[];
 extern char a_write[], a_write_bad[], a_sleep[], a_sleep_all[], a_demo[];
 extern char b_sleep_all[], b_demo[];
+extern char a_shell[], a_read[], a_uptime[], a_read_bad[], a_flood[];
 enum scenario_kind { SCENARIO_NORMAL, SCENARIO_TEST, SCENARIO_BOOT, SCENARIO_BOOT_TRAP,
-    SCENARIO_DEMO };
+    SCENARIO_DEMO, SCENARIO_SHELL };
 struct scenario { const char *args; enum scenario_kind kind; char *a, *b; };
 static const struct scenario scenarios[]={
     {"protoos.mode=normal",       SCENARIO_NORMAL,    a_worker, b_worker},
@@ -129,6 +131,12 @@ static const struct scenario scenarios[]={
     {"protoos.test=write-bad",    SCENARIO_TEST, a_write_bad, b_worker},
     {"protoos.test=sleep",        SCENARIO_TEST, a_sleep, b_worker},
     {"protoos.test=sleep-all",    SCENARIO_TEST, a_sleep_all, b_sleep_all},
+    /* v1.2 */
+    {"protoos.mode=shell",        SCENARIO_SHELL, a_shell, b_worker},
+    {"protoos.test=read",         SCENARIO_TEST, a_read, b_worker},
+    {"protoos.test=uptime",       SCENARIO_TEST, a_uptime, b_worker},
+    {"protoos.test=read-bad",     SCENARIO_TEST, a_read_bad, b_worker},
+    {"protoos.test=read-flood",   SCENARIO_TEST, a_flood, b_worker},
 };
 static const struct scenario *find_scenario(const char *args) {
     for(size_t i=0;i<sizeof(scenarios)/sizeof(scenarios[0]);++i)
@@ -141,6 +149,7 @@ static uint64_t user_va(uint64_t base, const char *text, const char *entry) {
 }
 
 void kernel_main(uint64_t hart, uintptr_t dtb) {
+    __asm__ volatile("csrr %0, time":"=r"(boot_time));
     boot_hart=hart; boot_dtb=dtb; boot_phase=1;
     /* No paging expected at the OpenSBI handoff; confirm instead of guessing. */
     uint64_t satp;

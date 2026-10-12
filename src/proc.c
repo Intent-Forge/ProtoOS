@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "input.h"
 #include "proc.h"
 #include "sbi.h"
 #include "sv39.h"
@@ -18,6 +19,7 @@ static const char *state_name(uint64_t s)
     case PROC_EXITED: return "EXITED";
     case PROC_FAULTED: return "FAULTED";
     case PROC_SLEEPING: return "SLEEPING";
+    case PROC_BLOCKED: return "BLOCKED";
     default: return "UNUSED";
     }
 }
@@ -47,10 +49,11 @@ static void timer_arm(void)
     timer_set(csr_read(time) + sched.quantum_ticks);
 }
 
-/* Terminal state: nothing runnable or sleeping. Never loads a process context again. */
+/* Terminal state: nothing runnable, sleeping or waiting for input. Never
+ * loads a process context again. */
 __attribute__((noinline)) _Noreturn void sched_idle(void)
 {
-    csr_clear(sie, SIE_STIE);
+    csr_clear(sie, SIE_STIE | SIE_SEIE);
     sbi_call1(SBI_EXT_TIME, SBI_TIME_SET_TIMER, UINT64_MAX);
     vm_switch(vm_kernel_satp);
     current = 0;
@@ -64,15 +67,29 @@ __attribute__((noinline)) _Noreturn void sched_idle(void)
     halt();
 }
 
-/* Every live process is SLEEPING: wait in S-mode until the earliest wake-up.
- * sstatus.SIE stays 0, so no trap is taken; wfi returns once the armed S
- * timer interrupt is pending (sie.STIE is set). */
+static int reader_blocked(void)
+{
+    for (unsigned i = 0; i < PROC_COUNT; ++i)
+        if (procs[i].state == PROC_BLOCKED) return 1;
+    return 0;
+}
+
+/* Every live process is SLEEPING or BLOCKED on input: wait in S-mode until
+ * the earliest wake-up (UINT64_MAX: none, the timer stays disarmed) or
+ * until input arrives for a blocked reader. sstatus.SIE stays 0, so no trap
+ * is taken; wfi returns once an enabled interrupt (sie.STIE/SEIE) is
+ * pending, and a pending external interrupt is serviced here by polling. */
 __attribute__((noinline)) void sched_wait(uint64_t wake)
 {
     sched.waits++;
     timer_set(wake);
-    while (csr_read(time) < wake)
+    while (csr_read(time) < wake) {
+        if (csr_read(sip) & SIP_SEIP) {
+            input_irq();
+            if (input.count && reader_blocked()) return;
+        }
         __asm__ volatile("wfi");
+    }
 }
 
 __attribute__((noinline)) struct trap_frame *sched_dispatch(struct process *next,
@@ -91,6 +108,15 @@ __attribute__((noinline)) struct trap_frame *sched_dispatch(struct process *next
         }
         vm_switch(next->satp);
     }
+    /* A reader is dispatched only with input waiting; its buffer lives in
+     * its own address space, which is installed now. */
+    if (next->read_pending) {
+        uint64_t n = input_take_user(next->read_va, next->read_len);
+        next->frame.x[10] = n;
+        next->read_pending = 0;
+        next->reads++;
+        next->bytes_read += n;
+    }
     current = next;
     next->state = PROC_RUNNING;
     next->dispatches++;
@@ -99,14 +125,20 @@ __attribute__((noinline)) struct trap_frame *sched_dispatch(struct process *next
     return &next->frame;
 }
 
-/* Round Robin: wake due sleepers, then run the first READY process after the
- * current one; if everyone alive sleeps, wait for the earliest wake-up. */
+/* Round Robin: wake due sleepers and readers with input waiting, then run
+ * the first READY process after the current one; if everyone alive sleeps
+ * or waits for input, wait in the kernel. */
 static struct trap_frame *schedule(const char *reason)
 {
     for (;;) {
         uint64_t now = csr_read(time), next_wake = UINT64_MAX;
+        int blocked = 0;
         for (unsigned i = 0; i < PROC_COUNT; ++i) {
             struct process *p = &procs[i];
+            if (p->state == PROC_BLOCKED) {
+                if (input.count) p->state = PROC_READY;
+                else blocked = 1;
+            }
             if (p->state != PROC_SLEEPING) continue;
             if (p->wake_time <= now) p->state = PROC_READY;
             else if (p->wake_time < next_wake) next_wake = p->wake_time;
@@ -114,9 +146,12 @@ static struct trap_frame *schedule(const char *reason)
         size_t start = current ? (size_t)(current - procs) : PROC_COUNT - 1;
         for (size_t k = 1; k <= PROC_COUNT; ++k) {
             struct process *p = &procs[(start + k) % PROC_COUNT];
-            if (p->state == PROC_READY) return sched_dispatch(p, reason);
+            if (p->state != PROC_READY) continue;
+            /* Another reader took the input first: wait again. */
+            if (p->read_pending && !input.count) { p->state = PROC_BLOCKED; blocked = 1; continue; }
+            return sched_dispatch(p, reason);
         }
-        if (next_wake == UINT64_MAX) sched_idle();
+        if (next_wake == UINT64_MAX && !blocked) sched_idle();
         sched_wait(next_wake);
         timer_arm();            /* fresh quantum for whoever wakes up */
         reason = "wake";
@@ -134,12 +169,65 @@ static uint64_t sys_write(struct process *p, uint64_t fd, uint64_t va, uint64_t 
     for (uint64_t i = 0; i < len; ++i) {
         char c = *(volatile const char *)(uintptr_t)(va + i);
         if (c == '\n') uart_putc('\r');
-        uart_putc((c == '\n' || c == '\t' || (c >= 0x20 && c <= 0x7e)) ? c : '?');
+        /* v1.2: backspace passes too, for line editing in the shell */
+        uart_putc((c == '\n' || c == '\t' || c == '\b' || (c >= 0x20 && c <= 0x7e)) ? c : '?');
     }
     csr_clear(sstatus, SSTATUS_SUM);
     p->writes++;
     p->bytes_written += len;
     return len;
+}
+
+/* v1.2 read(0, buf, len): validate everything before blocking; with input
+ * waiting copy at once, otherwise BLOCKED until input arrives. The result
+ * of a blocked read is stored by sched_dispatch. */
+static struct trap_frame *sys_read(struct process *p, struct trap_frame *f)
+{
+    uint64_t fd = f->x[10], va = f->x[11], len = f->x[12];
+    if (fd != 0) { f->x[10] = SYS_EBADF; return f; }
+    if (len > READ_MAX) { f->x[10] = SYS_EINVAL; return f; }
+    if (!vm_user_range_ok((unsigned)(p - procs), va, len, SV39_PTE_R | SV39_PTE_W)) {
+        f->x[10] = SYS_EFAULT;
+        return f;
+    }
+    if (len == 0) { f->x[10] = 0; return f; }
+    if (input.count) {
+        uint64_t n = input_take_user(va, len);
+        p->reads++;
+        p->bytes_read += n;
+        f->x[10] = n;
+        return f;
+    }
+    p->read_pending = 1;
+    p->read_va = va;
+    p->read_len = len;
+    p->block_start = csr_read(time);
+    p->state = PROC_BLOCKED;
+    return schedule("read");
+}
+
+/* Microseconds of `time` since kernel entry (no overflow for ~58 000 years). */
+static uint64_t uptime_us(void)
+{
+    uint64_t d = csr_read(time) - boot_time, tb = boot_configuration.timebase_hz;
+    return d / tb * 1000000u + d % tb * 1000000u / tb;
+}
+
+/* procinfo(pid, buf): state, preemptions, syscalls, dispatches of any pid,
+ * written as 4 little-endian words into the caller's writable buffer. */
+static uint64_t sys_procinfo(struct process *p, uint64_t pid, uint64_t va)
+{
+    if (pid < 1 || pid > PROC_COUNT) return SYS_EINVAL;
+    if (!vm_user_range_ok((unsigned)(p - procs), va, PROCINFO_WORDS * 8u,
+            SV39_PTE_R | SV39_PTE_W))
+        return SYS_EFAULT;
+    const struct process *q = &procs[pid - 1];
+    const uint64_t w[PROCINFO_WORDS] = { q->state, q->preemptions, q->syscalls, q->dispatches };
+    csr_set(sstatus, SSTATUS_SUM);
+    for (unsigned i = 0; i < PROCINFO_WORDS * 8u; ++i)   /* bytewise: buf may be unaligned */
+        *(volatile uint8_t *)(uintptr_t)(va + i) = (uint8_t)(w[i / 8] >> (8 * (i % 8)));
+    csr_clear(sstatus, SSTATUS_SUM);
+    return 0;
 }
 
 __attribute__((noinline)) struct trap_frame *proc_syscall(struct process *p,
@@ -154,6 +242,14 @@ __attribute__((noinline)) struct trap_frame *proc_syscall(struct process *p,
         return f;
     case SYS_WRITE:
         f->x[10] = sys_write(p, f->x[10], f->x[11], f->x[12]);
+        return f;
+    case SYS_READ:
+        return sys_read(p, f);
+    case SYS_UPTIME:
+        f->x[10] = uptime_us();
+        return f;
+    case SYS_PROCINFO:
+        f->x[10] = sys_procinfo(p, f->x[10], f->x[11]);
         return f;
     case SYS_YIELD:
         p->yields++;
@@ -222,6 +318,13 @@ struct trap_frame *trap_from_user(struct trap_frame *f)
         kernel_panic("trap frame does not belong to the running process");
     uint64_t cause = f->scause;
     if (cause & SCAUSE_INTERRUPT) {
+        if ((cause & ~SCAUSE_INTERRUPT) == IRQ_S_EXTERNAL) {
+            /* Input only fills the buffer; readers wake at the next
+             * scheduling point (at most one quantum later). */
+            sched.ext_irqs++;
+            input_irq();
+            return f;
+        }
         if ((cause & ~SCAUSE_INTERRUPT) != IRQ_S_TIMER)
             kernel_panic("unexpected interrupt from U-mode");
         sched.timer_ticks++;
@@ -258,7 +361,8 @@ _Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int h
         }
     }
     csr_write(scounteren, 0);
+    input_init();
     timer_arm();
-    csr_set(sie, SIE_STIE);
+    csr_set(sie, SIE_STIE | SIE_SEIE);
     user_return(schedule("start"));
 }

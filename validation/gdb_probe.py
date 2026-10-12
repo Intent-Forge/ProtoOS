@@ -9,11 +9,14 @@ Configuration comes from the JSON file named by PROTOOS_PROBE_CFG:
   symbols       name -> address (kernel symbols are physical = virtual)
   user_va       name -> user virtual address of user.S labels
   observations  output JSON path (rewritten after every step)
+  uart_sock     (v1.2 input scenarios) UNIX socket of the guest UART; the
+                probe types into it like a terminal user would
 """
 import gdb
 import json
 import os
 import signal
+import socket
 import threading
 import time
 
@@ -79,14 +82,56 @@ def proc(i):
         'pid', 'state', 'satp', 'dispatches', 'preemptions', 'yields',
         'syscalls', 'rejected_syscalls', 'exit_code', 'fault_cause',
         'fault_epc', 'fault_tval', 'writes', 'bytes_written', 'sleeps', 'sleep_start',
-        'wake_time', 'last_dispatch_time')}
+        'wake_time', 'last_dispatch_time', 'reads', 'bytes_read', 'read_pending',
+        'read_va', 'read_len', 'block_start')}
     out['addr'] = ev(f'(unsigned long)&procs[{i}]')
     return out
 
 
 def sched():
     return {k: ev(f'sched.{k}') for k in (
-        'quantum_ticks', 'timer_ticks', 'switches', 'idle_entered', 'verbose', 'waits')}
+        'quantum_ticks', 'timer_ticks', 'switches', 'idle_entered', 'verbose', 'waits',
+        'ext_irqs')}
+
+
+def inp():
+    """Kernel input ring state (v1.2)."""
+    return {k: ev(f'input.{k}') for k in ('count', 'head', 'irqs', 'received', 'dropped',
+                                           'spurious')}
+
+
+class Uart:
+    """Client end of the guest UART (QEMU chardev socket). A background
+    thread drains guest output so the guest never blocks on a full socket."""
+
+    def __init__(self):
+        self.buf = bytearray()
+        self.s = socket.socket(socket.AF_UNIX)
+        for _ in range(200):
+            try:
+                self.s.connect(CFG['uart_sock'])
+                break
+            except OSError:
+                time.sleep(0.05)
+        else:
+            raise RuntimeError('cannot connect to the UART socket')
+        threading.Thread(target=self._drain, daemon=True).start()
+
+    def _drain(self):
+        while True:
+            try:
+                data = self.s.recv(4096)
+            except OSError:
+                return
+            if not data:
+                return
+            self.buf.extend(data)
+
+    def send(self, data):
+        self.s.sendall(data)
+
+    def text(self):
+        return bytes(self.buf).decode('ascii', 'replace')
 
 
 def phys(addr, size):
@@ -445,6 +490,134 @@ def probe_t9_all():
 
 
 PROBES.update({'t8': probe_t8, 'n6': probe_n6, 't9': probe_t9, 't9_all': probe_t9_all})
+
+
+# ------------------------------------------------------------ v1.2 probes
+A_IN = 0x100            # user.S D_IN: received bytes in A's data page
+
+
+def read_trap():
+    return trap_cond(FRAME_A, 8, a7=63)
+
+
+def watch_dispatch_a():
+    return (('dispatch_A', SYM['sched_dispatch'], f'$a0 == {FRAME_A}'),)
+
+
+def probe_t10():
+    uart = Uart()
+    hit = stop_at(SYM['trap_from_user'], read_trap())
+    s = satps()
+    fr = frame(0)
+    step('read_ecall', hit=hit, cpu=cpu(), frame=fr, satps=s, proc_a=proc(0),
+         walk_first=walk(s['A'], fr['x11']), walk_last=walk(s['A'], fr['x11'] + fr['x12'] - 1),
+         words_b=user_words('user_b_data'), input=inp())
+    w = wait_ticks(30, watch_dispatch_a())
+    step('blocked', wait=w, proc_a=proc(0), proc_b=proc(1), sched=sched(), input=inp(),
+         words_b=user_words('user_b_data'))
+    for k, data in ((1, b'abc'), (2, b'XY')):
+        uart.send(data)
+        hit = stop_at(UVA['a_read_ret'])
+        step(f'read_ret{k}', hit=hit, cpu=cpu(), gprs=gprs(), satps=satps(), proc_a=proc(0),
+             sched=sched(), input=inp(), data=phys(SYM['user_a_data'] + A_IN, 16).hex(),
+             words_a=user_words('user_a_data'))
+
+
+def probe_t11():
+    hit = stop_at(UVA['a_uptime_ret1'])
+    step('ret1', hit=hit, cpu=cpu(), gprs=gprs(), boot_time=ev('boot_time'),
+         timebase=ev('boot_configuration.timebase_hz'))
+    hit = stop_at(UVA['a_uptime_ret2'])
+    step('ret2', hit=hit, cpu=cpu(), gprs=gprs(), proc_a=proc(0), sched=sched())
+    w = wait_ticks(20)
+    step('after', wait=w, procs=[proc(0), proc(1)], words_a=user_words('user_a_data'),
+         results=[phys_u64(SYM['user_a_data'] + 0x40 + 8 * k) for k in range(2)])
+
+
+SHELL_SCRIPT = ['help', 'ps', 'uptime', 'echo hello from the test', 'attack', 'ps', 'uptime']
+
+
+def shell_settle(uart, prompts, wall=20.0):
+    """Let the guest run until the shell has printed `prompts` prompts and is
+    back in read(); every stop is at A's read ecall, so no output is cut."""
+    end = time.time() + wall
+    while time.time() < end:
+        clear()
+        b = bp(SYM['trap_from_user'], read_trap())
+        run_to(b, wall=1.0)
+        if uart.text().count('proto> ') >= prompts:
+            return True
+    return False
+
+
+def probe_t12():
+    uart = Uart()
+    ok = shell_settle(uart, 1)
+    step('first_prompt', ok=ok, cpu=cpu(), proc_a=proc(0), input=inp())
+    w = wait_ticks(50, watch_dispatch_a())
+    step('idle_1', wait=w, proc_a=proc(0), proc_b=proc(1), sched=sched())
+    for n, cmd in enumerate(SHELL_SCRIPT, start=2):
+        uart.send(cmd.encode() + b'\r')
+        ok = shell_settle(uart, n)
+        step(f'cmd_{n - 1}', cmd=cmd, ok=ok, proc_a=proc(0), proc_b=proc(1), sched=sched(),
+             input=inp())
+    w = wait_ticks(50, watch_dispatch_a())
+    step('idle_2', wait=w, proc_a=proc(0), proc_b=proc(1), sched=sched(), input=inp(),
+         socket_text=uart.text())
+
+
+def probe_n7():
+    uart = Uart()
+    hit = stop_at(UVA['a_read_bad_block'])
+    s = satps()
+    step('rejected', hit=hit, cpu=cpu(), satps=s, proc_a=proc(0), input=inp(),
+         results=[phys_u64(SYM['user_a_data'] + 0x40 + 8 * k) for k in range(9)],
+         walk_secret=walk(s['A'], SYM['kernel_secret']), walk_b_data=walk(s['A'], 0x801000),
+         walk_text=walk(s['A'], UVA['a_read_bad']), walk_guard=walk(s['A'], 0x402000))
+    hit = stop_at(SYM['trap_from_user'], read_trap())
+    w = wait_ticks(20, watch_dispatch_a())
+    step('blocked', hit=hit, wait=w, proc_a=proc(0), proc_b=proc(1))
+    uart.send(b'z')
+    hit = stop_at(UVA['a_read_bad_done'])
+    step('done', hit=hit, cpu=cpu(), gprs=gprs(), proc_a=proc(0), input=inp(),
+         result9=phys_u64(SYM['user_a_data'] + 0x40 + 72),
+         data=phys(SYM['user_a_data'] + A_IN, 4).hex())
+    w = wait_ticks(20)
+    a1, b1 = user_words('user_a_data'), user_words('user_b_data')
+    w2 = wait_ticks(20)
+    step('after', wait1=w, wait2=w2, procs=[proc(0), proc(1)], words_a_first=a1,
+         words_b_first=b1, words_a=user_words('user_a_data'), words_b=user_words('user_b_data'))
+
+
+FLOOD = bytes(65 + i % 26 for i in range(300))
+
+
+def probe_n8():
+    uart = Uart()
+    hit = stop_at(SYM['trap_from_user'], trap_cond(FRAME_A, 8, a7=1001))
+    step('sleep_ecall', hit=hit, frame=frame(0), input=inp())
+    uart.send(FLOOD)
+    hit = stop_at(UVA['a_flood_read2_ecall'])
+    step('drained', hit=hit, cpu=cpu(), proc_a=proc(0), input=inp(), sched=sched(),
+         result0=phys_u64(SYM['user_a_data'] + 0x40),
+         data=phys(SYM['user_a_data'] + A_IN, 256).hex())
+    hit = stop_at(SYM['trap_from_user'], read_trap())
+    w = wait_ticks(10, watch_dispatch_a())
+    step('blocked', hit=hit, wait=w, proc_a=proc(0))
+    uart.send(b'Z')
+    hit = stop_at(UVA['a_flood_done'])
+    step('done', hit=hit, cpu=cpu(), proc_a=proc(0), procs=[proc(0), proc(1)], input=inp(),
+         result1=phys_u64(SYM['user_a_data'] + 0x48),
+         data=phys(SYM['user_a_data'] + A_IN, 256).hex())
+    w = wait_ticks(20)
+    b1 = user_words('user_b_data')
+    w2 = wait_ticks(20)
+    step('after', wait1=w, wait2=w2, procs=[proc(0), proc(1)], words_b_first=b1,
+         words_a=user_words('user_a_data'), words_b=user_words('user_b_data'))
+
+
+PROBES.update({'t10': probe_t10, 't11': probe_t11, 't12': probe_t12, 'n7': probe_n7,
+               'n8': probe_n8})
 
 
 def main():

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""ProtoOS v1.0 acceptance runner: T1-T7 and N1-N5, 3 clean boots each.
+"""ProtoOS acceptance runner, 3 clean boots per check: v1.0 T1-T7 and N1-N5,
+v1.1 T8, T9, N6, v1.2 T10-T12, N7, N8.
 
 Every scenario boot is a fresh qemu-system-riscv64 process (fresh RAM, same
 ELF, SHA-256 checked before and after). Independent evidence per boot:
@@ -36,7 +37,8 @@ NM = 'riscv64-unknown-elf-nm'
 A_BASE, B_BASE = 0x400000, 0x800000
 A_RANGE, B_RANGE = (A_BASE, A_BASE + 0x4000), (B_BASE, B_BASE + 0x4000)
 A_PATTERN, B_PATTERN = 0xa1a1a1a100000000, 0xb2b2b2b200000000
-STATE = {1: 'READY', 2: 'RUNNING', 3: 'EXITED', 4: 'FAULTED', 5: 'SLEEPING'}
+STATE = {1: 'READY', 2: 'RUNNING', 3: 'EXITED', 4: 'FAULTED', 5: 'SLEEPING', 6: 'BLOCKED'}
+EXT = (1 << 63) | 9
 M64 = (1 << 64) - 1
 TIMER = (1 << 63) | 5
 
@@ -60,7 +62,17 @@ MATRIX = {
     'T8': [('protoos.test=write', 't8')],
     'T9': [('protoos.test=sleep', 't9'), ('protoos.test=sleep-all', 't9_all')],
     'N6': [('protoos.test=write-bad', 'n6')],
+    # v1.2 (docs/SPEC_V1_2.md)
+    'T10': [('protoos.test=read', 't10')],
+    'T11': [('protoos.test=uptime', 't11')],
+    'T12': [('protoos.mode=shell', 't12')],
+    'N7': [('protoos.test=read-bad', 'n7')],
+    'N8': [('protoos.test=read-flood', 'n8')],
 }
+# Scenarios whose probe types into the UART: the serial port is a UNIX
+# socket (logged to uart.log as before) instead of a plain output file.
+INPUT_SCENARIOS = {'protoos.test=read', 'protoos.mode=shell', 'protoos.test=read-bad',
+                   'protoos.test=read-flood'}
 
 
 def sha256(path):
@@ -129,10 +141,15 @@ def in_range(v, rng):
 
 
 # ------------------------------------------------------------- one boot
-def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None):
+def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None, uart_sock=None):
+    if uart_sock:
+        serial = ['-chardev', f'socket,id=ser0,path={uart_sock},server=on,wait=off,'
+                  f'logfile={rundir / "uart.log"}', '-serial', 'chardev:ser0']
+    else:
+        serial = ['-serial', f'file:{rundir / "uart.log"}']
     cmd = [QEMU, '-machine', 'virt', '-accel', 'tcg', '-cpu', 'rv64', '-smp', '1',
            '-m', '128M', '-bios', FW, '-kernel', str(elf), '-display', 'none',
-           '-monitor', 'none', '-serial', f'file:{rundir / "uart.log"}', '-nic', 'none',
+           '-monitor', 'none'] + serial + ['-nic', 'none',
            '-append', args, '-no-reboot', '-d', 'int,guest_errors',
            '-D', str(rundir / 'qemu-int.log')]
     if gdb_port:
@@ -144,9 +161,10 @@ def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None):
 
 def boot_with_gdb(elf, args, probe, rundir, sym, uva):
     port = free_port()
-    cmd = qemu_cmd(elf, args, rundir, gdb_port=port)
+    sock = f'/tmp/protoos-uart-{os.getpid()}-{time.time_ns()}.sock' if args in INPUT_SCENARIOS else None
+    cmd = qemu_cmd(elf, args, rundir, gdb_port=port, uart_sock=sock)
     cfg = {'probe': probe, 'symbols': sym, 'user_va': uva, 'elf': str(elf), 'port': port,
-           'observations': str(rundir / 'observations.json')}
+           'observations': str(rundir / 'observations.json'), 'uart_sock': sock}
     (rundir / 'probe-config.json').write_text(json.dumps(cfg, indent=1))
     (rundir / 'command.json').write_text(json.dumps({'qemu': cmd}, indent=1))
     env = dict(os.environ, PROTOOS_PROBE_CFG=str(rundir / 'probe-config.json'))
@@ -165,6 +183,8 @@ def boot_with_gdb(elf, args, probe, rundir, sym, uva):
         except subprocess.TimeoutExpired:
             vm.kill()
             vm.wait()
+        if sock and os.path.exists(sock):
+            os.unlink(sock)
     p = rundir / 'observations.json'
     return json.loads(p.read_text()) if p.exists() else {'steps': [], 'complete': False,
                                                          'error': 'no observations'}
@@ -708,6 +728,177 @@ def oracle_t9_all(c, obs, ctx):
 
 
 ORACLES.update({'t8': oracle_t8, 'n6': oracle_n6, 't9': oracle_t9, 't9_all': oracle_t9_all})
+
+
+# ------------------------------------------------------------- v1.2 oracles
+def user_exceptions(trace, rng):
+    return [e for e in u_events(trace, rng) if not e['async'] and e['cause'] != 8]
+
+
+def ext_from_user(trace):
+    return [e for e in trace if e['async'] and e['cause'] == 9
+            and (in_range(e['epc'], A_RANGE) or in_range(e['epc'], B_RANGE))]
+
+
+def oracle_t10(c, obs, ctx):
+    st = steps(obs)
+    e, b = st['read_ecall'], st['blocked']
+    f = e['frame']
+    c('read ecall from A: a7=63, fd=0, len=16', e['hit'] and f['scause'] == 8 and f['x17'] == 63
+      and f['x10'] == 0 and f['x12'] == 16, (f['x17'], f['x10'], f['x12']))
+    c('buffer first/last byte U+R+W in A root (PT walk)',
+      all(e[w]['mapped'] and set('URW') <= set(e[w]['flags']) for w in ('walk_first', 'walk_last')))
+    w, pa = b['wait'], b['proc_a']
+    c('no input: A not dispatched for 30 timer ticks', w['reached'] and w['watch_hit'] is None, w)
+    c('A is BLOCKED with one pending 16-byte read', pa['state'] == 6 and pa['read_pending'] == 1
+      and pa['read_len'] == 16 and pa['read_va'] == f['x11'], STATE.get(pa['state']))
+    c('A dispatch count unchanged while blocked', pa['dispatches'] == e['proc_a']['dispatches'])
+    c('B kept running meanwhile (counter advances)', b['words_b'][0] > e['words_b'][0])
+    c('nothing received before the harness typed', b['input']['received'] == 0)
+    for k, sent, total in ((1, b'abc', 3), (2, b'XY', 5)):
+        r = st[f'read_ret{k}']
+        data = bytes.fromhex(r['data'])
+        c(f'read {k}: returns {len(sent)} at ecall+4 in U-mode under A root', r['hit']
+          and r['cpu']['priv'] == 0 and r['cpu']['pc'] == ctx['uva']['a_read_ret']
+          and r['gprs']['x10'] == len(sent) and r['cpu']['satp'] == r['satps']['A'],
+          hex(r['gprs']['x10']))
+        c(f'read {k}: A buffer (physical) holds the typed bytes', data[total - len(sent):total] == sent,
+          data[:total])
+        c(f'read {k}: SUM=0 back in U-mode', not r['cpu']['sstatus'] & SUM, hex(r['cpu']['sstatus']))
+        c(f'read {k}: kernel counted reads/bytes', r['proc_a']['reads'] == k
+          and r['proc_a']['bytes_read'] == total)
+    r2 = st['read_ret2']
+    c('kernel: external interrupts serviced, 5 bytes, none dropped or left',
+      r2['sched']['ext_irqs'] >= 1 and r2['input']['received'] == 5
+      and r2['input']['dropped'] == 0 and r2['input']['count'] == 0, r2['input'])
+    c('trace: S external interrupts (cause 9) taken from U-mode', ext_from_user(ctx['trace']),
+      len(ext_from_user(ctx['trace'])))
+    c('trace: no exception from user code other than ecall',
+      not user_exceptions(ctx['trace'], A_RANGE) and not user_exceptions(ctx['trace'], B_RANGE))
+
+
+def oracle_t11(c, obs, ctx):
+    st = steps(obs)
+    r1, r2, a = st['ret1'], st['ret2'], st['after']
+    u1, u2 = r1['gprs']['x10'], r2['gprs']['x10']
+    tb, boot = r1['timebase'], r1['boot_time']
+    quantum_us = r2['sched']['quantum_ticks'] * 1e6 / tb
+    c('uptime returned in U-mode at both call sites', r1['hit'] and r2['hit']
+      and r1['cpu']['priv'] == 0 == r2['cpu']['priv']
+      and r1['cpu']['pc'] == ctx['uva']['a_uptime_ret1'] and r2['cpu']['pc'] == ctx['uva']['a_uptime_ret2'])
+    pa = r2['proc_a']
+    sleep_us = (pa['sleep_start'] - boot) * 1e6 / tb
+    wake_us = (pa['last_dispatch_time'] - boot) * 1e6 / tb
+    c('first value = kernel time since boot at the call (<= 1 quantum before sleep start)',
+      0 < u1 and 0 <= sleep_us - u1 <= quantum_us + 100, f'{sleep_us - u1:.1f} us')
+    c('second value = kernel time after the wake-up (<= 1 quantum after dispatch)',
+      0 <= u2 - wake_us <= quantum_us + 100, f'{u2 - wake_us:.1f} us')
+    c('grows by >= 100 ms and <= 100 ms + 2 quanta across sleep(100)',
+      100000 <= u2 - u1 <= 100000 + 2 * quantum_us + 100, f'{(u2 - u1) / 1000:.2f} ms')
+    c('A kept both values and continues without error', a['results'] == [u1, u2]
+      and a['words_a'][5] == 1 and a['words_a'][2] == 0 and a['wait']['reached'])
+
+
+SHELL_SCRIPT = ['help', 'ps', 'uptime', 'echo hello from the test', 'attack', 'ps', 'uptime']
+PS_RX = re.compile(r'^pid (\d) ([AB]) (\w+) preempted (\d+) syscalls (\d+)$')
+
+
+def oracle_t12(c, obs, ctx):
+    st = steps(obs)
+    uart = ctx['uart'].replace('\r', '')
+    c('shell started: banner and prompt', 'ProtoOS shell' in uart and st['first_prompt']['ok'])
+    for idle in ('idle_1', 'idle_2'):
+        w, pa = st[idle]['wait'], st[idle]['proc_a']
+        c(f'{idle}: at the prompt A is BLOCKED and not dispatched for 50 ticks',
+          w['reached'] and w['watch_hit'] is None and pa['state'] == 6, (w, STATE.get(pa['state'])))
+    ok = [st[f'cmd_{k}']['ok'] for k in range(1, len(SHELL_SCRIPT) + 1)]
+    c('every command finished with a new prompt', all(ok) and uart.count('proto> ') == len(SHELL_SCRIPT) + 1,
+      (ok, uart.count('proto> ')))
+    blocks = [b.split('\n') for b in uart.split('proto> ')[1:]]
+    c('each typed command was echoed', all(blocks[k][0] == cmd for k, cmd in enumerate(SHELL_SCRIPT)),
+      [b[0] for b in blocks])
+    out = {k: blocks[k][1:] for k in range(len(SHELL_SCRIPT))}
+    c('help lists the commands', out[0][:1] == ['commands: help, ps, uptime, echo <text>, attack'], out[0][:1])
+    ps = []
+    for k in (1, 5):
+        rows = [PS_RX.match(x) for x in out[k][:2]]
+        ps.append(rows)
+        c(f'ps #{len(ps)}: pid 1 A RUNNING, pid 2 B READY', all(rows)
+          and rows[0].group(1, 2, 3) == ('1', 'A', 'RUNNING')
+          and rows[1].group(1, 2, 3) == ('2', 'B', 'READY'), out[k][:2])
+    if all(ps[0]) and all(ps[1]):
+        c('ps: B was preempted again between the two ps (B keeps running)',
+          int(ps[1][1][4]) > int(ps[0][1][4]), (ps[0][1][4], ps[1][1][4]))
+        c('ps: the shell made more system calls', int(ps[1][0][5]) > int(ps[0][0][5]))
+    ups = [re.match(r'^uptime: (\d+)\.(\d\d) s$', (out[k] or [''])[0]) for k in (2, 6)]
+    c('uptime printed twice and grows', all(ups) and float('.'.join(ups[1].groups()))
+      > float('.'.join(ups[0].groups())), [out[2][:1], out[6][:1]])
+    c('echo prints its argument', out[3][:1] == ['hello from the test'], out[3][:1])
+    c('attack: the kernel refuses with -14', out[4][:2] == [
+        "attack: asking the kernel to print 8 bytes of B's memory...",
+        "kernel answered -14: access denied, B's memory is not mapped for A"], out[4][:2])
+    last = st['idle_2']
+    c('no process faulted: A BLOCKED, B READY/RUNNING', last['proc_a']['state'] == 6
+      and last['proc_b']['state'] in (1, 2) and 'FAULT' not in uart)
+    typed = sum(len(x) + 1 for x in SHELL_SCRIPT)
+    c(f'kernel received exactly the {typed} typed bytes, none dropped',
+      last['input']['received'] == typed and last['input']['dropped'] == 0, last['input'])
+    c('trace: S external interrupts (cause 9) taken from U-mode', ext_from_user(ctx['trace']))
+    c('trace: no exception from user code other than ecall',
+      not user_exceptions(ctx['trace'], A_RANGE) and not user_exceptions(ctx['trace'], B_RANGE))
+
+
+N7_EXPECT = [-9, -14, -14, -14, -14, -22, -14, -14, 0]
+N7_NAMES = ['wrong fd', 'kernel page', "B's page", "A's own read-only text page",
+            'crosses into guard page', 'len > 256', 'NULL', 'address wrap-around', 'len 0']
+
+
+def oracle_n7(c, obs, ctx):
+    st = steps(obs)
+    r, b, d, a = st['rejected'], st['blocked'], st['done'], st['after']
+    c('A passed all rejected calls in U-mode', r['hit'] and r['cpu']['priv'] == 0)
+    for k, (name, want) in enumerate(zip(N7_NAMES, N7_EXPECT)):
+        c(f'{name}: returns {want}', r['results'][k] == want & M64, hex(r['results'][k]))
+    c('PT walk: kernel page U=0, text page not W, B page and guard unmapped in A root',
+      r['walk_secret']['mapped'] and 'U' not in r['walk_secret']['flags']
+      and r['walk_text']['mapped'] and 'W' not in r['walk_text']['flags']
+      and not r['walk_b_data']['mapped'] and not r['walk_guard']['mapped'])
+    c('rejected calls neither blocked nor consumed input', r['proc_a']['reads'] == 0
+      and r['proc_a']['read_pending'] == 0 and r['proc_a']['state'] in (1, 2)
+      and r['input']['received'] == 0)
+    c('the valid read blocks (BLOCKED, not dispatched)', b['hit'] and b['wait']['watch_hit'] is None
+      and b['proc_a']['state'] == 6)
+    c('then returns 1 with the typed byte', d['hit'] and d['result9'] == 1
+      and bytes.fromhex(d['data'])[:1] == b'z', (d['result9'], d['data']))
+    c('A not faulted, keeps running; B keeps running', a['procs'][0]['state'] in (1, 2)
+      and a['words_a'][0] > a['words_a_first'][0] and a['words_b'][0] > a['words_b_first'][0])
+    c('trace: no exception from A other than ecall', not user_exceptions(ctx['trace'], A_RANGE))
+
+
+FLOOD = bytes(65 + i % 26 for i in range(300))
+
+
+def oracle_n8(c, obs, ctx):
+    st = steps(obs)
+    dr, b, d, a = st['drained'], st['blocked'], st['done'], st['after']
+    c('all 300 flooded bytes were taken from the UART by interrupts', dr['hit']
+      and dr['input']['received'] == 300, dr['input'])
+    c('buffer kept 128 (its capacity), dropped the other 172', dr['input']['dropped'] == 172)
+    c('first read returned 128', dr['result0'] == 128, dr['result0'])
+    c('A got exactly the first 128 bytes, in order', bytes.fromhex(dr['data'])[:128] == FLOOD[:128])
+    c('buffer empty after the read', dr['input']['count'] == 0)
+    c('next read blocks (BLOCKED, not dispatched)', b['hit'] and b['wait']['watch_hit'] is None
+      and b['proc_a']['state'] == 6)
+    c('a byte typed after the flood is delivered (returns 1, "Z")', d['hit'] and d['result1'] == 1
+      and bytes.fromhex(d['data'])[128:129] == b'Z' and d['input']['dropped'] == 172)
+    c('no process faulted; B keeps running', all(p['state'] in (1, 2, 6) for p in a['procs'])
+      and a['words_b'][0] > a['words_b_first'][0])
+    c('trace: no exception from user code other than ecall',
+      not user_exceptions(ctx['trace'], A_RANGE) and not user_exceptions(ctx['trace'], B_RANGE))
+
+
+ORACLES.update({'t10': oracle_t10, 't11': oracle_t11, 't12': oracle_t12, 'n7': oracle_n7,
+                'n8': oracle_n8})
 
 
 def judge(probe, obs, ctx):

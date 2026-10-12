@@ -21,14 +21,18 @@
 #define SSTATUS_SUM  (UINT64_C(1) << 18)
 #define SSTATUS_MXR  (UINT64_C(1) << 19)
 #define SIE_STIE     (UINT64_C(1) << 5)
+#define SIE_SEIE     (UINT64_C(1) << 9)
+#define SIP_SEIP     (UINT64_C(1) << 9)
 #define SCAUSE_INTERRUPT (UINT64_C(1) << 63)
 #define IRQ_S_TIMER  5u
+#define IRQ_S_EXTERNAL 9u
 #define EXC_U_ECALL  8u
 #define SATP_MODE_SV39 (UINT64_C(8) << 60)
 
 #define UART_PHYS UINT64_C(0x10000000)
 
 extern struct boot_config boot_configuration;
+extern uint64_t boot_time;      /* `time` CSR at kernel entry (v1.2 uptime) */
 void uart_putc(char c);
 void uart_dec(uint64_t value);
 _Noreturn void kernel_panic(const char *why);

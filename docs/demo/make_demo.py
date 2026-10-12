@@ -5,8 +5,9 @@ Usage (from the repository root, after build-scripts/build-wsl.sh):
     python3 docs/demo/make_demo.py            # -> docs/demo/protoos-demo.svg
 
 Every line shown is captured from the guest's UART in a real QEMU run. The
-demo-mode scene keeps the real timing between lines (clamped); the other
-scenes are replayed at one line per PACE seconds so they can be read.
+demo-mode and shell scenes keep the real timing between lines (clamped); the
+other scenes are replayed at one line per PACE seconds so they can be read.
+In the shell scene the script types the commands into the guest UART.
 """
 import html
 import os
@@ -20,28 +21,39 @@ ELF = ROOT / 'build/protoos.elf'
 OUT = ROOT / 'docs/demo/protoos-demo.svg'
 FW = os.environ.get('OPENSBI', '/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin')
 
-# (bootargs, seconds to run, max captured lines, comment, real timing?)
+# Keystrokes for the shell scene: (seconds after the banner, bytes typed).
+SHELL_TYPING = [(1.2, b'help\r'), (2.6, b'ps\r'), (4.0, b'uptime\r'),
+                (5.4, b'echo Hello from user mode!\r'), (6.8, b'attack\r'), (8.6, b'ps\r')]
+# (bootargs, seconds to run, max captured lines, comment, real timing?, typing)
 SCENES = [
     ('protoos.mode=demo', 9, 22,
-     'demo mode: A and B print via write() and sleep(); then B attacks A', True),
+     'demo mode: A and B print via write() and sleep(); then B attacks A', True, None),
+    ('protoos.mode=shell', 10, 22,
+     'shell mode: A is a command shell reading the keyboard; B works in the background',
+     True, SHELL_TYPING),
     ('protoos.test=umode', 2, 15,
-     'two user processes, switched by the timer interrupt every 10 ms', False),
+     'two user processes, switched by the timer interrupt every 10 ms', False, None),
 ]
 PACE, COMMAND_PAUSE, SCENE_HOLD = 0.22, 0.9, 2.6
 COLS, ROWS = 112, 19
 FONT, LINE_H, CHAR_W, PAD, TITLE_H = 13, 18, 7.82, 14, 28
 
 
-def record(args, seconds, max_lines):
+def record(args, seconds, max_lines, typing=None):
     cmd = ['qemu-system-riscv64', '-machine', 'virt', '-accel', 'tcg', '-cpu', 'rv64',
            '-smp', '1', '-m', '128M', '-bios', FW, '-kernel', str(ELF), '-display', 'none',
            '-monitor', 'none', '-serial', 'stdio', '-nic', 'none', '-append', args,
            '-no-reboot']
-    vm = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    vm = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                          stderr=subprocess.DEVNULL)
     lines, buf, started, t0 = [], b'', False, time.monotonic()
     t_start = t0
+    pending = list(typing or [])
     try:
         while time.monotonic() - t0 < seconds and len(lines) < max_lines:
+            if started and pending and time.monotonic() - t_start >= pending[0][0]:
+                vm.stdin.write(pending.pop(0)[1])
+                vm.stdin.flush()
             ready, _, _ = select.select([vm.stdout], [], [], 0.05)
             if not ready:
                 continue
@@ -66,7 +78,9 @@ def style_of(line):
     for prefix, cls in (('$ ', 'cmd'), ('# ', 'note'), ('FAULT', 'fault'), ('SCHED', 'sched'),
                         ('[A]', 'usera'), ('[B] pid 2: now', 'attack'), ('[B]', 'userb'),
                         ('HEARTBEAT', 'beat'), ('MMU', 'mmu'), ('PROC', 'proc'),
-                        ('EXIT', 'exit'), ('IDLE', 'exit')):
+                        ('EXIT', 'exit'), ('IDLE', 'exit'), ('proto> ', 'usera'),
+                        ('attack:', 'attack'), ('kernel answered', 'fault'),
+                        ('pid ', 'proc')):
         if line.startswith(prefix):
             return cls
     return 'out'
@@ -74,10 +88,12 @@ def style_of(line):
 
 def frames_for(scenes):
     """Yield (visible lines, duration) for every animation frame."""
-    for args, seconds, max_lines, note, real in scenes:
-        screen = [f'# {note}', f'$ sh build-scripts/run-scenario.sh {args} {seconds}']
+    for args, seconds, max_lines, note, real, typing in scenes:
+        run = ('sh build-scripts/run-shell.sh' if typing else
+               f'sh build-scripts/run-scenario.sh {args} {seconds}')
+        screen = [f'# {note}', f'$ {run}']
         yield list(screen), COMMAND_PAUSE
-        output = record(args, seconds, max_lines)
+        output = record(args, seconds, max_lines, typing)
         if not output:
             raise SystemExit(f'no UART output captured for {args}')
         for i, (t, line) in enumerate(output):
@@ -120,7 +136,7 @@ def render(frames):
         '<circle cx="18" cy="14" r="5" fill="#ff5f57"/><circle cx="34" cy="14" r="5" fill="#febc2e"/>'
         '<circle cx="50" cy="14" r="5" fill="#28c840"/>',
         f'<text class="title" x="{width / 2:.0f}" y="18" text-anchor="middle">'
-        'ProtoOS v1.1 on QEMU virt (RISC-V RV64) - real UART output</text>',
+        'ProtoOS v1.2 on QEMU virt (RISC-V RV64) - real UART output</text>',
         f'<svg x="0" y="{TITLE_H}" width="{width}" height="{body_h}"><g class="tape">',
     ]
     for i, (screen, _) in enumerate(frames):

@@ -4,21 +4,26 @@
 #include "vm.h"
 
 /* User syscall ABI: number in a7, arguments in a0..a2, result in a0.
- * 64/93/124/172 follow the RISC-V Linux table; 1001 is ProtoOS-specific. */
+ * 63/64/93/124/172 follow the RISC-V Linux table; 1001+ are ProtoOS-specific. */
+#define SYS_READ   UINT64_C(63)
 #define SYS_WRITE  UINT64_C(64)
 #define SYS_EXIT   UINT64_C(93)
 #define SYS_YIELD  UINT64_C(124)
 #define SYS_GETPID UINT64_C(172)
 #define SYS_SLEEP  UINT64_C(1001)
+#define SYS_UPTIME UINT64_C(1002)
+#define SYS_PROCINFO UINT64_C(1003)
 #define SYS_EBADF  ((uint64_t)-9)
 #define SYS_EFAULT ((uint64_t)-14)
 #define SYS_EINVAL ((uint64_t)-22)
 #define SYS_ENOSYS ((uint64_t)-38)
 #define WRITE_MAX  UINT64_C(256)
+#define READ_MAX   UINT64_C(256)
 #define SLEEP_MAX_MS UINT64_C(60000)
+#define PROCINFO_WORDS 4u   /* state, preemptions, syscalls, dispatches */
 
 enum proc_state { PROC_UNUSED, PROC_READY, PROC_RUNNING, PROC_EXITED, PROC_FAULTED,
-                  PROC_SLEEPING };
+                  PROC_SLEEPING, PROC_BLOCKED };
 
 struct process {
     struct trap_frame frame;   /* MUST stay first: trap.S uses sscratch=&frame */
@@ -35,6 +40,8 @@ struct process {
     /* v1.1 */
     uint64_t writes, bytes_written, sleeps;
     uint64_t sleep_start, wake_time, last_dispatch_time;
+    /* v1.2: one pending read per BLOCKED process, completed at dispatch */
+    uint64_t reads, bytes_read, read_pending, read_va, read_len, block_start;
 };
 _Static_assert(offsetof(struct process, frame) == 0, "trap.S frame protocol");
 
@@ -46,6 +53,7 @@ struct sched_stats {
     uint64_t verbose;
     uint64_t heartbeat;
     uint64_t waits;         /* times the kernel waited because everyone slept */
+    uint64_t ext_irqs;      /* v1.2: external interrupts taken from U-mode */
 };
 
 extern struct process procs[PROC_COUNT];
