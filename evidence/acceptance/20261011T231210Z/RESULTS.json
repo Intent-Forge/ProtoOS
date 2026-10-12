@@ -1,0 +1,582 @@
+{
+ "run_id": "20261011T231210Z",
+ "elf_sha256": "f1d5a5bca37e00604e8e1c1533db9aee03497c0af7f0055a2d26ade5a9b634ce",
+ "repetitions": 3,
+ "per_test": {
+  "T1": "PASS",
+  "T2": "PASS",
+  "T3": "PASS",
+  "T4": "PASS",
+  "T5": "PASS",
+  "T6": "PASS",
+  "T7": "PASS",
+  "N1": "PASS",
+  "N2": "PASS",
+  "N3": "PASS",
+  "N4": "PASS",
+  "N5": "PASS"
+ },
+ "all_pass": true,
+ "environment": {
+  "elf_sha256": "f1d5a5bca37e00604e8e1c1533db9aee03497c0af7f0055a2d26ade5a9b634ce",
+  "firmware": "/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin",
+  "firmware_sha256": "b296d711ecb879489689109c0fd7e0698b5b9550725b4e50fac456bbd3ecbcdf",
+  "qemu": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)",
+  "gdb": "GNU gdb (Ubuntu 17.1-2ubuntu1) 17.1",
+  "zig": "0.13.0",
+  "host": "Linux host 6.18.40.1-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Fri Jul 31 22:12:15 UTC 2026 x86_64",
+  "python": "3.14.4",
+  "git_head": "n/a",
+  "struct_offsets": {
+   "sizeof_process": 384,
+   "process.state": 296,
+   "process.preemptions": 320,
+   "process.syscalls": 336,
+   "sched.timer_ticks": 8,
+   "sched.switches": 16,
+   "sched.idle_entered": 24
+  }
+ },
+ "results": [
+  {
+   "test": "T1",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.17
+    }
+   ]
+  },
+  {
+   "test": "T1",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.11
+    }
+   ]
+  },
+  {
+   "test": "T1",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.16
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.21
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.07
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.07
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.07
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.17
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.17
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.17
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.17
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.17
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.17
+    }
+   ]
+  }
+ ]
+}

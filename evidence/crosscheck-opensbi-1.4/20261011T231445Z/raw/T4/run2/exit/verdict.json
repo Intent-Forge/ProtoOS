@@ -1,0 +1,76 @@
+{
+ "test": "T4",
+ "repetition": 2,
+ "scenario": "protoos.test=exit",
+ "probe": "t4_exit",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "f1d5a5bca37e00604e8e1c1533db9aee03497c0af7f0055a2d26ade5a9b634ce",
+ "seconds": 1.02,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=93 exit, a0=42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A did its 1000 iterations before exit",
+   "ok": true,
+   "detail": "1000"
+  },
+  {
+   "check": "wait1: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "wait2: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "A state EXITED, exit_code 42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A counter frozen at 1000",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps running (counter advances)",
+   "ok": true,
+   "detail": "(34940423, 69105666)"
+  },
+  {
+   "check": "trace: exactly one user ecall from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "f1d5a5bca37e00604e8e1c1533db9aee03497c0af7f0055a2d26ade5a9b634ce"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "3d1595745bde2b8d24a0bdcce48a6cebf7b4a13bf1c9eeb47be8332aa89c8146",
+  "gdb.log": "b03f62456e823d90017b53d09040db1051415bed46457fdeac6f5818264cf841",
+  "observations.json": "92796fa4c85df066c369a0d08ddf347e03129a7f89f17b1d40afeeb9909c4a7f",
+  "probe-config.json": "551e5f6a4a0f5d05fe77fca75b863bd5ff1df1ada697cc46df7aa98dfe0591fb",
+  "qemu-int.log": "17c35d964ec2f7294dd7a650a22d5a8375b21dcd2f60402aa4eabfbf94a4f5c1",
+  "uart.log": "9f82bec6ef20bbce3d3cdf680bb0abd1821d27109657477bbea2c80e8d3ae70a"
+ }
+}

@@ -1,0 +1,91 @@
+#include "kernel.h"
+#include "sv39_builder.h"
+#include "vm.h"
+
+/* Static page-table pools: root, low L1, UART L0, user L0, high L1,
+ * kernel L0 = 6 pages per address space; 8 leaves headroom. */
+#define AS_POOL_PAGES 8u
+static struct sv39_page_table kernel_pt_pool[AS_POOL_PAGES];
+static struct sv39_page_table proc_pt_pool[PROC_COUNT][AS_POOL_PAGES];
+static struct sv39_builder kernel_as, proc_as[PROC_COUNT];
+uint64_t vm_kernel_satp;
+uint64_t vm_proc_satp[PROC_COUNT];
+
+extern char __kernel_start[], __text_end[], __rodata_end[], __kernel_end[];
+extern char kernel_stack_guard[];
+extern char __user_a_text[], __user_b_text[];
+extern char user_a_data[], user_a_stack[], user_b_data[], user_b_stack[];
+
+/* Kernel pages never carry U; user pages always do. A/D are preset so the
+ * result does not depend on optional hardware A/D updating (Svadu). */
+#define PTE_KTEXT (SV39_PTE_R | SV39_PTE_X | SV39_PTE_A)
+#define PTE_KRO   (SV39_PTE_R | SV39_PTE_A)
+#define PTE_KRW   (SV39_PTE_R | SV39_PTE_W | SV39_PTE_A | SV39_PTE_D)
+#define PTE_UTEXT (SV39_PTE_R | SV39_PTE_X | SV39_PTE_U | SV39_PTE_A)
+#define PTE_URW   (SV39_PTE_R | SV39_PTE_W | SV39_PTE_U | SV39_PTE_A | SV39_PTE_D)
+
+static enum sv39_result map_identity(struct sv39_builder *b, uintptr_t start,
+    uintptr_t end, uint64_t flags)
+{
+    for (uintptr_t pa = start; pa < end; pa += SV39_PAGE_SIZE) {
+        if (pa == (uintptr_t)kernel_stack_guard) continue;
+        enum sv39_result r = sv39_map4k(b, pa, pa, flags);
+        if (r != SV39_OK) return r;
+    }
+    return SV39_OK;
+}
+
+static enum sv39_result map_kernel(struct sv39_builder *b)
+{
+    enum sv39_result r;
+    if ((r = map_identity(b, (uintptr_t)__kernel_start, (uintptr_t)__text_end, PTE_KTEXT)) ||
+        (r = map_identity(b, (uintptr_t)__text_end, (uintptr_t)__rodata_end, PTE_KRO)) ||
+        (r = map_identity(b, (uintptr_t)__rodata_end, (uintptr_t)__kernel_end, PTE_KRW)))
+        return r;
+    return sv39_map4k(b, UART_PHYS, UART_PHYS, PTE_KRW);
+}
+
+static enum sv39_result map_user(struct sv39_builder *b, uint64_t base,
+    const char *text, const char *data, const char *stack)
+{
+    enum sv39_result r;
+    if ((r = sv39_map4k(b, base + USER_TEXT_OFF, (uintptr_t)text, PTE_UTEXT)) ||
+        (r = sv39_map4k(b, base + USER_DATA_OFF, (uintptr_t)data, PTE_URW)))
+        return r;
+    return sv39_map4k(b, base + USER_STACK_OFF, (uintptr_t)stack, PTE_URW);
+}
+
+static uint64_t satp_for(const struct sv39_builder *b)
+{
+    /* ASID 0 everywhere: every switch flushes the whole TLB instead. */
+    return SATP_MODE_SV39 | (b->pool_pa >> SV39_PAGE_SHIFT);
+}
+
+int vm_init(void)
+{
+    /* MMU is off here, so table virtual addresses are physical. */
+    if (sv39_builder_init(&kernel_as, kernel_pt_pool, AS_POOL_PAGES,
+            (uintptr_t)kernel_pt_pool) || map_kernel(&kernel_as))
+        return 1;
+    static const uint64_t bases[PROC_COUNT] = { USER_A_BASE, USER_B_BASE };
+    const char *text[PROC_COUNT] = { __user_a_text, __user_b_text };
+    const char *data[PROC_COUNT] = { user_a_data, user_b_data };
+    const char *stack[PROC_COUNT] = { user_a_stack, user_b_stack };
+    for (unsigned i = 0; i < PROC_COUNT; ++i) {
+        if (sv39_builder_init(&proc_as[i], proc_pt_pool[i], AS_POOL_PAGES,
+                (uintptr_t)proc_pt_pool[i]) || map_kernel(&proc_as[i]) ||
+            map_user(&proc_as[i], bases[i], text[i], data[i], stack[i]))
+            return 2 + (int)i;
+        vm_proc_satp[i] = satp_for(&proc_as[i]);
+    }
+    vm_kernel_satp = satp_for(&kernel_as);
+    return 0;
+}
+
+void vm_switch(uint64_t satp)
+{
+    /* Order prior page-table stores before the walk, then drop stale TLB. */
+    __asm__ volatile("sfence.vma zero, zero" ::: "memory");
+    csr_write(satp, satp);
+    __asm__ volatile("sfence.vma zero, zero" ::: "memory");
+}

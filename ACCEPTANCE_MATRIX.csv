@@ -1,0 +1,13 @@
+ID,Category,Scenario,Preconditions,PASS criterion,Independent evidence,Repetitions,Required
+T1,Positive,S-mode boot,"Clean QEMU virt RV64 boot via OpenSBI","Guest kernel instructions actually execute in S-mode after handoff","QEMU/GDB PC+privilege observations correlated with binary and UART",3,YES
+T2,Positive,Two U-mode processes,"Kernel boots from clean VM","A and B execute in U-mode with distinct saved contexts and stacks","GDB/QEMU register+mode snapshots and process memory/counters",3,YES
+T3,Positive,Timer preemption without yield,"A runs non-yielding loop B READY","Actual timer interrupt causes kernel context switch A->B and later resumes A","QEMU interrupt trace plus independent context/counter examination",3,YES
+T4,Positive,System calls getpid yield exit,"Fresh VM per destructive syscall scenario","Actual ecall trap with correct semantics of all three calls","Trap causes and register/PC observation plus result state",3,YES
+T5,Positive,Sv39 isolation,"Separate page roots and mapped user programs","Hardware MMU prevents forbidden access to B/kernel pages and preserves B memory","satp/page-table evidence plus page fault trap and unchanged B physical memory",3,YES
+T6,Positive,Fault isolation,"A deliberately makes forbidden access; B READY","A becomes FAULTED and B continues executing with unchanged state","Independent trap/context trace and B memory comparison",3,YES
+T7,Positive,Normal autonomous execution,"Unmodified kernel ELF; Normal boot","A and B continue alternating through actual timer preemption without GPT control","Time-bounded QEMU observation+trace; measured duration and switches",3,YES
+N1,Negative,Cross-process forbidden write,"A attempts access to B-only unmapped user page","Page fault; no B physical memory alteration","QEMU/GDB fault and before-after physical-memory comparison",3,YES
+N2,Negative,Kernel page access from U-mode,"U-mode tries to read protected kernel-only mapping","Hardware privilege/page fault; no unauthorized data returned","Trap trace plus effective PTE permissions",3,YES
+N3,Negative,Forbidden privileged instruction,"U-mode attempts S-mode-only CSR write","Instruction rejected with architectural illegal-instruction trap","Independent trap cause and unchanged privileged register",3,YES
+N4,Negative,Unknown syscall number,"U-mode issues ecall with unknown a7","Deterministic documented rejection; kernel and other process remain healthy","Trap and registers plus subsequent process progress",3,YES
+N5,Negative,No runnable processes,"All processes EXITED or FAULTED in clean scenario","Kernel enters safe idle/completion; never loads invalid context","Execution trace after terminal process state",3,YES
