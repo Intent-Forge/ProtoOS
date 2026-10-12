@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 # Install the pinned Zig 0.13.0 (the checkpoint 0008 compiler) into ~/.protoos-venv.
 # Pinned wheel hash of the official ziglang 0.13.0 manylinux x86_64 wheel.
-set -euo pipefail
+set -eu
 WHEEL_SHA=3ce0c9f16547e5d61b32e0d226926e9a2552ef4b91fccf7ab5ea1a623a77824b
 VENV="$HOME/.protoos-venv"
 DL=$(mktemp -d)
