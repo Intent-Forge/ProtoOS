@@ -1,0 +1,121 @@
+{
+ "test": "T3",
+ "repetition": 3,
+ "scenario": "protoos.test=preempt",
+ "probe": "t3",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "A preempted by S timer interrupt (scause=0x8000000000000005)",
+   "ok": true,
+   "detail": "0x8000000000000005"
+  },
+  {
+   "check": "interrupted A pc is user code",
+   "ok": true,
+   "detail": "0x400140"
+  },
+  {
+   "check": "A made no syscall (no yield)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: async cause 5 at the saved A epc",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no user ecall at all in this scenario",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B traps before A executes again",
+   "ok": true,
+   "detail": "B"
+  },
+  {
+   "check": "B trap came from U-mode (saved sstatus.SPP=0) at B user pc",
+   "ok": true,
+   "detail": "('0x200000020', '0x8000e0')"
+  },
+  {
+   "check": "B executed in between (B dispatched again since A was preempted)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A not dispatched while B ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B trap taken under B root",
+   "ok": true,
+   "detail": "0x800000000008022f"
+  },
+  {
+   "check": "A resumed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A resumed: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "A resumed: satp is the process root",
+   "ok": true,
+   "detail": "0x8000000000080225"
+  },
+  {
+   "check": "A resumed: pc inside its user text",
+   "ok": true,
+   "detail": "0x400140"
+  },
+  {
+   "check": "A resumed exactly at interrupted pc (no skipped instruction)",
+   "ok": true,
+   "detail": "('0x400140', '0x400140')"
+  },
+  {
+   "check": "all 31 GPRs of A restored bit-exactly",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "B was preempted in between (>= 2 timer ticks)",
+   "ok": true,
+   "detail": "(0, 2)"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "116480c80d5a7f5a6819d15ddb1dbccb77e34ab284fcf098cf30698a2bebbc49",
+  "gdb.log": "549ae500181e107fb3011bfa403fb79574edc1074f6922b44501b98104196813",
+  "observations.json": "4f307fdff1b8560efbc59a8221c24e57d7942245160bb61b3505461ef09c21d1",
+  "probe-config.json": "3fafd5d1c9f3629eb328d6cd1585da79d5df217f2b4bf0f2a1220b19833a2a60",
+  "qemu-int.log": "f9296b4fd68da1d0e8684f3bbc8f2d67c4a89f2e066b96f413fc1d9fe3958b96",
+  "uart.log": "147bb49902b90c77889aa26a1e3186c254e4bd178d54992c9c99cabad4fb86eb"
+ }
+}

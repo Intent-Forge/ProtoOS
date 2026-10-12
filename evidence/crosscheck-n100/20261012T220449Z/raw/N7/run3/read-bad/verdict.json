@@ -1,0 +1,116 @@
+{
+ "test": "N7",
+ "repetition": 3,
+ "scenario": "protoos.test=read-bad",
+ "probe": "n7",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39",
+ "seconds": 0.97,
+ "checks": [
+  {
+   "check": "A passed all rejected calls in U-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "wrong fd: returns -9",
+   "ok": true,
+   "detail": "0xfffffffffffffff7"
+  },
+  {
+   "check": "kernel page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "B's page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "A's own read-only text page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "crosses into guard page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "len > 256: returns -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "NULL: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "address wrap-around: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "len 0: returns 0",
+   "ok": true,
+   "detail": "0x0"
+  },
+  {
+   "check": "PT walk: kernel page U=0, text page not W, B page and guard unmapped in A root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "rejected calls neither blocked nor consumed input",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "the valid read blocks (BLOCKED, not dispatched)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "then returns 1 with the typed byte",
+   "ok": true,
+   "detail": "(1, '7a000000')"
+  },
+  {
+   "check": "A not faulted, keeps running; B keeps running",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no exception from A other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "f9c8cdc6bb18d34c7acbc7e046b05e636b74649fb8308f8af3806f8e90880a1d",
+  "gdb.log": "bff1eda9aacbc7a4ef2e9a8fde447310275dd45b7af588a25f0667c7c30098c2",
+  "observations.json": "77ba983de4bae717993a8cc84c86bcb4e0219bce600995b9edd0b58bc1fe1bcb",
+  "probe-config.json": "0436b68fcea38c81d572242112d05a946b86c25783b6c6461511e198d3ce0cc8",
+  "qemu-int.log": "cf70090d1fbcd6e6ade59702d0be0d8e3b593fa3f6d04afe29c7441835bc6605",
+  "uart.log": "aa2fc15ae03390cd4e9cdcdc21bdda68b3087ff3f8488c0d0a3fc9eabbb2976c"
+ }
+}

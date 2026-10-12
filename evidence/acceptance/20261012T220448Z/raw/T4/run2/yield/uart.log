@@ -1,0 +1,442 @@
+
+OpenSBI v1.8
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 1
+Platform HART Protection    : pmp
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 321 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 65 KB
+Firmware Heap Offset        : 0x47000
+Firmware Heap Size          : 37 KB (total), 0 KB (reserved), 12 KB (used), 23 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1464 B (used), 2632 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : ipi,pmu,srst,sse,hsm,rfnc,fwft,time,base,legacy,dbcn,dbtr
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*
+Domain0 Region00            : 0x0000000080040000-0x000000008005ffff M: (F,R,W) S/U: ()
+Domain0 Region01            : 0x0000000080000000-0x000000008003ffff M: (F,R,X) S/U: ()
+Domain0 Region02            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region03            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region04            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x0000000087e00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sstc,zicntr,zihpm,zicboz,zicbom,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000001666
+Boot HART MEDELEG           : 0x0000000000f4b509
+ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes
+hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=yield
+MMU Sv39 active satp=0x800000000008020f
+SCENARIO protoos.test=yield
+PROC A(pid=1) entry=0x0000000000400218 sp=0x0000000000404000 satp=0x8000000000080225
+PROC B(pid=2) entry=0x0000000000800218 sp=0x0000000000804000 satp=0x800000000008022f
+SCHED - -> A(pid=1) reason=start switches=1
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=2
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=3
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=4
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=5
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=6
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=7
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=8
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=9
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=10
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=11
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=12
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=13
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=14
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=15
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=16
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=17
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=18
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=19
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=20
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=21
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=22
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=23
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=24
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=25
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=26
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=27
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=28
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=29
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=30
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=31
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=32
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=33
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=34
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=35
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=36
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=37
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=38
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=39
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=40
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=41
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=42
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=43
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=44
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=45
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=46
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=47
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=48
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=49
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=50
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=51
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=52
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=53
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=54
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=55
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=56
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=57
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=58
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=59
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=60
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=61
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=62
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=63
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=64
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=65
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=66
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=67
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=68
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=69
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=70
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=71
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=72
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=73
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=74
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=75
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=76
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=77
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=78
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=79
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=80
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=81
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=82
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=83
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=84
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=85
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=86
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=87
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=88
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=89
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=90
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=91
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=92
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=93
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=94
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=95
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=96
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=97
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=98
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=99
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=100
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=101
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=102
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=103
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=104
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=105
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=106
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=107
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=108
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=109
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=110
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=111
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=112
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=113
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=114
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=115
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=116
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=117
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=118
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=119
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=120
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=121
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=122
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=123
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=124
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=125
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=126
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=127
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=128
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=129
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=130
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=131
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=132
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=133
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=134
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=135
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=136
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=137
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=138
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=139
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=140
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=141
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=142
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=143
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=144
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=145
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=146
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=147
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=148
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=149
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=150
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=151
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=152
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=153
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=154
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=155
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=156
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=157
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=158
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=159
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=160
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=161
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=162
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=163
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=164
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=165
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=166
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=167
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=168
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=169
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=170
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=171
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=172
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=173
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=174
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=175
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=176
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=177
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=178
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=179
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=180
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=181
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=182
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=183
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=184
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=185
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=186
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=187
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=188
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=189
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=190
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=191
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=192
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=193
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=194
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=195
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=196
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=197
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=198
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=199
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=200
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=201
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=202
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=203
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=204
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=205
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=206
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=207
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=208
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=209
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=210
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=211
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=212
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=213
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=214
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=215
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=216
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=217
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=218
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=219
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=220
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=221
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=222
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=223
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=224
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=225
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=226
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=227
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=228
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=229
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=230
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=231
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=232
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=233
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=234
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=235
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=236
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=237
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=238
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=239
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=240
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=241
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=242
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=243
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=244
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=245
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=246
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=247
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=248
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=249
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=250
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=251
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=252
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=253
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=254
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=255
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=256
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=257
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=258
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=259
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=260
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=261
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=262
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=263
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=264
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=265
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=266
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=267
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=268
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=269
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=270
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=271
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=272
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=273
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=274
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=275
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=276
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=277
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=278
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=279
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=280
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=281
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=282
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=283
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=284
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=285
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=286
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=287
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=288
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=289
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=290
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=291
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=292
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=293
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=294
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=295
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=296
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=297
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=298
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=299
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=300
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=301
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=302
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=303
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=304
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=305
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=306
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=307
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=308
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=309
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=310
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=311
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=312
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=313
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=314
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=315
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=316
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=317
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=318
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=319
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=320
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=321
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=322
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=323
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=324
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=325
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=326
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=327
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=328
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=329
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=330
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=331
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=332
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=333
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=334
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=335
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=336
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=337
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=338
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=339
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=340
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=341
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=342
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=343
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=344
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=345
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=346
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=347
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=348
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=349
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=350
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=351
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=352
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=353
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=354
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=355
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=356
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=357
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=358
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=359
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=360
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=361
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=362
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=363
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=364
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=365
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=366
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=367
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=368
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=369
+SCHED A(pid=1) -> B(pid=2) reason=yield switches=370
+SCHED B(pid=2) -> A(pid=1) reason=yield switches=371
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=372

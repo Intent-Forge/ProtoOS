@@ -1,0 +1,15 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x80204650: file src/proc.c, line 422.
+
+Breakpoint 1, proc_fault (p=0x80239b20 <procs+2720>, f=0x80239b20 <procs+2720>) at src/proc.c:422
+422	{
+Breakpoint 2 at 0x400a6c
+
+Breakpoint 2, 0x0000000000400a6c in ?? ()
+Breakpoint 3 at 0x8020477c: file src/proc.c, line 449.
+Breakpoint 4 at 0x80204650: file src/proc.c, line 422.
+
+Breakpoint 3, trap_from_user (f=0x802396e0 <procs+1632>) at src/proc.c:449
+449	{
+[Inferior 1 (process 1) killed]

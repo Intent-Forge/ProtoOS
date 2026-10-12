@@ -1,0 +1,71 @@
+{
+ "test": "N5",
+ "repetition": 1,
+ "scenario": "protoos.test=idle-fault",
+ "probe": "n5",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39",
+ "seconds": 3.22,
+ "checks": [
+  {
+   "check": "idle entered",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no READY/RUNNING process at idle",
+   "ok": true,
+   "detail": "['FAULTED', 'EXITED']"
+  },
+  {
+   "check": "no trap/dispatch/sret for 3 s after idle",
+   "ok": true,
+   "detail": "None"
+  },
+  {
+   "check": "parked in S-mode halt loop",
+   "ok": true,
+   "detail": "0x80200470"
+  },
+  {
+   "check": "interrupt enables cleared (sie=0)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "kernel root installed (no process context loaded)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no user-level event after the last process ended",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "03e2662336336ceef82f3d1e499ab47393bca0c448f48fe050243b27be837309",
+  "gdb.log": "db756e05cc4a327aa3bc3446bcf0dacfea2333f7665047877d34ca15790511e7",
+  "observations.json": "6dc2a9d40a08c15800bfae601819f352b9c9ce3d8595d73d4d7496980d048480",
+  "probe-config.json": "4e33cbf1fb3557788f5db82fe6dd29de37e783441f0f0e98cb94464473566043",
+  "qemu-int.log": "246d88450b79f86a76bbab7e43b363eeb3123a2828232e9c88370fe9625f786d",
+  "uart.log": "0ac231b97b40d78c0ece51fdc2fac31ed14bedd0bbb5263e9d7b3b4b45faf10c"
+ }
+}

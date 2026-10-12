@@ -1,0 +1,111 @@
+{
+ "test": "T1",
+ "repetition": 1,
+ "scenario": "protoos.test=boot",
+ "probe": "t1",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39",
+ "seconds": 0.37,
+ "checks": [
+  {
+   "check": "reset state observed in M-mode before firmware (priv=3)",
+   "ok": true,
+   "detail": "{'pc': 4096, 'priv': 3, 'satp': 0, 'sstatus': 8589934592, 'scause': 0, 'sepc': 0, 'stval': 0, 'sscratch': 0, 'sie': 0, 'stvec': 0}"
+  },
+  {
+   "check": "kernel entry reached",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "entry pc == ELF _start == 0x80200000",
+   "ok": true,
+   "detail": "0x80200000"
+  },
+  {
+   "check": "entry privilege S (priv=1) after OpenSBI handoff",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "check": "OpenSBI handoff args: hart 0, DTB pointer",
+   "ok": true,
+   "detail": "(0, '0x87e00000')"
+  },
+  {
+   "check": "kernel_main executes in S-mode",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "check": "halt reached in S-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "Sv39 active in S-mode (satp.MODE=8, kernel root)",
+   "ok": true,
+   "detail": "0x800000000008020f"
+  },
+  {
+   "check": "boot_phase == 3 (READY path)",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "check": "PT walk: kernel text R+X, no U, no W",
+   "ok": true,
+   "detail": "VRXA"
+  },
+  {
+   "check": "PT walk: kernel rodata R only, no U",
+   "ok": true,
+   "detail": "VRA"
+  },
+  {
+   "check": "PT walk: kernel stack R+W, no U",
+   "ok": true,
+   "detail": "VRWAD"
+  },
+  {
+   "check": "PT walk: kernel stack guard page unmapped",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "PT walk: user pages absent from kernel root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "UART correlates (banner + READY)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "8f3e921f7acc06fe1e3e4fd4c8a895107ed80c9ee5a22e54df1985f2f8c7b787",
+  "gdb.log": "30651cfa4d0cf13451b77b8083743c48a7b617e5869b5e621a48631a5de77ec3",
+  "observations.json": "a07ed9e6255d32d97adbfb9e36a46913775ac9c378abc7ed05c3f32021f6f628",
+  "probe-config.json": "664e2638cc6b8993261a1a9db016094d182fe690f86e2539141634431ebc5500",
+  "qemu-int.log": "0137606153f9e67f7eb52de2b90e83364c569224719d1ba68067272d25220eca",
+  "uart.log": "f2999d5e95b18de639e828cb7c393c74aef3439865ebe24f1d2d516984ab382a"
+ }
+}

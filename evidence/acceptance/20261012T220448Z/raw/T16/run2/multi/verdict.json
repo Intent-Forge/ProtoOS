@@ -1,0 +1,86 @@
+{
+ "test": "T16",
+ "repetition": 2,
+ "scenario": "protoos.test=multi",
+ "probe": "t16",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39",
+ "seconds": 1.22,
+ "checks": [
+  {
+   "check": "the crash program faulted: store page fault at its store, target = B data VA",
+   "ok": true,
+   "detail": "('0xf', '0x801000')"
+  },
+  {
+   "check": "B's data page was not written (no 0x43 pattern)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "crash slot FAULTED and its pages reclaimed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "three workers alive with their own pages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "every worker keeps counting after the crash",
+   "ok": true,
+   "detail": "[(163964053, 264031280), (161499283, 261486825), (164264157, 251104121)]"
+  },
+  {
+   "check": "B keeps running; A alive",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no other fault within 30 ticks",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "free pages = baseline - 15 (three workers)",
+   "ok": true,
+   "detail": "[31232, 3, 4, 5, 6, 31217]"
+  },
+  {
+   "check": "trace: exactly one user exception, the crash store",
+   "ok": true,
+   "detail": "[{'async': 0, 'cause': 15, 'epc': 67109372, 'tval': 8392704, 'desc': 'store_page_fault'}]"
+  },
+  {
+   "check": "UART: crash announcement and FAULT line",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "43ab71a467ea9c07e249386dbaab501de4fc3d851256575f119183a508fec230",
+  "gdb.log": "4328d7be7b56c1f3ae5d4c3bfaeb2edb3c41d61867dd27839d26eed49dec93aa",
+  "observations.json": "9c903225588fb42b1c8cf6e2113ef1d7623eb894866c8cffcd1d360fce90a3b1",
+  "probe-config.json": "6c422a95d7778191b68a478597c8ea9a61a6eb095ff9d09783578bfecdc922a1",
+  "qemu-int.log": "8888312c9cbd18d3ddd8aeffdf98dcfb5a6e9512efb1f8b2fd2dc3b1a0243843",
+  "uart.log": "bba02187071c3923105d670c2c9448953ae4d46e94f52b054840907cb47ab858"
+ }
+}

@@ -1,0 +1,106 @@
+{
+ "test": "N9",
+ "repetition": 3,
+ "scenario": "protoos.test=spawn-bad",
+ "probe": "n9",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39",
+ "seconds": 0.32,
+ "checks": [
+  {
+   "check": "A reached the end in U-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "spawn of program 0: -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "spawn of unknown program 99: -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "kill of a pid that does not exist: -3",
+   "ok": true,
+   "detail": "0xfffffffffffffffd"
+  },
+  {
+   "check": "kill of itself: -1",
+   "ok": true,
+   "detail": "0xffffffffffffffff"
+  },
+  {
+   "check": "kill of boot process B: -1",
+   "ok": true,
+   "detail": "0xffffffffffffffff"
+  },
+  {
+   "check": "spawn with every slot taken: -11",
+   "ok": true,
+   "detail": "0xfffffffffffffff5"
+  },
+  {
+   "check": "spawns that succeeded before (6 free slots): 6",
+   "ok": true,
+   "detail": "0x6"
+  },
+  {
+   "check": "kill of an already killed pid: -3",
+   "ok": true,
+   "detail": "0xfffffffffffffffd"
+  },
+  {
+   "check": "spawn/kill cycles done: 200",
+   "ok": true,
+   "detail": "0xc8"
+  },
+  {
+   "check": "failed cycles: 0",
+   "ok": true,
+   "detail": "0x0"
+  },
+  {
+   "check": "no page leaked: free = baseline, allocations = frees",
+   "ok": true,
+   "detail": "(31232, 31232, {'base': 2151677952, 'pages': 31232, 'free': 31232, 'allocs': 1030, 'frees': 1030})"
+  },
+  {
+   "check": "kernel counters: 206 spawned, 206 killed and reclaimed",
+   "ok": true,
+   "detail": "{'quantum_ticks': 100000, 'timer_ticks': 7, 'switches': 8, 'idle_entered': 0, 'verbose': 1, 'waits': 0, 'ext_irqs': 0, 'next_pid': 209, 'spawned': 206, 'killed': 206, 'reclaimed': 206}"
+  },
+  {
+   "check": "no run-time process alive, boot processes intact",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "87037d6369c5c3a9d112608e35b612590549b76d6d793dfa1953f88fea94b668",
+  "gdb.log": "ab3446a9e23f4dcf59049f90013d2fae7476f64b3ead915560f433eadf97ffc1",
+  "observations.json": "65c94429fdab210bd4f9d1cc59197ceaa7537b9cbf615ff4386fb179b638f6e6",
+  "probe-config.json": "131aa9268dc4d947a70d2ad3aebfe04f4a4a45af8a6b2ce3a9a7c0fc1a290ae7",
+  "qemu-int.log": "3d9c36fb76ccf94e74157772fe8539ea8d76526b3ed9fb5b3c7a2b8f7891da40",
+  "uart.log": "e8e74851b25d75ecba7a5636254592c174477efa32eced523c8342265ec8581e"
+ }
+}

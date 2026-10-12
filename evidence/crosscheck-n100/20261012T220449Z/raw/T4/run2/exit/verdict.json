@@ -1,0 +1,76 @@
+{
+ "test": "T4",
+ "repetition": 2,
+ "scenario": "protoos.test=exit",
+ "probe": "t4_exit",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39",
+ "seconds": 0.97,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=93 exit, a0=42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A did its 1000 iterations before exit",
+   "ok": true,
+   "detail": "1000"
+  },
+  {
+   "check": "wait1: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "wait2: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "A state EXITED, exit_code 42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A counter frozen at 1000",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps running (counter advances)",
+   "ok": true,
+   "detail": "(17898573, 35497619)"
+  },
+  {
+   "check": "trace: exactly one user ecall from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "cbe2ed6f6f744755d1b7226111c1260c31ef93a4bc3437a69d859cb158806269",
+  "gdb.log": "fa6d634c3b0ad5a28e00ad6c12993c0f66b6890682a4d5f05346c47a0923a950",
+  "observations.json": "62c916709018476f2c5c70819d875338ed7ad5e6cb5f669f2581d51321ba16a5",
+  "probe-config.json": "deea49e913d1b8cc2dd8a9ae76c699ba7fdabaae7f44c7db4eddc49dfe7d39f2",
+  "qemu-int.log": "87a3659689940e69f8feef8e20de5c4a513d35fc99a5d5f37b967bf8bd675f30",
+  "uart.log": "b573c507838b3277ee18abae357b9a325caa624fed5a72d79d67d82282646e2b"
+ }
+}

@@ -1,0 +1,76 @@
+{
+ "test": "T4",
+ "repetition": 2,
+ "scenario": "protoos.test=exit",
+ "probe": "t4_exit",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39",
+ "seconds": 1.07,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=93 exit, a0=42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A did its 1000 iterations before exit",
+   "ok": true,
+   "detail": "1000"
+  },
+  {
+   "check": "wait1: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "wait2: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "A state EXITED, exit_code 42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A counter frozen at 1000",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps running (counter advances)",
+   "ok": true,
+   "detail": "(34507412, 68352135)"
+  },
+  {
+   "check": "trace: exactly one user ecall from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "6f1489cae90e7f8e5e8035ca735a7a9cf98864f7c0ec9ea424ea96c612111226",
+  "gdb.log": "fa6d634c3b0ad5a28e00ad6c12993c0f66b6890682a4d5f05346c47a0923a950",
+  "observations.json": "0709cba0e91552b78e7821d61b44d3b49e73ee3dd83248290c4d32b9106168a4",
+  "probe-config.json": "f5df28788fe31a321893561c7479cb01fbb746e0ed4d4d3e67a1e0aec541d6d4",
+  "qemu-int.log": "1aa8003dada7a95417516288ba384c1b1e0c2804d6bfa6981944196cf002d534",
+  "uart.log": "bf3cc5ac983f026706e4fa1bd89950b27a68ab453778579379e9ab436078bb78"
+ }
+}
