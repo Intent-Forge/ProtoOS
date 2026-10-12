@@ -1,0 +1,106 @@
+{
+ "test": "N6",
+ "repetition": 2,
+ "scenario": "protoos.test=write-bad",
+ "probe": "n6",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5",
+ "seconds": 0.67,
+ "checks": [
+  {
+   "check": "A reached the end of the sequence in U-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "wrong fd: returns -9",
+   "ok": true,
+   "detail": "0xfffffffffffffff7"
+  },
+  {
+   "check": "kernel page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "B's page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "crosses into guard page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "len > 256: returns -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "NULL: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "address wrap-around: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "valid write after rejections: returns 6",
+   "ok": true,
+   "detail": "0x6"
+  },
+  {
+   "check": "PT walk: kernel page U=0, B page and guard unmapped in A root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "nothing printed for the rejected calls",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "only the 2 valid writes were counted",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A not faulted, keeps running; B keeps running",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no exception from A other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "896421ed1d6135253d2443c3acc3c94cc50b98656cc65958c03b51932d046d17",
+  "gdb.log": "a03d074641717fde6cbbb8c2ec683e055f67a3ee9170e91ad99a48afa4c02e89",
+  "observations.json": "56671923304857299e1e4273174e84d4e52cc9191c1484dd8e3ccea947e5ba3e",
+  "probe-config.json": "b7acbca56f270910d7acc9d6595aa12706838d15d9801296643a4a2476848afb",
+  "qemu-int.log": "fc6d8a9ff8702cf7465a2ccbc6b4397dd9cdc92c26438a3d6c810ae04e23c97e",
+  "uart.log": "7b160febacf2b2ee73ae55e4e5eb07312602d509c182e87b2b6d68d708caa584"
+ }
+}

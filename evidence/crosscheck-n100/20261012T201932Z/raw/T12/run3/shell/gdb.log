@@ -1,0 +1,57 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 1, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 2 at 0x802037e8: file src/proc.c, line 315.
+Breakpoint 3 at 0x80202ac4: file src/proc.c, line 97.
+
+Breakpoint 2, trap_from_user (f=0x8022c240 <procs+480>) at src/proc.c:315
+315	{
+Breakpoint 4 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 4, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 5 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 5, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 6 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 6, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 7 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 7, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 8 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 8, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 9 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 9, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 10 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 10, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 11 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 11, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 12 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 12, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 13 at 0x802037e8: file src/proc.c, line 315.
+
+Breakpoint 13, trap_from_user (f=0x8022c060 <procs>) at src/proc.c:315
+315	{
+Breakpoint 14 at 0x802037e8: file src/proc.c, line 315.
+Breakpoint 15 at 0x80202ac4: file src/proc.c, line 97.
+
+Breakpoint 14, trap_from_user (f=0x8022c240 <procs+480>) at src/proc.c:315
+315	{
+[Inferior 1 (process 1) killed]

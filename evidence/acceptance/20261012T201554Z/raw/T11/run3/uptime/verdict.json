@@ -1,0 +1,61 @@
+{
+ "test": "T11",
+ "repetition": 3,
+ "scenario": "protoos.test=uptime",
+ "probe": "t11",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5",
+ "seconds": 0.52,
+ "checks": [
+  {
+   "check": "uptime returned in U-mode at both call sites",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "first value = kernel time since boot at the call (<= 1 quantum before sleep start)",
+   "ok": true,
+   "detail": "134.2 us"
+  },
+  {
+   "check": "second value = kernel time after the wake-up (<= 1 quantum after dispatch)",
+   "ok": true,
+   "detail": "12.3 us"
+  },
+  {
+   "check": "grows by >= 100 ms and <= 100 ms + 2 quanta across sleep(100)",
+   "ok": true,
+   "detail": "100.26 ms"
+  },
+  {
+   "check": "A kept both values and continues without error",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "925b5645aedac04c3b7fe0d8c586d380273a0afa0db0e5402ac317e6e2077a0e",
+  "gdb.log": "50fc241632305a28b6502c36f95b27d75aa116c30b2244555df8a9f30f36ad01",
+  "observations.json": "6d5e2018add48cc98976399336003eb2d8875e630b20e769cf1a12d706fa96ac",
+  "probe-config.json": "3a397cfaf085061e6ca58567b0fb6ac442ee417fae29c6a99e96c65605403c5f",
+  "qemu-int.log": "b72e366c6d5a46fa64b603b51b484e9dcdf5963091477b2fce2fef59cc7f33c6",
+  "uart.log": "4957661c9ef379b697775978af419c9f2507224d143566b2fa23f627aaa8a95e"
+ }
+}

@@ -1,0 +1,76 @@
+{
+ "test": "T9",
+ "repetition": 1,
+ "scenario": "protoos.test=sleep",
+ "probe": "t9",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5",
+ "seconds": 0.42,
+ "checks": [
+  {
+   "check": "sleep ecall from A: a7=1001, ms=200",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B runs in U-mode under its own root while A sleeps",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A is SLEEPING while B runs",
+   "ok": true,
+   "detail": "SLEEPING"
+  },
+  {
+   "check": "wake time = sleep start + 200 ms",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A woke at its next instruction in U-mode with a0 = 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "slept >= 200 ms and <= 200 ms + 2 quanta (kernel time stamps)",
+   "ok": true,
+   "detail": "201.25 ms"
+  },
+  {
+   "check": "A dispatched exactly once since it went to sleep",
+   "ok": true,
+   "detail": "(1, 2)"
+  },
+  {
+   "check": "B dispatched in between",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "56a2e627d336e8f2c55b5c5703b78972481dc0f85780d419682d816e4562bd0d",
+  "gdb.log": "bba1f7ecc184d292f6043581d2761549ccc37aeb812ce5903c3f8ac059d00e7f",
+  "observations.json": "fcfa8c042ff9881de477a0f98502c88bdda0689d65186b695b080f7e8e57265e",
+  "probe-config.json": "2046c2603d095d8a3404f6af26f7a7c204c2169686fec52ae2ab301ad23602a6",
+  "qemu-int.log": "609457a56c1654f3a481b27dee7b0552ba9b6de1e99a2887046b0224a086710a",
+  "uart.log": "0d1eeafced02e5ad923438b4fdd1b3e61eb028e4f07de06801d6f92755bba2a3"
+ }
+}

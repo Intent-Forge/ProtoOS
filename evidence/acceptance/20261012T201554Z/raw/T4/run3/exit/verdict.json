@@ -1,0 +1,76 @@
+{
+ "test": "T4",
+ "repetition": 3,
+ "scenario": "protoos.test=exit",
+ "probe": "t4_exit",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5",
+ "seconds": 1.07,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=93 exit, a0=42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A did its 1000 iterations before exit",
+   "ok": true,
+   "detail": "1000"
+  },
+  {
+   "check": "wait1: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "wait2: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "A state EXITED, exit_code 42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A counter frozen at 1000",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps running (counter advances)",
+   "ok": true,
+   "detail": "(35252203, 69434360)"
+  },
+  {
+   "check": "trace: exactly one user ecall from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "aa686ab33d5f0426235d9a70b961570371c8e7fefd00426ff46355eba2d952c3",
+  "gdb.log": "db07520b310d8e46a9dd857cd34f83910e7a2fdec3350ad3c56ea4843e698045",
+  "observations.json": "16ba119bed77ad9ed55c750831989060acfdb6b6e2a99f348376f61290173c42",
+  "probe-config.json": "e8149cd8e06312219dc7edaacaeb5823d4326ebb1262bb861d69701f5373cb63",
+  "qemu-int.log": "63368c4250f468b99bc516686113feef5be42c24b20e8a8d7161ed670fa964e3",
+  "uart.log": "16f2b84700587366e95e42a6ac83c61a19f259ba8b96ceabb95a5a8994937925"
+ }
+}

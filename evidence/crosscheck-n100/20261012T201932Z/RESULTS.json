@@ -1,0 +1,920 @@
+{
+ "run_id": "20261012T201932Z",
+ "elf_sha256": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5",
+ "repetitions": 3,
+ "per_test": {
+  "T1": "PASS",
+  "T2": "PASS",
+  "T3": "PASS",
+  "T4": "PASS",
+  "T5": "PASS",
+  "T6": "PASS",
+  "T7": "PASS",
+  "N1": "PASS",
+  "N2": "PASS",
+  "N3": "PASS",
+  "N4": "PASS",
+  "N5": "PASS",
+  "T8": "PASS",
+  "T9": "PASS",
+  "N6": "PASS",
+  "T10": "PASS",
+  "T11": "PASS",
+  "T12": "PASS",
+  "N7": "PASS",
+  "N8": "PASS"
+ },
+ "all_pass": true,
+ "environment": {
+  "elf_sha256": "df8eca42513ca4d3b26d584e1648dc1cec5a107a0dd34673de8b6f5042ccc0f5",
+  "firmware": "/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin",
+  "firmware_sha256": "c9550c7dedc56fbc186c080d3005747260b24335b5f285ba359ce85540b79606",
+  "qemu": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+  "gdb": "GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1",
+  "zig": "0.13.0",
+  "host": "Linux 6.8.0-146-generic x86_64",
+  "python": "3.12.3",
+  "git_head": "1edecdea3d531a043f0808303eb013a5476f7c09",
+  "struct_offsets": {
+   "sizeof_process": 480,
+   "process.state": 296,
+   "process.preemptions": 320,
+   "process.syscalls": 336,
+   "sched.timer_ticks": 8,
+   "sched.switches": 16,
+   "sched.idle_entered": 24
+  }
+ },
+ "results": [
+  {
+   "test": "T1",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T1",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T1",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.97
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.97
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.97
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.08
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.08
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.08
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.23
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.23
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.23
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.57
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.57
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.57
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.82
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.82
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.82
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.97
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.97
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.97
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.37
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.37
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.37
+    }
+   ]
+  }
+ ]
+}

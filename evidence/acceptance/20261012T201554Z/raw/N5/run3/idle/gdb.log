@@ -1,0 +1,14 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x80202864: file src/proc.c, line 55.
+
+Breakpoint 1, sched_idle () at src/proc.c:55
+55	{
+Breakpoint 2 at 0x80200138: file src/trap.S, line 68.
+Breakpoint 3 at 0x80200078: file src/trap.S, line 14.
+Breakpoint 4 at 0x80202ac4: file src/proc.c, line 97.
+
+Program received signal SIGINT, Interrupt.
+0x0000000080200470 in halt () at src/kernel.c:36
+36	    for(;;) __asm__ volatile("wfi");
+[Inferior 1 (process 1) killed]
