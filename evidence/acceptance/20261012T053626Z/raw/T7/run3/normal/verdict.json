@@ -1,0 +1,167 @@
+{
+ "test": "T7",
+ "repetition": 3,
+ "scenario": "protoos.mode=normal",
+ "probe": "t7",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e",
+ "seconds": 31.07,
+ "checks": [
+  {
+   "check": "sampled the free-running Normal boot every 5 s (7 samples)",
+   "ok": true,
+   "detail": "7"
+  },
+  {
+   "check": "observation window >= 29 s",
+   "ok": true,
+   "detail": "30.0"
+  },
+  {
+   "check": "interval 1: A and B counters advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 1: timer switches advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 1: A and B preempted by timer",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 2: A and B counters advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 2: timer switches advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 2: A and B preempted by timer",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 3: A and B counters advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 3: timer switches advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 3: A and B preempted by timer",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 4: A and B counters advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 4: timer switches advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 4: A and B preempted by timer",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 5: A and B counters advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 5: timer switches advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 5: A and B preempted by timer",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 6: A and B counters advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 6: timer switches advance",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "interval 6: A and B preempted by timer",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no process EXITED/FAULTED, kernel not idle",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no syscalls at all (no external/cooperative control)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no self-detected context corruption",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: timer interrupts from A and from B user code",
+   "ok": true,
+   "detail": "(1539, 1538)"
+  },
+  {
+   "check": "trace: zero user ecalls / user faults",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e"
+  }
+ ],
+ "summary": {
+  "duration_s": 30.0,
+  "switches": 3078,
+  "timer_ticks": 3077,
+  "trace_timer_A": 1539,
+  "trace_timer_B": 1538,
+  "a_counter": 1797309282,
+  "b_counter": 1798025732
+ },
+ "raw_sha256": {
+  "command.json": "ff7813803e0a60d34880bf31d02650224737b7b30a61316a49e230f5a5de7a1c",
+  "observations.json": "33044dfaf34bf1ea4342b800487b2ad0949321d9fc0b770f96f5cf0e46812a84",
+  "qemu-int.log": "c087e00360e42bc6dbc785a8b1abce9d66dabce5c26485ea6c1b567224a21894",
+  "uart.log": "557f4bf16e2c3731530b59b9becb8293d147f0081f8a792327f8829ef70278bd"
+ }
+}

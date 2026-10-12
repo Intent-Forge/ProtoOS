@@ -1,0 +1,66 @@
+{
+ "test": "N3",
+ "repetition": 1,
+ "scenario": "protoos.test=csr",
+ "probe": "n3",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e",
+ "seconds": 0.67,
+ "checks": [
+  {
+   "check": "A in U-mode at csrw satp",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "illegal instruction trap (scause=2) at the csrw",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "stval holds the csrw satp encoding",
+   "ok": true,
+   "detail": "0x18029073"
+  },
+  {
+   "check": "satp unchanged by the attempt (still A root)",
+   "ok": true,
+   "detail": "0x8000000000080216"
+  },
+  {
+   "check": "trace: illegal_instruction from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A FAULTED, B alive and advancing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "a3aa1318c01fad3b2914ac76c72320e32aa491532ab1975bfc22aa4b2a64b974",
+  "gdb.log": "b5de77549e2eba43f364b428fee3b05c87d21b7e2f7f903ac5c19b63b7c634c9",
+  "observations.json": "c89e4bc35557ac46cc14ee578b8f388fefd06b2e8728f930113de814714c0ac9",
+  "probe-config.json": "e20f5921757dcb694421456f9d78f170b6aade9ce78f4bf82138eabca43affb9",
+  "qemu-int.log": "869cef1838db9bd58389a276064732c53c8aa581d9f39d42c5e2ef370cd999bc",
+  "uart.log": "d7b8e959ca6b16d3409c7c4f036718d4026163c73912e1337467548dba7ef89a"
+ }
+}

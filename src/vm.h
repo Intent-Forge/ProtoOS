@@ -24,6 +24,9 @@ extern uint64_t vm_proc_satp[PROC_COUNT];
 /* Build the kernel and both process address spaces (MMU still off).
  * Returns 0 or a nonzero diagnostic code. */
 int vm_init(void);
+/* 1 if every byte of [va, va+len) is in a valid user (U=1) page of process
+ * `proc` whose leaf PTE also has all bits in `need` (e.g. SV39_PTE_R). */
+int vm_user_range_ok(unsigned proc, uint64_t va, uint64_t len, uint64_t need);
 /* Install satp and flush all translations. */
 void vm_switch(uint64_t satp);
 #endif

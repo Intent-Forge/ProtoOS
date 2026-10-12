@@ -1,0 +1,174 @@
+{
+ "probe": "t9_all",
+ "steps": [
+  {
+   "hit": true,
+   "cpu": {
+    "pc": 2149591448,
+    "priv": 1,
+    "satp": 9223372036855300638,
+    "sstatus": 8589934624,
+    "scause": 8,
+    "sepc": 8389260,
+    "stval": 0,
+    "sscratch": 0,
+    "sie": 32,
+    "stvec": 2149580920
+   },
+   "wake": 1249954,
+   "procs": [
+    {
+     "pid": 1,
+     "state": 5,
+     "satp": 9223372036855300630,
+     "dispatches": 1,
+     "preemptions": 0,
+     "yields": 0,
+     "syscalls": 1,
+     "rejected_syscalls": 0,
+     "exit_code": 0,
+     "fault_cause": 0,
+     "fault_epc": 0,
+     "fault_tval": 0,
+     "writes": 0,
+     "bytes_written": 0,
+     "sleeps": 1,
+     "sleep_start": 249954,
+     "wake_time": 1249954,
+     "last_dispatch_time": 248067,
+     "addr": 2149736536
+    },
+    {
+     "pid": 2,
+     "state": 5,
+     "satp": 9223372036855300638,
+     "dispatches": 1,
+     "preemptions": 0,
+     "yields": 0,
+     "syscalls": 1,
+     "rejected_syscalls": 0,
+     "exit_code": 0,
+     "fault_cause": 0,
+     "fault_epc": 0,
+     "fault_tval": 0,
+     "writes": 0,
+     "bytes_written": 0,
+     "sleeps": 1,
+     "sleep_start": 254904,
+     "wake_time": 1754904,
+     "last_dispatch_time": 254374,
+     "addr": 2149736968
+    }
+   ],
+   "sched": {
+    "quantum_ticks": 100000,
+    "timer_ticks": 0,
+    "switches": 2,
+    "idle_entered": 0,
+    "verbose": 1,
+    "waits": 0
+   },
+   "name": "wait",
+   "host_time": 1791783536.6913874
+  },
+  {
+   "watch_hit": null,
+   "procs": [
+    {
+     "pid": 1,
+     "state": 5,
+     "satp": 9223372036855300630,
+     "dispatches": 20,
+     "preemptions": 0,
+     "yields": 0,
+     "syscalls": 20,
+     "rejected_syscalls": 0,
+     "exit_code": 0,
+     "fault_cause": 0,
+     "fault_epc": 0,
+     "fault_tval": 0,
+     "writes": 0,
+     "bytes_written": 0,
+     "sleeps": 20,
+     "sleep_start": 19315718,
+     "wake_time": 20315718,
+     "last_dispatch_time": 19315434,
+     "addr": 2149736536
+    },
+    {
+     "pid": 2,
+     "state": 5,
+     "satp": 9223372036855300638,
+     "dispatches": 14,
+     "preemptions": 0,
+     "yields": 0,
+     "syscalls": 14,
+     "rejected_syscalls": 0,
+     "exit_code": 0,
+     "fault_cause": 0,
+     "fault_epc": 0,
+     "fault_tval": 0,
+     "writes": 0,
+     "bytes_written": 0,
+     "sleeps": 14,
+     "sleep_start": 19809339,
+     "wake_time": 21309339,
+     "last_dispatch_time": 19808857,
+     "addr": 2149736968
+    }
+   ],
+   "sched": {
+    "quantum_ticks": 100000,
+    "timer_ticks": 0,
+    "switches": 28,
+    "idle_entered": 0,
+    "verbose": 1,
+    "waits": 31
+   },
+   "words_a_first": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "words_b_first": [
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "words_a": [
+    20,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "words_b": [
+    14,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "name": "after",
+   "host_time": 1791783538.7153509
+  }
+ ],
+ "complete": true,
+ "error": null
+}

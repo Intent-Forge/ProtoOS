@@ -102,7 +102,10 @@ extern char __user_a_text[], __user_b_text[];
 extern char a_worker[], a_getpid[], a_yield[], a_exit[], a_cross_write[], a_fault[],
     a_kernel_read[], a_csr[], a_bad_syscall[], a_idle_exit[], a_idle_fault[];
 extern char b_worker[], b_getpid[], b_yield[], b_idle_exit[];
-enum scenario_kind { SCENARIO_NORMAL, SCENARIO_TEST, SCENARIO_BOOT, SCENARIO_BOOT_TRAP };
+extern char a_write[], a_write_bad[], a_sleep[], a_sleep_all[], a_demo[];
+extern char b_sleep_all[], b_demo[];
+enum scenario_kind { SCENARIO_NORMAL, SCENARIO_TEST, SCENARIO_BOOT, SCENARIO_BOOT_TRAP,
+    SCENARIO_DEMO };
 struct scenario { const char *args; enum scenario_kind kind; char *a, *b; };
 static const struct scenario scenarios[]={
     {"protoos.mode=normal",       SCENARIO_NORMAL,    a_worker, b_worker},
@@ -120,6 +123,12 @@ static const struct scenario scenarios[]={
     {"protoos.test=bad-syscall",  SCENARIO_TEST, a_bad_syscall, b_worker},
     {"protoos.test=idle",         SCENARIO_TEST, a_idle_exit, b_idle_exit},
     {"protoos.test=idle-fault",   SCENARIO_TEST, a_idle_fault, b_idle_exit},
+    /* v1.1 */
+    {"protoos.mode=demo",         SCENARIO_DEMO, a_demo, b_demo},
+    {"protoos.test=write",        SCENARIO_TEST, a_write, b_worker},
+    {"protoos.test=write-bad",    SCENARIO_TEST, a_write_bad, b_worker},
+    {"protoos.test=sleep",        SCENARIO_TEST, a_sleep, b_worker},
+    {"protoos.test=sleep-all",    SCENARIO_TEST, a_sleep_all, b_sleep_all},
 };
 static const struct scenario *find_scenario(const char *args) {
     for(size_t i=0;i<sizeof(scenarios)/sizeof(scenarios[0]);++i)
@@ -172,5 +181,5 @@ void kernel_main(uint64_t hart, uintptr_t dtb) {
     boot_phase=5;
     uart_puts("SCENARIO "); uart_puts(s->args); uart_puts("\n");
     proc_start(user_va(USER_A_BASE,__user_a_text,s->a), user_va(USER_B_BASE,__user_b_text,s->b),
-               s->kind==SCENARIO_TEST);
+               s->kind==SCENARIO_TEST, s->kind==SCENARIO_NORMAL);
 }

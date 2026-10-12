@@ -78,14 +78,15 @@ def proc(i):
     out = {k: ev(f'procs[{i}].{k}') for k in (
         'pid', 'state', 'satp', 'dispatches', 'preemptions', 'yields',
         'syscalls', 'rejected_syscalls', 'exit_code', 'fault_cause',
-        'fault_epc', 'fault_tval')}
+        'fault_epc', 'fault_tval', 'writes', 'bytes_written', 'sleeps', 'sleep_start',
+        'wake_time', 'last_dispatch_time')}
     out['addr'] = ev(f'(unsigned long)&procs[{i}]')
     return out
 
 
 def sched():
     return {k: ev(f'sched.{k}') for k in (
-        'quantum_ticks', 'timer_ticks', 'switches', 'idle_entered', 'verbose')}
+        'quantum_ticks', 'timer_ticks', 'switches', 'idle_entered', 'verbose', 'waits')}
 
 
 def phys(addr, size):
@@ -386,6 +387,64 @@ PROBES = {
     'cross': probe_cross, 'kernel_read': probe_kernel_read, 't6': probe_t6,
     'n3': probe_n3, 'n4': probe_n4, 'n5': probe_n5,
 }
+
+
+# ------------------------------------------------------------ v1.1 probes
+def probe_t8():
+    for k in (1, 2):
+        hit = stop_at(SYM['trap_from_user'], trap_cond(FRAME_A, 8, a7=64))
+        s = satps()             # read after the kernel built its page tables
+        fr = frame(0)
+        step(f'write{k}_ecall', hit=hit, cpu=cpu(), frame=fr, satps=s,
+             walk_first=walk(s['A'], fr['x11']),
+             walk_last=walk(s['A'], fr['x11'] + max(fr['x12'], 1) - 1))
+        hit = stop_at(UVA['a_write_ret'])
+        step(f'write{k}_ret', hit=hit, cpu=cpu(), gprs=gprs(), proc_a=proc(0))
+    w = wait_ticks(20)
+    a1 = user_words('user_a_data')
+    w2 = wait_ticks(20)
+    step('after', wait1=w, wait2=w2, procs=[proc(0), proc(1)], words_a_first=a1,
+         words_a=user_words('user_a_data'), words_b=user_words('user_b_data'))
+
+
+def probe_n6():
+    hit = stop_at(UVA['a_write_bad_done'])
+    s = satps()
+    step('done', hit=hit, cpu=cpu(), satps=s, proc_a=proc(0),
+         results=[phys_u64(SYM['user_a_data'] + 0x40 + 8 * k) for k in range(8)],
+         walk_secret=walk(s['A'], SYM['kernel_secret']),
+         walk_b_data=walk(s['A'], 0x801000), walk_guard=walk(s['A'], 0x402000))
+    w = wait_ticks(20)
+    a1, b1 = user_words('user_a_data'), user_words('user_b_data')
+    w2 = wait_ticks(20)
+    step('after', wait1=w, wait2=w2, procs=[proc(0), proc(1)], words_a_first=a1,
+         words_b_first=b1, words_a=user_words('user_a_data'),
+         words_b=user_words('user_b_data'))
+
+
+def probe_t9():
+    hit = stop_at(SYM['trap_from_user'], trap_cond(FRAME_A, 8, a7=1001))
+    step('sleep_ecall', hit=hit, cpu=cpu(), frame=frame(0), proc_a=proc(0), proc_b=proc(1))
+    hit = stop_at(UVA['b_worker_loop'])
+    step('B_running', hit=hit, cpu=cpu(), proc_a=proc(0), proc_b=proc(1), satps=satps())
+    hit = stop_at(UVA['a_sleep_ret'])
+    step('A_woke', hit=hit, cpu=cpu(), gprs=gprs(), proc_a=proc(0), proc_b=proc(1),
+         sched=sched(), satps=satps(), timebase=ev('boot_configuration.timebase_hz'))
+
+
+def probe_t9_all():
+    hit = stop_at(SYM['sched_wait'])
+    step('wait', hit=hit, cpu=cpu(), wake=reg('a0'), procs=[proc(0), proc(1)], sched=sched())
+    a1, b1 = user_words('user_a_data'), user_words('user_b_data')
+    clear()
+    watch = [bp(SYM['sched_idle']), bp(SYM['proc_fault']), bp(SYM['kernel_panic'])]
+    hit = run_to(*watch, wall=2.0)
+    step('after', watch_hit=None if hit is None else hit.location, procs=[proc(0), proc(1)],
+         sched=sched(), words_a_first=a1, words_b_first=b1,
+         words_a=user_words('user_a_data'), words_b=user_words('user_b_data'))
+
+
+PROBES.update({'t8': probe_t8, 'n6': probe_n6, 't9': probe_t9, 't9_all': probe_t9_all})
 
 
 def main():

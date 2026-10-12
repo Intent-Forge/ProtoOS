@@ -1,0 +1,76 @@
+{
+ "test": "T4",
+ "repetition": 1,
+ "scenario": "protoos.test=exit",
+ "probe": "t4_exit",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e",
+ "seconds": 1.07,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=93 exit, a0=42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A did its 1000 iterations before exit",
+   "ok": true,
+   "detail": "1000"
+  },
+  {
+   "check": "wait1: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "wait2: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "A state EXITED, exit_code 42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A counter frozen at 1000",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps running (counter advances)",
+   "ok": true,
+   "detail": "(34832093, 68376776)"
+  },
+  {
+   "check": "trace: exactly one user ecall from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "b34061679b0465cc64c5f3d85881920d10616b34e5bb9aaabf3031fbc3dce52e",
+  "gdb.log": "f0f5be6dd760c1d544bb4459e718f6fc06d3e323807c7285e841c9c6f7738586",
+  "observations.json": "2e8d3a3ee9b70ff3256c61fb59596d6b4ee292609e0e546f8aae77ffbc9f44ea",
+  "probe-config.json": "20709043f34c7cb6ac87772a7d4dd6b3ab285d7be37589c65ab1fec142e75382",
+  "qemu-int.log": "29c1442b15d67fcc5feea86cabb96610487c445ce053c20bf212cd616839522b",
+  "uart.log": "17babda6857fa30df9049a4049792df8a50d415acaa5a8fff8592361b64bcb64"
+ }
+}

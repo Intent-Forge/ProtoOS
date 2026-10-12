@@ -1,6 +1,6 @@
-# ProtoOS v1.0 — architecture
+# ProtoOS v1.1 — architecture
 
-Normative basis: the frozen specification v1.0 ([`TECHNICAL_SPECIFICATION_RU.md`](../TECHNICAL_SPECIFICATION_RU.md)) and decisions 01–19 ([`DECISION_REGISTER_RU.md`](../DECISION_REGISTER_RU.md)). This document records the technical choices the specification leaves to the implementer. Russian version: [`ARCHITECTURE_V1_RU.md`](ARCHITECTURE_V1_RU.md).
+Normative basis: the frozen specification v1.0 ([`TECHNICAL_SPECIFICATION_RU.md`](../TECHNICAL_SPECIFICATION_RU.md)) and decisions 01–19 ([`DECISION_REGISTER_RU.md`](../DECISION_REGISTER_RU.md)). v1.1 extensions (`write`, `sleep`, demo mode) are specified in [`SPEC_V1_1.md`](SPEC_V1_1.md). This document records the technical choices the specifications leave to the implementer. Russian version: [`ARCHITECTURE_V1_RU.md`](ARCHITECTURE_V1_RU.md).
 
 ## Platform
 QEMU `virt`, `-cpu rv64 -smp 1 -m 128M`; OpenSBI `fw_dynamic.bin` runs in M-mode and enters the kernel in S-mode at `0x80200000` (`a0` = hart id, `a1` = device tree). Kernel and user ISA: RV64IM + Zicsr + Zifencei, LP64, no floating point. In U-mode `sstatus.FS = VS = Off`, so any FP/vector instruction raises an illegal-instruction exception and the process is marked FAULTED (no FP state is kept).
@@ -41,13 +41,15 @@ Disjoint VA ranges make a cross-process access name an address that is simply un
 One vector, `trap_entry` (`trap.S`). `sscratch` protocol: while a process runs in U-mode it holds the address of that process's `struct trap_frame`; while the kernel runs it is 0. The kernel never sets `sstatus.SIE`, so a trap with `sscratch == 0` is a synchronous S-mode exception: it switches to the emergency stack and reports `KERNEL_PANIC` with `scause`/`sepc`/`stval` — including a kernel stack overflow into the guard page. From U-mode the entry saves x1–x31 plus `sepc`, `sstatus`, `scause`, `stval` (288 bytes) and continues on an empty kernel stack; `user_return` restores a frame and executes `sret`.
 
 ## Scheduler
-Round robin with a 10 ms quantum (`timebase / 100`; 100 000 ticks on QEMU `virt`), driven by the S-mode timer through SBI TIME (`sbi_set_timer`). Choosing the next process and switching context are done by the kernel. States: READY, RUNNING, EXITED, FAULTED. When nothing is READY, `sched_idle` turns the timer off, clears `sie`, installs the kernel root and parks in a `wfi` loop in `halt()`; no process context is ever loaded again.
+Round robin with a 10 ms quantum (`timebase / 100`; 100 000 ticks on QEMU `virt`), driven by the S-mode timer through SBI TIME (`sbi_set_timer`). Choosing the next process and switching context are done by the kernel. States: READY, RUNNING, SLEEPING, EXITED, FAULTED. At every scheduling point the kernel first moves SLEEPING processes whose wake-up time has passed to READY. If no process is READY but some are SLEEPING, `sched_wait` arms the timer for the earliest wake-up and waits in `wfi` (with `sstatus.SIE` still 0, so no trap is taken), then scheduling resumes with a fresh quantum. Only when no process is READY, RUNNING or SLEEPING does `sched_idle` turn the timer off, clear `sie`, install the kernel root and park in a `wfi` loop in `halt()`; no process context is ever loaded again.
 
 ## System calls
-`ecall` from U-mode; number in `a7`, argument and result in `a0`; execution resumes at `sepc + 4`. Numbers follow the RISC-V Linux table.
+`ecall` from U-mode; number in `a7`, arguments in `a0`–`a2`, result in `a0`; execution resumes at `sepc + 4`. Numbers follow the RISC-V Linux table, except the ProtoOS-specific `sleep`.
 
 | Call | `a7` | Behaviour |
 |---|---|---|
+| `write(fd, buf, len)` | 64 | v1.1: `fd` must be 1, `len` ≤ 256; the kernel walks the caller's own page table and requires every byte of the buffer to be in a valid U+R page **before** reading it with `sstatus.SUM` set; then copies it to the UART (non-printable bytes become `?`). Errors: −9 bad fd, −14 bad address, −22 bad length |
+| `sleep(ms)` | 1001 | v1.1: `ms` ≤ 60 000 (else −22); the process is SLEEPING for at least `ms` milliseconds; `0` acts like `yield`; returns 0 |
 | `exit(code)` | 93 | process becomes EXITED and never runs again |
 | `yield()` | 124 | process becomes READY, the scheduler switches; returns 0 |
 | `getpid()` | 172 | returns 1 for A, 2 for B |
@@ -61,6 +63,9 @@ The scenario is chosen only by `bootargs` (device tree `/chosen`); the ELF is id
 | `bootargs` | A | B | Purpose |
 |---|---|---|---|
 | `protoos.mode=normal` | worker | worker | normal mode, T7 |
+| `protoos.mode=demo` | prints every 400 ms | prints every 700 ms, then writes into A's memory | v1.1 demonstration |
+| `protoos.test=write` / `write-bad` | valid / invalid `write` calls | worker | T8 / N6 |
+| `protoos.test=sleep` / `sleep-all` | sleeps 200 ms / 100 ms | worker / sleeps 150 ms | T9 |
 | `protoos.test=boot` | — | — | T1 (S-mode, Sv39 active) |
 | `protoos.test=boot-trap` | — | — | fatal S-mode trap (diagnostics) |
 | `protoos.test=umode` / `preempt` | worker | worker | T2 / T3 |

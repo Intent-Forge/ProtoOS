@@ -36,7 +36,7 @@ NM = 'riscv64-unknown-elf-nm'
 A_BASE, B_BASE = 0x400000, 0x800000
 A_RANGE, B_RANGE = (A_BASE, A_BASE + 0x4000), (B_BASE, B_BASE + 0x4000)
 A_PATTERN, B_PATTERN = 0xa1a1a1a100000000, 0xb2b2b2b200000000
-STATE = {1: 'READY', 2: 'RUNNING', 3: 'EXITED', 4: 'FAULTED'}
+STATE = {1: 'READY', 2: 'RUNNING', 3: 'EXITED', 4: 'FAULTED', 5: 'SLEEPING'}
 M64 = (1 << 64) - 1
 TIMER = (1 << 63) | 5
 
@@ -56,6 +56,10 @@ MATRIX = {
     'N3': [('protoos.test=csr', 'n3')],
     'N4': [('protoos.test=bad-syscall', 'n4')],
     'N5': [('protoos.test=idle', 'n5'), ('protoos.test=idle-fault', 'n5')],
+    # v1.1 (docs/SPEC_V1_1.md)
+    'T8': [('protoos.test=write', 't8')],
+    'T9': [('protoos.test=sleep', 't9'), ('protoos.test=sleep-all', 't9_all')],
+    'N6': [('protoos.test=write-bad', 'n6')],
 }
 
 
@@ -604,6 +608,108 @@ ORACLES = {
 }
 
 
+# ------------------------------------------------------------- v1.1 oracles
+T8_MSG = 'ProtoOS T8: hello from user mode A'
+SUM = 1 << 18
+
+
+def oracle_t8(c, obs, ctx):
+    st = steps(obs)
+    n = len(T8_MSG) + 1
+    for k in (1, 2):
+        e, r = st[f'write{k}_ecall'], st[f'write{k}_ret']
+        f = e['frame']
+        c(f'write {k}: ecall trap a7=64, fd=1, len={n}', e['hit'] and f['scause'] == 8
+          and f['x17'] == 64 and f['x10'] == 1 and f['x12'] == n, (f['x17'], f['x10'], f['x12']))
+        for w in ('walk_first', 'walk_last'):
+            c(f'write {k}: buffer {w[5:]} byte is U+R in A root (PT walk)', e[w]['mapped']
+              and set('UR') <= set(e[w]['flags']), e[w].get('flags'))
+        c(f'write {k}: returns len to ecall+4 in U-mode', r['hit'] and r['cpu']['priv'] == 0
+          and r['cpu']['pc'] == ctx['uva']['a_write_ret'] and r['gprs']['x10'] == n,
+          hex(r['gprs']['x10']))
+        c(f'write {k}: SUM=0 back in U-mode', not r['cpu']['sstatus'] & SUM,
+          hex(r['cpu']['sstatus']))
+    c('UART: message printed exactly twice', ctx['uart'].count(T8_MSG) == 2,
+      ctx['uart'].count(T8_MSG))
+    a = st['after']
+    c('kernel counted 2 writes, 2*len bytes', a['procs'][0]['writes'] == 2
+      and a['procs'][0]['bytes_written'] == 2 * n)
+    c('A continues (worker counter advances), no error', a['words_a'][0] > a['words_a_first'][0]
+      and a['words_a'][2] == 0 and a['words_a'][5] == 1)
+    c('trace: exactly two user ecalls from A', len(u_events(ctx['trace'], A_RANGE, cause=8)) == 2)
+
+
+N6_EXPECT = [-9, -14, -14, -14, -22, -14, -14, len('N6 ok') + 1]
+N6_NAMES = ['wrong fd', 'kernel page', "B's page", 'crosses into guard page', 'len > 256',
+            'NULL', 'address wrap-around', 'valid write after rejections']
+
+
+def oracle_n6(c, obs, ctx):
+    st = steps(obs)
+    d, a = st['done'], st['after']
+    c('A reached the end of the sequence in U-mode', d['hit'] and d['cpu']['priv'] == 0)
+    for k, (name, want) in enumerate(zip(N6_NAMES, N6_EXPECT)):
+        c(f'{name}: returns {want}', d['results'][k] == want & M64, hex(d['results'][k]))
+    c('PT walk: kernel page U=0, B page and guard unmapped in A root',
+      d['walk_secret']['mapped'] and 'U' not in d['walk_secret']['flags']
+      and not d['walk_b_data']['mapped'] and not d['walk_guard']['mapped'])
+    uart = ctx['uart']
+    i, j = uart.find('N6-begin'), uart.find('N6 ok')
+    between = ([ln for ln in uart[i + len('N6-begin'):j].splitlines()
+                if ln.strip() and not ln.startswith('SCHED')] if 0 <= i < j else ['markers missing'])
+    c('nothing printed for the rejected calls', not between, between[:3])
+    c('only the 2 valid writes were counted', d['proc_a']['writes'] == 2
+      and d['proc_a']['bytes_written'] == len('N6-begin\n') + len('N6 ok\n'))
+    c('A not faulted, keeps running; B keeps running', a['procs'][0]['state'] in (1, 2)
+      and a['words_a'][0] > a['words_a_first'][0] and a['words_b'][0] > a['words_b_first'][0])
+    c('trace: no exception from A other than ecall',
+      not [e for e in u_events(ctx['trace'], A_RANGE) if not e['async'] and e['cause'] != 8])
+
+
+def oracle_t9(c, obs, ctx):
+    st = steps(obs)
+    e, b, w = st['sleep_ecall'], st['B_running'], st['A_woke']
+    c('sleep ecall from A: a7=1001, ms=200', e['hit'] and e['frame']['scause'] == 8
+      and e['frame']['x17'] == 1001 and e['frame']['x10'] == 200)
+    c('B runs in U-mode under its own root while A sleeps', b['hit'] and b['cpu']['priv'] == 0
+      and b['cpu']['satp'] == b['satps']['B'])
+    pa = b['proc_a']
+    c('A is SLEEPING while B runs', pa['state'] == 5, STATE.get(pa['state']))
+    tb = w['timebase']
+    need = 200 * tb // 1000
+    c('wake time = sleep start + 200 ms', pa['wake_time'] == pa['sleep_start'] + need)
+    c('A woke at its next instruction in U-mode with a0 = 0', w['hit'] and w['cpu']['priv'] == 0
+      and w['cpu']['pc'] == ctx['uva']['a_sleep_ret'] and w['gprs']['x10'] == 0
+      and w['cpu']['satp'] == w['satps']['A'])
+    slept = w['proc_a']['last_dispatch_time'] - pa['sleep_start']
+    quantum = w['sched']['quantum_ticks']
+    c('slept >= 200 ms and <= 200 ms + 2 quanta (kernel time stamps)',
+      need <= slept <= need + 2 * quantum, f'{slept / tb * 1000:.2f} ms')
+    c('A dispatched exactly once since it went to sleep',
+      w['proc_a']['dispatches'] == e['proc_a']['dispatches'] + 1,
+      (e['proc_a']['dispatches'], w['proc_a']['dispatches']))
+    c('B dispatched in between', w['proc_b']['dispatches'] > e['proc_b']['dispatches'])
+
+
+def oracle_t9_all(c, obs, ctx):
+    st = steps(obs)
+    w, a = st['wait'], st['after']
+    c('kernel waits only when both processes sleep', w['hit'] and w['cpu']['priv'] == 1
+      and [p['state'] for p in w['procs']] == [5, 5], [STATE.get(p['state']) for p in w['procs']])
+    c('wait deadline = earliest wake-up', w['wake'] == min(p['wake_time'] for p in w['procs']))
+    c('no idle, fault or panic within 2 s', a['watch_hit'] is None, a['watch_hit'])
+    c('both processes keep making progress', a['words_a'][0] > a['words_a_first'][0]
+      and a['words_b'][0] > a['words_b_first'][0],
+      (a['words_a_first'][0], a['words_a'][0], a['words_b_first'][0], a['words_b'][0]))
+    c('kernel waited repeatedly, never idle', a['sched']['waits'] > w['sched']['waits']
+      and a['sched']['idle_entered'] == 0)
+    c('no exception from user code (trace)', not [e for e in ctx['trace'] if not e['async']
+      and (in_range(e['epc'], A_RANGE) or in_range(e['epc'], B_RANGE)) and e['cause'] != 8])
+
+
+ORACLES.update({'t8': oracle_t8, 'n6': oracle_n6, 't9': oracle_t9, 't9_all': oracle_t9_all})
+
+
 def judge(probe, obs, ctx):
     c = Checks()
     if not obs.get('complete'):
@@ -641,7 +747,7 @@ def main():
     env = {'elf_sha256': image, 'firmware': FW, 'firmware_sha256': sha256(FW),
            'qemu': tool_version([QEMU, '--version']), 'gdb': tool_version([GDB, '--version']),
            'zig': tool_version([os.path.expanduser('~/.protoos-venv/bin/zig'), 'version']),
-           'host': ' '.join(os.uname()), 'python': sys.version.split()[0],
+           'host': f'{os.uname().sysname} {os.uname().release} {os.uname().machine}', 'python': sys.version.split()[0],
            'git_head': git_head(),
            'struct_offsets': offsets}
     (out / 'environment.json').write_text(json.dumps(env, indent=1))

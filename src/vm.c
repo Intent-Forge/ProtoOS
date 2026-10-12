@@ -82,6 +82,33 @@ int vm_init(void)
     return 0;
 }
 
+/* Leaf PTE for va in an address space built by this file, or 0. Tables are
+ * in kernel memory and identity mapped, so their PAs are usable pointers. */
+static sv39_pte_t leaf_pte(const struct sv39_builder *b, uint64_t va)
+{
+    const struct sv39_page_table *table = (const struct sv39_page_table *)(uintptr_t)b->pool_pa;
+    for (unsigned level = 2;; --level) {
+        sv39_pte_t pte = table->entries[(va >> (SV39_PAGE_SHIFT + level * SV39_VPN_BITS)) & SV39_VPN_MASK];
+        if (!(pte & SV39_PTE_V)) return 0;
+        if (pte & SV39_PTE_LEAF_MASK) return level == 0 ? pte : 0;  /* no superpages here */
+        if (level == 0) return 0;
+        table = (const struct sv39_page_table *)(uintptr_t)
+            ((pte >> SV39_PTE_PPN_SHIFT) << SV39_PAGE_SHIFT);
+    }
+}
+
+int vm_user_range_ok(unsigned proc, uint64_t va, uint64_t len, uint64_t need)
+{
+    if (proc >= PROC_COUNT) return 0;
+    if (len == 0) return 1;
+    /* User space is the lower canonical half; reject wrap-around. */
+    if (va >= (UINT64_C(1) << 38) || len > (UINT64_C(1) << 38) - va) return 0;
+    uint64_t want = SV39_PTE_V | SV39_PTE_U | need;
+    for (uint64_t page = va & ~SV39_PAGE_OFFSET_MASK; page < va + len; page += SV39_PAGE_SIZE)
+        if ((leaf_pte(&proc_as[proc], page) & want) != want) return 0;
+    return 1;
+}
+
 void vm_switch(uint64_t satp)
 {
     /* Order prior page-table stores before the walk, then drop stale TLB. */

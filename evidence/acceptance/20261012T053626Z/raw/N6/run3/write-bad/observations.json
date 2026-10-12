@@ -1,0 +1,224 @@
+{
+ "probe": "n6",
+ "steps": [
+  {
+   "hit": true,
+   "cpu": {
+    "pc": 4195624,
+    "priv": 0,
+    "satp": 9223372036855300630,
+    "sstatus": 8589934626,
+    "scause": 8,
+    "sepc": 4195620,
+    "stval": 0,
+    "sscratch": 2149736536,
+    "sie": 32,
+    "stvec": 2149580920
+   },
+   "satps": {
+    "kernel": 9223372036855300621,
+    "A": 9223372036855300630,
+    "B": 9223372036855300638
+   },
+   "proc_a": {
+    "pid": 1,
+    "state": 2,
+    "satp": 9223372036855300630,
+    "dispatches": 1,
+    "preemptions": 0,
+    "yields": 0,
+    "syscalls": 9,
+    "rejected_syscalls": 0,
+    "exit_code": 0,
+    "fault_cause": 0,
+    "fault_epc": 0,
+    "fault_tval": 0,
+    "writes": 2,
+    "bytes_written": 15,
+    "sleeps": 0,
+    "sleep_start": 0,
+    "wake_time": 0,
+    "last_dispatch_time": 231727,
+    "addr": 2149736536
+   },
+   "results": [
+    18446744073709551607,
+    18446744073709551602,
+    18446744073709551602,
+    18446744073709551602,
+    18446744073709551594,
+    18446744073709551602,
+    18446744073709551602,
+    6
+   ],
+   "walk_secret": {
+    "satp": 9223372036855300630,
+    "va": 2149597184,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670928,
+      "pte": 537418753
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149675016,
+      "pte": 537419777
+     },
+     {
+      "level": 0,
+      "pte_addr": 2149679136,
+      "pte": 537399363
+     }
+    ],
+    "mapped": true,
+    "leaf_level": 0,
+    "pte": 537399363,
+    "flags": "VRA",
+    "pa": 2149597184
+   },
+   "walk_b_data": {
+    "satp": 9223372036855300630,
+    "va": 8392704,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670912,
+      "pte": 537420801
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149683232,
+      "pte": 0
+     }
+    ],
+    "mapped": false
+   },
+   "walk_guard": {
+    "satp": 9223372036855300630,
+    "va": 4202496,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670912,
+      "pte": 537420801
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149683216,
+      "pte": 537422849
+     },
+     {
+      "level": 0,
+      "pte_addr": 2149691408,
+      "pte": 0
+     }
+    ],
+    "mapped": false
+   },
+   "name": "done",
+   "host_time": 1791783540.432297
+  },
+  {
+   "wait1": {
+    "reached": true,
+    "watch_hit": null
+   },
+   "wait2": {
+    "reached": true,
+    "watch_hit": null
+   },
+   "procs": [
+    {
+     "pid": 1,
+     "state": 2,
+     "satp": 9223372036855300630,
+     "dispatches": 21,
+     "preemptions": 20,
+     "yields": 0,
+     "syscalls": 9,
+     "rejected_syscalls": 0,
+     "exit_code": 0,
+     "fault_cause": 0,
+     "fault_epc": 0,
+     "fault_tval": 0,
+     "writes": 2,
+     "bytes_written": 15,
+     "sleeps": 0,
+     "sleep_start": 0,
+     "wake_time": 0,
+     "last_dispatch_time": 4353864,
+     "addr": 2149736536
+    },
+    {
+     "pid": 2,
+     "state": 1,
+     "satp": 9223372036855300638,
+     "dispatches": 20,
+     "preemptions": 20,
+     "yields": 0,
+     "syscalls": 0,
+     "rejected_syscalls": 0,
+     "exit_code": 0,
+     "fault_cause": 0,
+     "fault_epc": 0,
+     "fault_tval": 0,
+     "writes": 0,
+     "bytes_written": 0,
+     "sleeps": 0,
+     "sleep_start": 0,
+     "wake_time": 0,
+     "last_dispatch_time": 4251574,
+     "addr": 2149736968
+    }
+   ],
+   "words_a_first": [
+    12675541,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   "words_b_first": [
+    11495424,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "words_a": [
+    24269939,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   "words_b": [
+    23055065,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "name": "after",
+   "host_time": 1791783540.970634
+  }
+ ],
+ "complete": true,
+ "error": null
+}

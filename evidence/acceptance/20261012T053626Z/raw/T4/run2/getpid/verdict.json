@@ -1,0 +1,106 @@
+{
+ "test": "T4",
+ "repetition": 2,
+ "scenario": "protoos.test=getpid",
+ "probe": "t4_getpid",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e",
+ "seconds": 0.47,
+ "checks": [
+  {
+   "check": "A: ecall trap scause=8 (U ecall)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A: a7=172 getpid",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A: trap handled in S-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A: returns to ecall+4 in U-mode",
+   "ok": true,
+   "detail": "0x4001f4"
+  },
+  {
+   "check": "A: getpid() == 1",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "check": "A: trace user_ecall at the ecall pc",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B: ecall trap scause=8 (U ecall)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B: a7=172 getpid",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B: trap handled in S-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B: returns to ecall+4 in U-mode",
+   "ok": true,
+   "detail": "0x8001f4"
+  },
+  {
+   "check": "B: getpid() == 2",
+   "ok": true,
+   "detail": "2"
+  },
+  {
+   "check": "B: trace user_ecall at the ecall pc",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "stored results: A pid 1/1, B pid 2/2 (physical)",
+   "ok": true,
+   "detail": "(1, 2)"
+  },
+  {
+   "check": "no self-detected error",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "30ba11d17cf2fdde5e2662e6d6756a24a6d252db3a425c27c5e50cb6ca410373",
+  "gdb.log": "94d4f49156044744fa76e511b89492651153c29e56f5ff278c8e60120bd69f62",
+  "observations.json": "caa382281782ad8fc0a3e1df20cc861f6778ddbde720d186fb422282a911bec2",
+  "probe-config.json": "a9c2483841f54e9edd1e49c5d9c4ed6d74fbacfe90f86e8f4ec22acda2699da0",
+  "qemu-int.log": "1c857a32e2c7a74021837243d2db860f1da0ff1860d65f50d3d0e168be34452f",
+  "uart.log": "de4d42a3d685e4fa11cae4dcd3e0b94d355507340924f43ccf0fb9268f0dd640"
+ }
+}

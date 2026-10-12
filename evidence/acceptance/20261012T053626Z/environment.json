@@ -1,0 +1,20 @@
+{
+ "elf_sha256": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e",
+ "firmware": "/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin",
+ "firmware_sha256": "b296d711ecb879489689109c0fd7e0698b5b9550725b4e50fac456bbd3ecbcdf",
+ "qemu": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)",
+ "gdb": "GNU gdb (Ubuntu 17.1-2ubuntu1) 17.1",
+ "zig": "0.13.0",
+ "host": "Linux 6.18.40.1-microsoft-standard-WSL2 x86_64",
+ "python": "3.14.4",
+ "git_head": "fb1bbe28d2f1839ddafa2ad281610028e0ec8556",
+ "struct_offsets": {
+  "sizeof_process": 432,
+  "process.state": 296,
+  "process.preemptions": 320,
+  "process.syscalls": 336,
+  "sched.timer_ticks": 8,
+  "sched.switches": 16,
+  "sched.idle_entered": 24
+ }
+}

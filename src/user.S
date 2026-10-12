@@ -16,6 +16,8 @@
 .equ SYS_YIELD, 124
 .equ SYS_GETPID, 172
 .equ SYS_UNDEFINED, 999
+.equ SYS_WRITE, 64
+.equ SYS_SLEEP, 1001
 
 .equ A_BASE, 0x400000
 .equ B_BASE, 0x800000
@@ -28,6 +30,7 @@
 .equ D_RET, 0x20
 .equ D_STAGE, 0x28
 .equ D_PID2, 0x30
+.equ D_RESULTS, 0x40
 .equ D_CANARY, 0x800
 .equ CANARY_WORDS, 256
 .equ A_PATTERN, 0xa1a1a1a100000000
@@ -99,6 +102,70 @@
 
 .macro YIELD
     li a7, SYS_YIELD
+    ecall
+.endm
+
+
+/* String building for one-call (atomic) console lines.
+ * bufstr: a0 = dst, a1 = NUL-terminated src -> a0 = dst end.
+ * bufdec: a0 = dst, a1 = unsigned value     -> a0 = dst end. */
+.macro BUF_LIB bufstr, bufdec
+\bufstr:
+1:  lbu t0, 0(a1)
+    beqz t0, 2f
+    sb t0, 0(a0)
+    addi a0, a0, 1
+    addi a1, a1, 1
+    j 1b
+2:  ret
+\bufdec:
+    li t2, 10
+    mv t0, a1
+    li t4, 1
+1:  divu t0, t0, t2
+    beqz t0, 2f
+    addi t4, t4, 1
+    j 1b
+2:  add t5, a0, t4
+    mv t1, t5
+    mv t0, a1
+3:  remu t3, t0, t2
+    addi t3, t3, 48
+    addi t1, t1, -1
+    sb t3, 0(t1)
+    divu t0, t0, t2
+    bnez t0, 3b
+    mv a0, t5
+    ret
+.endm
+
+/* a0 = 1, a1 = start label, a2 = end - start, ecall write */
+.macro WRITE_RANGE start, end
+    li a0, 1
+    la a1, \start
+    la t0, \end
+    sub a2, t0, a1
+    li a7, SYS_WRITE
+    ecall
+.endm
+
+/* Build "<prefix><pid><middle><n>\n" at s2 and write it with ONE call. */
+.macro DEMO_LINE prefix, middle, nl, bufstr, bufdec
+    mv a0, s2
+    la a1, \prefix
+    call \bufstr
+    mv a1, s1
+    call \bufdec
+    la a1, \middle
+    call \bufstr
+    mv a1, s0
+    call \bufdec
+    la a1, \nl
+    call \bufstr
+    sub a2, a0, s2
+    mv a1, s2
+    li a0, 1
+    li a7, SYS_WRITE
     ecall
 .endm
 
@@ -277,6 +344,144 @@ a_idle_fault_load:
     ld t1, 0(t0)
 1:  j 1b
 
+
+/* ---------------------------------------------------------------- v1.1 */
+/* T8: two valid writes of a fixed message, each must return its length. */
+.globl a_write
+a_write:
+    li s11, A_DATA
+    li s3, 0
+1:  WRITE_RANGE a_write_msg, a_write_msg_end
+.globl a_write_ret
+a_write_ret:
+    sd a0, D_RET(s11)
+    la t0, a_write_msg
+    la t1, a_write_msg_end
+    sub t0, t1, t0
+    bne a0, t0, a_error
+    addi s3, s3, 1
+    li t0, 2
+    bltu s3, t0, 1b
+    li t0, 1
+    sd t0, D_STAGE(s11)
+    j a_worker
+
+/* N6: rejected writes; results stored at D_RESULTS + 8*k, then a valid one. */
+.globl a_write_bad
+a_write_bad:
+    li s11, A_DATA
+    WRITE_RANGE a_n6_begin, a_n6_begin_end
+    li a0, 2                        /* 0: wrong fd -> -9 */
+    la a1, a_n6_ok
+    li a2, 4
+    li a7, SYS_WRITE
+    ecall
+    sd a0, D_RESULTS+0(s11)
+    li a0, 1                        /* 1: kernel page (U=0) -> -14 */
+    ld a1, a_kernel_secret_ptr
+    li a2, 8
+    li a7, SYS_WRITE
+    ecall
+    sd a0, D_RESULTS+8(s11)
+    li a0, 1                        /* 2: B's data page, unmapped in A -> -14 */
+    li a1, B_DATA
+    li a2, 8
+    li a7, SYS_WRITE
+    ecall
+    sd a0, D_RESULTS+16(s11)
+    li a0, 1                        /* 3: crosses into A's unmapped guard page -> -14 */
+    li a1, A_DATA + 0x1000 - 4
+    li a2, 8
+    li a7, SYS_WRITE
+    ecall
+    sd a0, D_RESULTS+24(s11)
+    li a0, 1                        /* 4: len > 256 -> -22 */
+    la a1, a_n6_ok
+    li a2, 257
+    li a7, SYS_WRITE
+    ecall
+    sd a0, D_RESULTS+32(s11)
+    li a0, 1                        /* 5: NULL -> -14 */
+    li a1, 0
+    li a2, 1
+    li a7, SYS_WRITE
+    ecall
+    sd a0, D_RESULTS+40(s11)
+    li a0, 1                        /* 6: wraps past the top of the address space -> -14 */
+    li a1, -16
+    li a2, 32
+    li a7, SYS_WRITE
+    ecall
+    sd a0, D_RESULTS+48(s11)
+    WRITE_RANGE a_n6_ok, a_n6_ok_end   /* 7: valid -> length */
+    sd a0, D_RESULTS+56(s11)
+.globl a_write_bad_done
+a_write_bad_done:
+    li t0, 1
+    sd t0, D_STAGE(s11)
+    j a_worker
+
+/* T9: sleep 200 ms in a loop; every sleep must return 0. */
+.globl a_sleep
+a_sleep:
+    li s11, A_DATA
+    li s0, 0
+1:  addi s0, s0, 1
+    sd s0, D_COUNTER(s11)
+    li a0, 200
+    li a7, SYS_SLEEP
+.globl a_sleep_ecall
+a_sleep_ecall:
+    ecall
+.globl a_sleep_ret
+a_sleep_ret:
+    sd a0, D_RET(s11)
+    bnez a0, a_error
+    j 1b
+
+/* T9 (both asleep): 100 ms sleeps; B uses 150 ms. */
+.globl a_sleep_all
+a_sleep_all:
+    li s11, A_DATA
+    li s0, 0
+1:  addi s0, s0, 1
+    sd s0, D_COUNTER(s11)
+    li a0, 100
+    li a7, SYS_SLEEP
+    ecall
+.globl a_sleep_all_ret
+a_sleep_all_ret:
+    bnez a0, a_error
+    j 1b
+
+/* Demo: a numbered line every 400 ms, forever. */
+.globl a_demo
+a_demo:
+    li a7, SYS_GETPID
+    ecall
+    mv s1, a0
+    addi sp, sp, -128
+    mv s2, sp
+    li s0, 0
+1:  addi s0, s0, 1
+    DEMO_LINE a_demo_prefix, a_demo_middle, a_demo_nl, a_bufstr, a_bufdec
+    li a0, 400
+    li a7, SYS_SLEEP
+    ecall
+    j 1b
+
+    BUF_LIB a_bufstr, a_bufdec
+
+a_write_msg:    .ascii "ProtoOS T8: hello from user mode A\n"
+a_write_msg_end:
+a_n6_begin:     .ascii "N6-begin\n"
+a_n6_begin_end:
+a_n6_ok:        .ascii "N6 ok\n"
+a_n6_ok_end:
+a_demo_prefix:  .asciz "[A] pid "
+a_demo_middle:  .asciz ": hello #"
+a_demo_nl:      .asciz "\n"
+
 .balign 8
 a_kernel_secret_ptr:
     .dword kernel_secret
@@ -344,6 +549,59 @@ b_idle_exit:
 b_idle_exit_ecall:
     ecall
 1:  j 1b
+
+
+/* ---------------------------------------------------------------- v1.1 */
+.globl b_sleep_all
+b_sleep_all:
+    li s11, B_DATA
+    li s0, 0
+1:  addi s0, s0, 1
+    sd s0, D_COUNTER(s11)
+    li a0, 150
+    li a7, SYS_SLEEP
+    ecall
+.globl b_sleep_all_ret
+b_sleep_all_ret:
+    bnez a0, b_error
+    j 1b
+
+/* Demo: four lines every 700 ms, then announce and attempt a write into
+ * A's memory (unmapped in B's root) -> store page fault, B is FAULTED. */
+.globl b_demo
+b_demo:
+    li a7, SYS_GETPID
+    ecall
+    mv s1, a0
+    addi sp, sp, -128
+    mv s2, sp
+    li s0, 0
+1:  addi s0, s0, 1
+    DEMO_LINE b_demo_prefix, b_demo_middle, b_demo_nl, b_bufstr, b_bufdec
+    li a0, 700
+    li a7, SYS_SLEEP
+    ecall
+    li t0, 4
+    bltu s0, t0, 1b
+    WRITE_RANGE b_demo_attack, b_demo_attack_end
+    li a0, 300
+    li a7, SYS_SLEEP
+    ecall
+    li t0, A_DATA
+    li t1, 0x4242424242424242
+.globl b_demo_attack_store
+b_demo_attack_store:
+    sd t1, 0(t0)
+2:  j 2b
+
+    BUF_LIB b_bufstr, b_bufdec
+
+b_demo_prefix:  .asciz "[B] pid "
+b_demo_middle:  .asciz ": hello #"
+b_demo_nl:      .asciz "\n"
+b_demo_attack:  .ascii "[B] pid 2: now I will try to overwrite A's memory...\n"
+b_demo_attack_end:
+.balign 4
 
 /* ===================================================================== */
 .section .user.bss,"aw",@nobits

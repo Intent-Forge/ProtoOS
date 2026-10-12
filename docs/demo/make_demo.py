@@ -4,8 +4,9 @@
 Usage (from the repository root, after build-scripts/build-wsl.sh):
     python3 docs/demo/make_demo.py            # -> docs/demo/protoos-demo.svg
 
-Every line shown is captured from the guest's UART in a real QEMU run; only
-the playback pace is changed (one line per PACE seconds) so it can be read.
+Every line shown is captured from the guest's UART in a real QEMU run. The
+demo-mode scene keeps the real timing between lines (clamped); the other
+scenes are replayed at one line per PACE seconds so they can be read.
 """
 import html
 import os
@@ -19,14 +20,12 @@ ELF = ROOT / 'build/protoos.elf'
 OUT = ROOT / 'docs/demo/protoos-demo.svg'
 FW = os.environ.get('OPENSBI', '/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin')
 
-# (bootargs, seconds to run, max captured lines, comment shown above the command)
+# (bootargs, seconds to run, max captured lines, comment, real timing?)
 SCENES = [
+    ('protoos.mode=demo', 9, 22,
+     'demo mode: A and B print via write() and sleep(); then B attacks A', True),
     ('protoos.test=umode', 2, 15,
-     'two user processes, switched by the timer interrupt every 10 ms'),
-    ('protoos.test=isolation', 2, 12,
-     "process A writes into B's memory: page fault, only A is stopped"),
-    ('protoos.mode=normal', 4, 9,
-     'normal mode: A and B share the CPU, ~100 switches per second'),
+     'two user processes, switched by the timer interrupt every 10 ms', False),
 ]
 PACE, COMMAND_PAUSE, SCENE_HOLD = 0.22, 0.9, 2.6
 COLS, ROWS = 112, 19
@@ -40,6 +39,7 @@ def record(args, seconds, max_lines):
            '-no-reboot']
     vm = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     lines, buf, started, t0 = [], b'', False, time.monotonic()
+    t_start = t0
     try:
         while time.monotonic() - t0 < seconds and len(lines) < max_lines:
             ready, _, _ = select.select([vm.stdout], [], [], 0.05)
@@ -52,9 +52,10 @@ def record(args, seconds, max_lines):
             while b'\n' in buf and len(lines) < max_lines:
                 raw, buf = buf.split(b'\n', 1)
                 text = raw.decode('ascii', 'replace').rstrip('\r')
-                started = started or text.startswith('ProtoOS boot foundation')
+                if not started and text.startswith('ProtoOS boot foundation'):
+                    started, t_start = True, time.monotonic()
                 if started and text:
-                    lines.append(text[:COLS])
+                    lines.append((time.monotonic() - t_start, text[:COLS]))
     finally:
         vm.kill()
         vm.wait()
@@ -63,6 +64,7 @@ def record(args, seconds, max_lines):
 
 def style_of(line):
     for prefix, cls in (('$ ', 'cmd'), ('# ', 'note'), ('FAULT', 'fault'), ('SCHED', 'sched'),
+                        ('[A]', 'usera'), ('[B] pid 2: now', 'attack'), ('[B]', 'userb'),
                         ('HEARTBEAT', 'beat'), ('MMU', 'mmu'), ('PROC', 'proc'),
                         ('EXIT', 'exit'), ('IDLE', 'exit')):
         if line.startswith(prefix):
@@ -72,16 +74,21 @@ def style_of(line):
 
 def frames_for(scenes):
     """Yield (visible lines, duration) for every animation frame."""
-    for args, seconds, max_lines, note in scenes:
-        secs = 3 if 'normal' in args else 2
-        screen = [f'# {note}', f'$ sh build-scripts/run-scenario.sh {args} {secs}']
+    for args, seconds, max_lines, note, real in scenes:
+        screen = [f'# {note}', f'$ sh build-scripts/run-scenario.sh {args} {seconds}']
         yield list(screen), COMMAND_PAUSE
         output = record(args, seconds, max_lines)
         if not output:
             raise SystemExit(f'no UART output captured for {args}')
-        for i, line in enumerate(output):
+        for i, (t, line) in enumerate(output):
             screen.append(line)
-            yield list(screen[-ROWS:]), SCENE_HOLD if i == len(output) - 1 else PACE
+            if i == len(output) - 1:
+                dur = SCENE_HOLD
+            elif real:
+                dur = min(max(output[i + 1][0] - t, 0.12), 0.9)
+            else:
+                dur = PACE
+            yield list(screen[-ROWS:]), dur
 
 
 def render(frames):
@@ -102,7 +109,8 @@ def render(frames):
         f'font-size:{FONT}px;white-space:pre;fill:#c9d1d9}}',
         '.cmd{fill:#ffffff;font-weight:bold}.note{fill:#8b949e;font-style:italic}'
         '.fault{fill:#ff7b72;font-weight:bold}.sched{fill:#79c0ff}.beat{fill:#7ee787}'
-        '.mmu{fill:#d2a8ff}.proc{fill:#e3b341}.exit{fill:#ffa657}.title{fill:#8b949e}',
+        '.mmu{fill:#d2a8ff}.proc{fill:#e3b341}.exit{fill:#ffa657}.title{fill:#8b949e}'
+        '.usera{fill:#7ee787}.userb{fill:#79c0ff}.attack{fill:#ffa657;font-weight:bold}',
         f'.tape{{animation:roll {total:.2f}s steps(1,end) infinite}}',
         f'@keyframes roll{{{"".join(keys)}}}',
         '</style>',
@@ -112,7 +120,7 @@ def render(frames):
         '<circle cx="18" cy="14" r="5" fill="#ff5f57"/><circle cx="34" cy="14" r="5" fill="#febc2e"/>'
         '<circle cx="50" cy="14" r="5" fill="#28c840"/>',
         f'<text class="title" x="{width / 2:.0f}" y="18" text-anchor="middle">'
-        'ProtoOS v1.0 on QEMU virt (RISC-V RV64) - real UART output, readable pace</text>',
+        'ProtoOS v1.1 on QEMU virt (RISC-V RV64) - real UART output</text>',
         f'<svg x="0" y="{TITLE_H}" width="{width}" height="{body_h}"><g class="tape">',
     ]
     for i, (screen, _) in enumerate(frames):

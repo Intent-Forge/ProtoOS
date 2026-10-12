@@ -1,0 +1,15 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x80200000: file src/boot.S, line 5.
+
+Breakpoint 1, _start () at src/boot.S:5
+5	    csrw sie, zero
+Breakpoint 2 at 0x80200598: file src/kernel.c, line 143.
+
+Breakpoint 2, kernel_main (hart=0, dtb=2279604224) at src/kernel.c:143
+143	void kernel_main(uint64_t hart, uintptr_t dtb) {
+Breakpoint 3 at 0x80200464: file src/kernel.c, line 34.
+
+Breakpoint 3, halt () at src/kernel.c:34
+34	    __asm__ volatile("csrw sie, zero; csrci sstatus, 2" ::: "memory");
+[Inferior 1 (process 1) killed]

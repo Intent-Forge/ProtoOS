@@ -1,0 +1,86 @@
+{
+ "test": "T4",
+ "repetition": 3,
+ "scenario": "protoos.test=yield",
+ "probe": "t4_yield",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e",
+ "seconds": 1.12,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=124 yield",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B runs right after A yielded",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "B: satp is the process root",
+   "ok": true,
+   "detail": "0x800000000008021e"
+  },
+  {
+   "check": "B: pc inside its user text",
+   "ok": true,
+   "detail": "0x800218"
+  },
+  {
+   "check": "switch caused by yield, not the timer (tick count unchanged)",
+   "ok": true,
+   "detail": "(0, 0)"
+  },
+  {
+   "check": "A resumes after its ecall with a0 == 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A resumes under its own satp",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "both processes kept yielding (yield counters > 1)",
+   "ok": true,
+   "detail": "(193, 195)"
+  },
+  {
+   "check": "no self-detected error",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "096011d51042116360ba6051622daef09e02d42bd424d6cd3e7afee11a78828f",
+  "gdb.log": "12e46df5170bed86ef2144652c4dad8f488a705395e480ee41192447be67eb2a",
+  "observations.json": "37726292498aa271e649384ede56268e19e2eeaab61713aa60955198bb16cc15",
+  "probe-config.json": "dea3a71d34667538efdd3a0595a1c0ef2bd15d8ee4d73ba3d33ca4c721b88a53",
+  "qemu-int.log": "9a278a52c9e6ff70044996527fb1f9c5f0c5fcabc9adfb4f31725234ff9929b5",
+  "uart.log": "92becb3dbf43e084ba5ee838f2e1c76a0b34c0b2acebd94302a8f4bd378d7b8c"
+ }
+}

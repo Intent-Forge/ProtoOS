@@ -1,0 +1,76 @@
+{
+ "test": "T5",
+ "repetition": 3,
+ "scenario": "protoos.test=kernel-read",
+ "probe": "kernel_read",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e",
+ "seconds": 0.72,
+ "checks": [
+  {
+   "check": "A in U-mode at the kernel load",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "target is kernel_secret",
+   "ok": true,
+   "detail": "0x80204000"
+  },
+  {
+   "check": "PT walk: kernel page present in A root with U=0",
+   "ok": true,
+   "detail": "VRA"
+  },
+  {
+   "check": "load page fault (scause=13) at the load",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no data returned: a1 keeps sentinel",
+   "ok": true,
+   "detail": "0x5a5a5a5a5a5a5a5a"
+  },
+  {
+   "check": "secret never reached user memory",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: load_page_fault from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A FAULTED, B alive and advancing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "129fce46eea8597645192aabe225682353f695ca420285e71efe69afdfab687e"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "a7d3e3cf5d7231de516d713d88eaefd034e8645a5b29f1a15bf36e203778cec4",
+  "gdb.log": "988d09669b4ac7ee445baf9d1ed87b957ae1470e98c4db164963324d3f5c5548",
+  "observations.json": "83d4f033b98df8eafb530d782b9127abdffa0c6bb92290cfbc037eab027aa9b7",
+  "probe-config.json": "f71db000f116e77f14ff2a2d85e6635a77ddee80b3010981d73c11b8c46cd667",
+  "qemu-int.log": "ba2371e2808cf732efbd0e0d55af7cdc2e3fe5f1e35700ce7145bd6eae856235",
+  "uart.log": "22c8a1171a2afe7e6adabcf066402582a681c91727821cae01963a6265cc7cbd"
+ }
+}
