@@ -1,0 +1,111 @@
+{
+ "test": "T13",
+ "repetition": 3,
+ "scenario": "protoos.test=mem",
+ "probe": "t13",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905",
+ "seconds": 0.42,
+ "checks": [
+  {
+   "check": "instance 1: memcheck running in slot C with its own pid",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "instance 1: 5 distinct page-aligned pages inside the pool, outside the kernel image",
+   "ok": true,
+   "detail": "['0x80400000', '0x80401000', '0x80402000', '0x80403000', '0x80404000']"
+  },
+  {
+   "check": "instance 1: allocator counts 5 pages in use (free = baseline - 5), bitmap bits set",
+   "ok": true,
+   "detail": "(31227, 31232, [1, 1, 1, 1, 1])"
+  },
+  {
+   "check": "instance 1: its data and stack pages arrived zeroed (memcheck result 1)",
+   "ok": true,
+   "detail": "0x1"
+  },
+  {
+   "check": "instance 1: it then dirtied both pages (0xa5 in physical memory)",
+   "ok": true,
+   "detail": "(504, 512)"
+  },
+  {
+   "check": "instance 2: memcheck running in slot C with its own pid",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "instance 2: 5 distinct page-aligned pages inside the pool, outside the kernel image",
+   "ok": true,
+   "detail": "['0x80400000', '0x80401000', '0x80402000', '0x80403000', '0x80404000']"
+  },
+  {
+   "check": "instance 2: allocator counts 5 pages in use (free = baseline - 5), bitmap bits set",
+   "ok": true,
+   "detail": "(31227, 31232, [1, 1, 1, 1, 1])"
+  },
+  {
+   "check": "instance 2: its data and stack pages arrived zeroed (memcheck result 1)",
+   "ok": true,
+   "detail": "0x1"
+  },
+  {
+   "check": "instance 2: it then dirtied both pages (0xa5 in physical memory)",
+   "ok": true,
+   "detail": "(504, 512)"
+  },
+  {
+   "check": "instance 2 got the physical data and stack pages instance 1 had dirtied",
+   "ok": true,
+   "detail": "(['0x80403000', '0x80404000'], ['0x80403000', '0x80404000'])"
+  },
+  {
+   "check": "kills returned 0",
+   "ok": true,
+   "detail": "[31232, 3, 0, 4, 0, 31232]"
+  },
+  {
+   "check": "after both kills every page is back: free = baseline, 10 allocations = 10 frees",
+   "ok": true,
+   "detail": "(31232, 31232, {'base': 2151677952, 'pages': 31232, 'free': 31232, 'allocs': 10, 'frees': 10})"
+  },
+  {
+   "check": "ended process owns no pages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: memcheck ran in U-mode from the program pages (sleep ecalls there)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "13fbfcbfd8663f49d9c7320248fa3515c012111117e8751de2f577b942aad74c",
+  "gdb.log": "719d2e70b8f914256da7b05388e9de4aaad5fbef23c62b076e69c38fd546ed22",
+  "observations.json": "2aa0cf7368508ee11ef200f0c13f6bf94e808a1d0ddfb0f729c9ddb275b1f0ae",
+  "probe-config.json": "00b90acf877ad0eb9a00f27b30062039b296ace1aac216ef9afcf3d8becf5220",
+  "qemu-int.log": "144f1b985d572d1ac8831ec2849b1e7ae56150c0e2e3dcc203fcd3313e8eb72c",
+  "uart.log": "c9a04c97106518ee022950d9f78ef86f24bee3f28aaa0fa7e480e68e87fcd41d"
+ }
+}

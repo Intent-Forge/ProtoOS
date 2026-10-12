@@ -31,8 +31,9 @@ v1.0 defines 12 mandatory checks in [`ACCEPTANCE_MATRIX.csv`](ACCEPTANCE_MATRIX.
 
 | Check | Result |
 |---|---|
-| **v1.3:** T1–T17, N1–N9, 3 clean boots each (93 boots), QEMU 10.2.1 + OpenSBI 1.8 + gdb 17.1 | **all PASS** — [`evidence/acceptance/20261012T220448Z/RESULTS.json`](evidence/acceptance/20261012T220448Z/RESULTS.json); a reused page that its previous owner filled with `0xa5` arrived zeroed; 206 spawn/kill cycles leaked no page |
-| v1.3 on a second machine (Intel N100, Ubuntu 24.04, QEMU 8.2.2 + OpenSBI 1.7 + gdb 15.1) | ELF rebuilt byte-identical; full matrix ×3 **all PASS** — [`evidence/crosscheck-n100/20261012T220449Z/`](evidence/crosscheck-n100/20261012T220449Z/RESULTS.json) |
+| **v1.3.1:** T1–T17, N1–N9, 3 clean boots each (93 boots), QEMU 10.2.1 + OpenSBI 1.8 + gdb 17.1 | **all PASS** — [`evidence/acceptance/20261012T233512Z/RESULTS.json`](evidence/acceptance/20261012T233512Z/RESULTS.json) (v1.3: [`20261012T220448Z`](evidence/acceptance/20261012T220448Z/RESULTS.json)); a reused page that its previous owner filled with `0xa5` arrived zeroed; 206 spawn/kill cycles leaked no page |
+| v1.3.1 on a second machine (Intel N100, Ubuntu 24.04, QEMU 8.2.2 + OpenSBI 1.7 + gdb 15.1) | ELF rebuilt byte-identical; full matrix ×3 **all PASS** — [`evidence/crosscheck-n100/20261012T233509Z/`](evidence/crosscheck-n100/20261012T233509Z/RESULTS.json) |
+| Independent code audit of v1.3 (OpenAI Codex, read-only access) | 2 findings (Round Robin position after a process ended; pid wrap-around), both confirmed and fixed in v1.3.1 — see [`docs/SPEC_V1_3.md`](docs/SPEC_V1_3.md#v131-corrections-independent-audit) |
 | v1.2: T1–T12, N1–N8 ×3 (75 boots), also on the N100 | **all PASS** — [`evidence/acceptance/20261012T201554Z/RESULTS.json`](evidence/acceptance/20261012T201554Z/RESULTS.json), [`evidence/crosscheck-n100/20261012T201932Z/`](evidence/crosscheck-n100/20261012T201932Z/RESULTS.json) |
 | v1.1: T1–T9, N1–N6 ×3 (60 boots) | **all PASS** — [`evidence/acceptance/20261012T053626Z/RESULTS.json`](evidence/acceptance/20261012T053626Z/RESULTS.json); a 200 ms `sleep` measured 200.9–201.1 ms |
 | v1.0: T1–T7, N1–N5 ×3 (48 boots); same matrix on OpenSBI 1.4 | **all PASS** — [`evidence/acceptance/20261011T231210Z/`](evidence/acceptance/20261011T231210Z/RESULTS.json), [`evidence/crosscheck-opensbi-1.4/`](evidence/crosscheck-opensbi-1.4/) |
@@ -42,7 +43,7 @@ v1.0 defines 12 mandatory checks in [`ACCEPTANCE_MATRIX.csv`](ACCEPTANCE_MATRIX.
 
 Evidence is collected from outside the kernel, never from its own messages: the QEMU interrupt trace (`-d int`), GDB (privilege level, CSRs, registers, physical memory, an independent Sv39 page-table walk) and QMP sampling for the normal mode. Every boot directory under `evidence/` holds the exact QEMU command line, raw logs, observations and a per-check verdict. The normal-mode check (T7) is a 3 × 30 s bounded observation (~3,075 timer switches per run), not a proof of unlimited stability.
 
-ELF v1.3: [`release/protoos.elf`](release/protoos.elf), SHA-256 `aca6a11b3737904f4222ac473b3ff6fd8c0b0b5f6b38fa10bdd0a2f42f857a39` (v1.2: `df8eca42…`, v1.1: `129fce46…`, v1.0: `f1d5a5bc…` — see the tags).
+ELF v1.3.1: [`release/protoos.elf`](release/protoos.elf), SHA-256 `9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905` (v1.3: `aca6a11b…`, v1.2: `df8eca42…`, v1.1: `129fce46…`, v1.0: `f1d5a5bc…` — see the tags).
 
 ## Build and run
 Tested on Ubuntu 26.04 under WSL2; any recent x86-64 Ubuntu/Debian should work.

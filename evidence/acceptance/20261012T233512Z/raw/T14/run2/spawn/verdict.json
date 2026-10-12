@@ -1,0 +1,106 @@
+{
+ "test": "T14",
+ "repetition": 2,
+ "scenario": "protoos.test=spawn",
+ "probe": "t14",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905",
+ "seconds": 0.62,
+ "checks": [
+  {
+   "check": "spawn returned pid 3; free pages dropped by exactly 5",
+   "ok": true,
+   "detail": "[31232, 3, 31227]"
+  },
+  {
+   "check": "slot C: worker program, READY/RUNNING",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "slot C: 5 distinct page-aligned pages inside the pool, outside the kernel image",
+   "ok": true,
+   "detail": "['0x80400000', '0x80401000', '0x80402000', '0x80403000', '0x80404000']"
+  },
+  {
+   "check": "own Sv39 root, distinct from kernel, A and B",
+   "ok": true,
+   "detail": "0x8000000000080400"
+  },
+  {
+   "check": "runs in U-mode under its own root, in the program pages",
+   "ok": true,
+   "detail": "0x4000084"
+  },
+  {
+   "check": "sp in its own stack page, s11 = its data page",
+   "ok": true,
+   "detail": "('0xc04000', '0xc01000')"
+  },
+  {
+   "check": "PT walk: data and stack U+R+W, backed by its own pages",
+   "ok": true,
+   "detail": "('VRWUAD', 'VRWUAD')"
+  },
+  {
+   "check": "PT walk: program page U+R+X, not writable; no private text page",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "PT walk: A's and B's data unmapped; kernel data and UART not user-accessible",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "its pages are reachable only through the kernel map (2 MiB leaf, U=0) at their PA",
+   "ok": true,
+   "detail": "VRWAD"
+  },
+  {
+   "check": "its data page is not mapped in A's or B's root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "preempted by the timer and keeps counting",
+   "ok": true,
+   "detail": "(15, 0, 201710919)"
+  },
+  {
+   "check": "B keeps running",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: timer interrupts taken from the program pages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "f5f017dcd3104b01874d9907fb1dd0124d4eaa98eed9b6f1e7c381bb520be6ad",
+  "gdb.log": "d0e2b3428d0d4e7599a4373e1acad83091999301cd35df0919bf8d59088e4f22",
+  "observations.json": "38c73eed251f6808ad329c0a12ba52b589feedc2a670a430625368d8ef5f7a91",
+  "probe-config.json": "f55b266e7af8f4e8f2841d78ded83e540a24ac84929526e998e76f01bef26883",
+  "qemu-int.log": "c9ac951520f8e76bf52423939e2554446428812303a5063183337edb071e5d36",
+  "uart.log": "864712c1af9ae48729bacd612fa358ad37c7af61f416bfd912e95c738594554a"
+ }
+}

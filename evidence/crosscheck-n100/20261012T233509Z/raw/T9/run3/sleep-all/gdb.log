@@ -1,0 +1,14 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x80203034: file src/proc.c, line 98.
+
+Breakpoint 1, sched_wait (wake=1488056) at src/proc.c:98
+98	{
+Breakpoint 2 at 0x80202ec8: file src/proc.c, line 69.
+Breakpoint 3 at 0x80204654: file src/proc.c, line 426.
+Breakpoint 4 at 0x80200474: file src/kernel.c, line 39.
+
+Program received signal SIGINT, Interrupt.
+sched_wait (wake=20764497) at src/proc.c:101
+101	    while (csr_read(time) < wake) {
+[Inferior 1 (process 1) killed]

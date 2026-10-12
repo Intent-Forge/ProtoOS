@@ -1,0 +1,81 @@
+{
+ "test": "N8",
+ "repetition": 1,
+ "scenario": "protoos.test=read-flood",
+ "probe": "n8",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905",
+ "seconds": 1.47,
+ "checks": [
+  {
+   "check": "all 300 flooded bytes were taken from the UART by interrupts",
+   "ok": true,
+   "detail": "{'count': 0, 'head': 0, 'irqs': 299, 'received': 300, 'dropped': 172, 'spurious': 0}"
+  },
+  {
+   "check": "buffer kept 128 (its capacity), dropped the other 172",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "first read returned 128",
+   "ok": true,
+   "detail": "128"
+  },
+  {
+   "check": "A got exactly the first 128 bytes, in order",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "buffer empty after the read",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "next read blocks (BLOCKED, not dispatched)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "a byte typed after the flood is delivered (returns 1, \"Z\")",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no process faulted; B keeps running",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no exception from user code other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "9ff6f0c1910af690aa83b45a67f2d08949b1f69099ef3d318e5fac7c1ac2bfc1",
+  "gdb.log": "df281a3e9dda87708aa5885f9d4c45429605e295b2ed5560ec36079e1997ad29",
+  "observations.json": "a6ad5f27561a8fc2e81704f6313a5b6e7ac00bc2634a76a1b781c22720ff6c36",
+  "probe-config.json": "fe64a7b9f121de121f32516dff380333859239296c78105610a30dc8f49e2607",
+  "qemu-int.log": "08181ac32ea2397bffa9ed0b0a2b1a4282d6dd5ca41c57f9d9c8b71eb44703f6",
+  "uart.log": "c40f8b717ad336f5f3f13059510724f2436c0e7a7b07d00b9d47f90c66365801"
+ }
+}

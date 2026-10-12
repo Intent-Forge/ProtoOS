@@ -1,0 +1,196 @@
+{
+ "test": "T2",
+ "repetition": 3,
+ "scenario": "protoos.test=umode",
+ "probe": "t2",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "distinct page-table roots A/B",
+   "ok": true,
+   "detail": "('0x8000000000080225', '0x800000000008022f')"
+  },
+  {
+   "check": "round 1: A reached",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "round 1: B reached",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A1: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "A1: satp is the process root",
+   "ok": true,
+   "detail": "0x8000000000080225"
+  },
+  {
+   "check": "A1: pc inside its user text",
+   "ok": true,
+   "detail": "0x4000cc"
+  },
+  {
+   "check": "B1: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "B1: satp is the process root",
+   "ok": true,
+   "detail": "0x800000000008022f"
+  },
+  {
+   "check": "B1: pc inside its user text",
+   "ok": true,
+   "detail": "0x8000cc"
+  },
+  {
+   "check": "A1: sp in A stack",
+   "ok": true,
+   "detail": "0x404000"
+  },
+  {
+   "check": "B1: sp in B stack",
+   "ok": true,
+   "detail": "0x804000"
+  },
+  {
+   "check": "A1: s2..s10 carry A pattern",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B1: s2..s10 carry B pattern",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A1: saved B context belongs to B",
+   "ok": true,
+   "detail": "0x800000"
+  },
+  {
+   "check": "B1: saved A context belongs to A",
+   "ok": true,
+   "detail": "0x4000cc"
+  },
+  {
+   "check": "round 2: A reached",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "round 2: B reached",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A2: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "A2: satp is the process root",
+   "ok": true,
+   "detail": "0x8000000000080225"
+  },
+  {
+   "check": "A2: pc inside its user text",
+   "ok": true,
+   "detail": "0x4000cc"
+  },
+  {
+   "check": "B2: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "B2: satp is the process root",
+   "ok": true,
+   "detail": "0x800000000008022f"
+  },
+  {
+   "check": "B2: pc inside its user text",
+   "ok": true,
+   "detail": "0x8000cc"
+  },
+  {
+   "check": "A2: sp in A stack",
+   "ok": true,
+   "detail": "0x404000"
+  },
+  {
+   "check": "B2: sp in B stack",
+   "ok": true,
+   "detail": "0x804000"
+  },
+  {
+   "check": "A2: s2..s10 carry A pattern",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B2: s2..s10 carry B pattern",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A2: saved B context belongs to B",
+   "ok": true,
+   "detail": "0x8000f8"
+  },
+  {
+   "check": "B2: saved A context belongs to A",
+   "ok": true,
+   "detail": "0x4000f8"
+  },
+  {
+   "check": "A counter (physical) advances",
+   "ok": true,
+   "detail": "(0, 579299)"
+  },
+  {
+   "check": "B counter (physical) advances",
+   "ok": true,
+   "detail": "(0, 570838)"
+  },
+  {
+   "check": "trace: timer interrupts taken from both U ranges",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "29d3c937fbe941acfb4e9f71e1676eb63115838fd7647570b7b18a91ad0ee065",
+  "gdb.log": "ac405a8aecfbab4dc000693eafd5f56c7483625c418320316145ce62a0f9ea8f",
+  "observations.json": "6d167a8768ea8df416412948deb0039453ed1a030d81712a18f457862a668454",
+  "probe-config.json": "91c4679b77fc6f440acd40e25b93d47a30a0e53d29a78b0d0b92df4be0b29a82",
+  "qemu-int.log": "f238f8a94c78ccce22d246b841fe84d3cf1acc327f3980630791ee9127b9d52a",
+  "uart.log": "cc93eac5fa20379c9fbfc4473a3568f747f6e26ffa15ddbebb43e4c2f15ba96a"
+ }
+}

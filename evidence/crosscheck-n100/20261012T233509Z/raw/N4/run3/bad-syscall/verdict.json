@@ -1,0 +1,71 @@
+{
+ "test": "N4",
+ "repetition": 3,
+ "scenario": "protoos.test=bad-syscall",
+ "probe": "n4",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905",
+ "seconds": 0.72,
+ "checks": [
+  {
+   "check": "ecall trap with a7=999",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "returns to ecall+4 in U-mode with a0 = -38",
+   "ok": true,
+   "detail": "0xffffffffffffffda"
+  },
+  {
+   "check": "rejection counted once, kernel healthy",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A keeps running (worker counter advances)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps running (counter advances)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "both still READY/RUNNING",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A stored -38 and passed its own check",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "9688a42f7bb8b8a903dd430e4579b54761acf8440c5642a3ac622ef1d2804905"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "b9647cae3d7bb8b21932c47d08ff53a02ec1ef18a6f954a4ef24247862e22e21",
+  "gdb.log": "cbf5c4211b1072c82c65960e43b049c7c72b434d7e6cf7a914f2e55a087c581d",
+  "observations.json": "84c07e9696f968d6ab081eda69f38a65a052ab58fb25da86ab5415815ce456b1",
+  "probe-config.json": "b95464744677f11c04116b0fddced8b4eadd5f3f85799098edb2c6be4d54decd",
+  "qemu-int.log": "4bb7208dfa5d43571ec9a8c3e0406c6643b99de7c9579793f1dfb1ff69bbf1db",
+  "uart.log": "76e3cb5dd8f69e6e8721847ef7c1bceedc45fbd0648882d4727ae0135c42d29a"
+ }
+}
