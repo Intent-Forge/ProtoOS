@@ -72,6 +72,7 @@ struct sched_stats {
     uint64_t ext_irqs;      /* v1.2: external interrupts taken from U-mode */
     uint64_t next_pid;      /* v1.3: pids are never reused */
     uint64_t spawned, killed, reclaimed;
+    uint64_t last_slot;     /* v1.3.1: Round Robin position, kept across reclaim */
 };
 
 extern struct process procs[PROC_MAX];

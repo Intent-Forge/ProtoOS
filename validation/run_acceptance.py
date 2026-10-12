@@ -1037,6 +1037,10 @@ def oracle_t16(c, obs, ctx):
       f['hit'] and fr['scause'] == 15 and fr['sepc'] == ctx['uva']['p_crash_store']
       and fr['stval'] == 0x801000 and f['proc']['prog'] == PROG['crash'], (hex(fr['scause']), hex(fr['stval'])))
     c("B's data page was not written (no 0x43 pattern)", all(w != 0x4343434343434343 for w in f['b_data']))
+    nd = st['next_dispatch']
+    ready = [(f['slot'] + k) % 8 for k in range(1, 9) if nd['states'][(f['slot'] + k) % 8] == 1]
+    c('v1.3.1: after the fault Round Robin continues with the next READY slot after the crash',
+      nd['hit'] and ready and nd['slot'] == ready[0], (f['slot'], nd['slot'], nd['states']))
     crash = [p for p in d['procs'] if p['prog'] == PROG['crash']]
     c('crash slot FAULTED and its pages reclaimed', len(crash) == 1 and crash[0]['state'] == 4
       and crash[0]['npages'] == 0)

@@ -133,6 +133,7 @@ __attribute__((noinline)) struct trap_frame *sched_dispatch(struct process *next
         next->bytes_read += n;
     }
     current = next;
+    sched.last_slot = (uint64_t)(next - procs);
     next->state = PROC_RUNNING;
     next->dispatches++;
     next->last_dispatch_time = csr_read(time);
@@ -158,7 +159,9 @@ static struct trap_frame *schedule(const char *reason)
             if (p->wake_time <= now) p->state = PROC_READY;
             else if (p->wake_time < next_wake) next_wake = p->wake_time;
         }
-        size_t start = current ? (size_t)(current - procs) : PROC_MAX - 1;
+        /* v1.3.1: continue after the last dispatched slot even if that
+         * process has just ended and `current` was cleared by reclaim(). */
+        size_t start = (size_t)sched.last_slot;
         for (size_t k = 1; k <= PROC_MAX; ++k) {
             struct process *p = &procs[(start + k) % PROC_MAX];
             if (p->state != PROC_READY) continue;
@@ -298,6 +301,7 @@ static uint64_t sys_slotinfo(struct process *p, uint64_t slot, uint64_t va)
 static uint64_t sys_spawn(uint64_t prog)
 {
     if (prog == PROG_NONE || prog >= PROG_IDS) return SYS_EINVAL;
+    if (sched.next_pid == UINT64_MAX) return SYS_EAGAIN;   /* v1.3.1: pids never wrap */
     struct process *q = 0;
     for (unsigned i = PROC_STATIC; i < PROC_MAX && !q; ++i)
         if (procs[i].state == PROC_UNUSED ||
@@ -481,6 +485,7 @@ _Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int h
     sched.verbose = (uint64_t)verbose;
     sched.heartbeat = (uint64_t)heartbeat_on;
     sched.next_pid = PROC_STATIC + 1u;
+    sched.last_slot = PROC_MAX - 1u;            /* the first pick is slot 0 */
     for (unsigned i = 0; i < PROC_STATIC; ++i) {
         struct process *p = &procs[i];
         p->pid = i + 1;

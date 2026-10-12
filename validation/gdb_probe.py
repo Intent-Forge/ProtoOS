@@ -719,6 +719,9 @@ def probe_t16():
     slot = (reg('a0') - ev('(unsigned long)&procs[0]')) // ev('sizeof(struct process)')
     step('fault', hit=hit, slot=slot, frame=frame(slot), proc=proc(slot), mem=mem_state(),
          b_data=user_words('user_b_data'))
+    hit = stop_at(SYM['sched_dispatch'])
+    nxt = (reg('a0') - ev('(unsigned long)&procs[0]')) // ev('sizeof(struct process)')
+    step('next_dispatch', hit=hit, slot=nxt, states=[ev(f'procs[{i}].state') for i in range(8)])
     hit = stop_at(UVA['a_multi_done'])
     snap = [proc(i) for i in range(6)]
     counters = [phys_u64(p['pages'][3]) if p['npages'] else None for p in snap]

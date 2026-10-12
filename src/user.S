@@ -734,15 +734,17 @@ a_kill_done:
     sd t0, D_STAGE(s11)
     j a_worker
 
-/* T16: three workers and a crash; only the crash may fault. */
+/* T16: three workers and a crash; only the crash may fault. The crash sits
+ * between workers (slot D), so the Round Robin order after its fault is
+ * observable (v1.3.1). */
 .globl a_multi_test
 a_multi_test:
     li s11, A_DATA
     MEMINFO_TO 0
     SPAWN_TO PROG_WORKER, 8
-    SPAWN_TO PROG_WORKER, 16
+    SPAWN_TO PROG_CRASH, 16
     SPAWN_TO PROG_WORKER, 24
-    SPAWN_TO PROG_CRASH, 32
+    SPAWN_TO PROG_WORKER, 32
     SYSCALL1 SYS_SLEEP, 500
     MEMINFO_TO 40
 .globl a_multi_done
