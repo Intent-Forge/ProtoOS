@@ -1,5 +1,7 @@
 # ProtoOS
 
+[![acceptance](https://github.com/Intent-Forge/ProtoOS/actions/workflows/acceptance.yml/badge.svg)](https://github.com/Intent-Forge/ProtoOS/actions/workflows/acceptance.yml)
+
 An experimental, deliberately minimal but architecturally genuine operating system for **RISC-V RV64**, running on **QEMU `virt`**.
 
 OpenSBI (M-mode) hands over to the ProtoOS kernel (S-mode), which runs two static user processes (U-mode) with their own **Sv39** page tables, **timer-driven preemptive round-robin scheduling** and real `ecall` system calls. It is a teaching/demonstration kernel, not a general-purpose OS.
@@ -22,8 +24,9 @@ The acceptance matrix [`ACCEPTANCE_MATRIX.csv`](ACCEPTANCE_MATRIX.csv) has 12 ma
 |---|---|
 | T1–T7, N1–N5, 3 clean boots each (48 boots), QEMU 10.2.1 + OpenSBI 1.8 + gdb 17.1 | **all PASS** — [`evidence/acceptance/20261011T231210Z/RESULTS.json`](evidence/acceptance/20261011T231210Z/RESULTS.json) |
 | Same matrix on OpenSBI 1.4 firmware | **all PASS** — [`evidence/crosscheck-opensbi-1.4/`](evidence/crosscheck-opensbi-1.4/) |
-| Independent rebuild of the ELF by a second reviewer | byte-identical |
-| QEMU 8.2.2, real hardware, other emulators | **not run** |
+| CI on every push: stock Ubuntu 24.04 runner, QEMU 8.2.2, OpenSBI 1.7, gdb 15 — full matrix ×3 | **all PASS** — see the badge and [Actions](https://github.com/Intent-Forge/ProtoOS/actions/workflows/acceptance.yml) (evidence attached to each run) |
+| Rebuild of the ELF on the CI runner and by a second independent reviewer | byte-identical to `release/protoos.elf` |
+| Real hardware, other emulators | **not run** |
 
 Evidence is collected from outside the kernel, never from its own messages: the QEMU interrupt trace (`-d int`), GDB (privilege level, CSRs, registers, physical memory, an independent Sv39 page-table walk) and QMP sampling for the normal mode. Every boot directory under `evidence/` holds the exact QEMU command line, raw logs, observations and a per-check verdict. The normal-mode check (T7) is a 3 × 30 s bounded observation (~3,075 timer switches per run), not a proof of unlimited stability.
 
@@ -56,4 +59,4 @@ ProtoOS was built with AI assistance under the direction of the project owner: t
 ---
 
 ## Кратко по-русски
-ProtoOS — экспериментальная минимальная ОС для RISC-V RV64 под QEMU `virt`: ядро в S-mode, два процесса в U-mode с отдельными таблицами Sv39, вытеснение по таймеру, системные вызовы `getpid`/`yield`/`exit`, изоляция отказов. Все 12 обязательных проверок (T1–T7, N1–N5) пройдены, по 3 чистых запуска каждая; доказательства получены снаружи (трассы QEMU, GDB) и лежат в `evidence/`. Не проверялось: QEMU 8.2.2 и реальное железо. Проект создан с помощью ИИ (GPT, затем Claude) под руководством владельца. Лицензия — AGPL-3.0.
+ProtoOS — экспериментальная минимальная ОС для RISC-V RV64 под QEMU `virt`: ядро в S-mode, два процесса в U-mode с отдельными таблицами Sv39, вытеснение по таймеру, системные вызовы `getpid`/`yield`/`exit`, изоляция отказов. Все 12 обязательных проверок (T1–T7, N1–N5) пройдены, по 3 чистых запуска каждая; доказательства получены снаружи (трассы QEMU, GDB) и лежат в `evidence/`. При каждом изменении GitHub Actions заново собирает ОС (ELF побайтно совпадает с выпущенным) и прогоняет всю приёмку на QEMU 8.2.2. Не проверялось: реальное железо. Проект создан с помощью ИИ (GPT, затем Claude) под руководством владельца. Лицензия — AGPL-3.0.
