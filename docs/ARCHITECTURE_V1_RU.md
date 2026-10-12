@@ -1,6 +1,6 @@
-# ProtoOS v1.0 — реализация (ветка `claude/v1.0-development`)
+# ProtoOS v1.0 — архитектура и реализация
 
-Нормативная база: Frozen Specification v1.0 (`TECHNICAL_SPECIFICATION_RU.md`) и решения 01–19. Ниже — технические уточнения, которые спецификация оставляет исполнителю (§0, «Технические уточнения без нового решения»).
+Нормативная база: Frozen Specification v1.0 (`TECHNICAL_SPECIFICATION_RU.md`) и решения 01–19. Ниже — технические уточнения, которые спецификация оставляет исполнителю (§0, «Технические уточнения без нового решения»). English version: [`ARCHITECTURE.md`](ARCHITECTURE.md).
 
 ## Платформа
 QEMU `virt`, `-cpu rv64 -smp 1 -m 128M`, OpenSBI `fw_dynamic.bin` (M) → ядро в S-mode по `0x80200000`. ISA ядра и пользователя: RV64IM + Zicsr + Zifencei, LP64, без FP. В U-mode `sstatus.FS=VS=Off`: любая FP/vector-инструкция → illegal instruction → FAULTED (FP-состояние не хранится, §3).

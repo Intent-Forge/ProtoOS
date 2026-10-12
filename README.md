@@ -6,6 +6,10 @@ An experimental, deliberately minimal but architecturally genuine operating syst
 
 OpenSBI (M-mode) hands over to the ProtoOS kernel (S-mode), which runs two static user processes (U-mode) with their own **Sv39** page tables, **timer-driven preemptive round-robin scheduling** and real `ecall` system calls. It is a teaching/demonstration kernel, not a general-purpose OS.
 
+![ProtoOS running under QEMU: timer-driven switching between two user processes, a page fault that stops only the offending process, and the normal mode](docs/demo/protoos-demo.svg)
+
+<sub>Real UART output of the released kernel, captured under QEMU and replayed at a readable pace. Regenerate with `python3 docs/demo/make_demo.py`.</sub>
+
 ## Features (v1.0)
 - Monolithic kernel, ~1,500 lines of freestanding C11 and RV64 assembly; no libc. ISA: RV64IM + Zicsr + Zifencei, LP64, no floating point.
 - **Virtual memory:** three Sv39 roots (kernel, A, B), 4 KiB pages. Kernel pages are mapped with U=0; each process's pages exist only in its own root. Guard pages below the kernel stack and the user stacks.
@@ -15,7 +19,7 @@ OpenSBI (M-mode) hands over to the ProtoOS kernel (S-mode), which runs two stati
 - **Fault isolation:** any other exception from U-mode (page fault, illegal instruction, …) marks only that process FAULTED; the other keeps running. With nothing runnable, the kernel parks safely (timer off, `wfi`).
 - **One image for everything:** the same ELF runs the normal mode and every test scenario, selected by `bootargs`.
 
-Architecture, memory map and ABI: [`docs/ARCHITECTURE_V1_RU.md`](docs/ARCHITECTURE_V1_RU.md) (Russian). Original frozen specification: [`TECHNICAL_SPECIFICATION_RU.md`](TECHNICAL_SPECIFICATION_RU.md), [`DECISION_REGISTER_RU.md`](DECISION_REGISTER_RU.md).
+Architecture, memory map and ABI: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) ([Russian](docs/ARCHITECTURE_V1_RU.md)). Original frozen specification: [`TECHNICAL_SPECIFICATION_RU.md`](TECHNICAL_SPECIFICATION_RU.md), [`DECISION_REGISTER_RU.md`](DECISION_REGISTER_RU.md).
 
 ## What has been verified — and what has not
 The acceptance matrix [`ACCEPTANCE_MATRIX.csv`](ACCEPTANCE_MATRIX.csv) has 12 mandatory checks: T1–T7 (S-mode boot, two U-mode contexts, timer preemption, `getpid`/`yield`/`exit`, Sv39 isolation, fault isolation, autonomous normal run) and N1–N5 (cross-process write, user read of kernel memory, privileged instruction from U-mode, unknown syscall, no runnable process).

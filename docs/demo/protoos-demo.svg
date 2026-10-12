@@ -1,0 +1,397 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="398" viewBox="0 0 904 398" role="img" aria-label="ProtoOS running under QEMU">
+<style>
+text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:13px;white-space:pre;fill:#c9d1d9}
+.cmd{fill:#ffffff;font-weight:bold}.note{fill:#8b949e;font-style:italic}.fault{fill:#ff7b72;font-weight:bold}.sched{fill:#79c0ff}.beat{fill:#7ee787}.mmu{fill:#d2a8ff}.proc{fill:#e3b341}.exit{fill:#ffa657}.title{fill:#8b949e}
+.tape{animation:roll 17.54s steps(1,end) infinite}
+@keyframes roll{0.0000%{transform:translateY(0px)}5.1311%{transform:translateY(-370px)}6.3854%{transform:translateY(-740px)}7.6397%{transform:translateY(-1110px)}8.8940%{transform:translateY(-1480px)}10.1482%{transform:translateY(-1850px)}11.4025%{transform:translateY(-2220px)}12.6568%{transform:translateY(-2590px)}13.9111%{transform:translateY(-2960px)}15.1653%{transform:translateY(-3330px)}16.4196%{transform:translateY(-3700px)}17.6739%{transform:translateY(-4070px)}18.9282%{transform:translateY(-4440px)}20.1824%{transform:translateY(-4810px)}21.4367%{transform:translateY(-5180px)}22.6910%{transform:translateY(-5550px)}37.5143%{transform:translateY(-5920px)}42.6454%{transform:translateY(-6290px)}43.8997%{transform:translateY(-6660px)}45.1539%{transform:translateY(-7030px)}46.4082%{transform:translateY(-7400px)}47.6625%{transform:translateY(-7770px)}48.9168%{transform:translateY(-8140px)}50.1710%{transform:translateY(-8510px)}51.4253%{transform:translateY(-8880px)}52.6796%{transform:translateY(-9250px)}53.9339%{transform:translateY(-9620px)}55.1881%{transform:translateY(-9990px)}70.0114%{transform:translateY(-10360px)}75.1425%{transform:translateY(-10730px)}76.3968%{transform:translateY(-11100px)}77.6511%{transform:translateY(-11470px)}78.9054%{transform:translateY(-11840px)}80.1596%{transform:translateY(-12210px)}81.4139%{transform:translateY(-12580px)}82.6682%{transform:translateY(-12950px)}83.9225%{transform:translateY(-13320px)}85.1767%{transform:translateY(-13690px)}100%{transform:translateY(-13690px)}}
+</style>
+<rect width="904" height="398" rx="8" fill="#0d1117" stroke="#30363d"/>
+<rect width="904" height="28" rx="8" fill="#161b22"/>
+<rect y="20" width="904" height="8" fill="#161b22"/>
+<circle cx="18" cy="14" r="5" fill="#ff5f57"/><circle cx="34" cy="14" r="5" fill="#febc2e"/><circle cx="50" cy="14" r="5" fill="#28c840"/>
+<text class="title" x="452" y="18" text-anchor="middle">ProtoOS v1.0 on QEMU virt (RISC-V RV64) - real UART output, readable pace</text>
+<svg x="0" y="28" width="904" height="370"><g class="tape">
+<g transform="translate(0,0)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+</g>
+<g transform="translate(0,370)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+</g>
+<g transform="translate(0,740)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+</g>
+<g transform="translate(0,1110)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+</g>
+<g transform="translate(0,1480)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+</g>
+<g transform="translate(0,1850)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+</g>
+<g transform="translate(0,2220)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+</g>
+<g transform="translate(0,2590)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+</g>
+<g transform="translate(0,2960)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=2</text>
+</g>
+<g transform="translate(0,3330)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+</g>
+<g transform="translate(0,3700)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+<text class="sched" x="14" y="226">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=4</text>
+</g>
+<g transform="translate(0,4070)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+<text class="sched" x="14" y="226">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=4</text>
+<text class="sched" x="14" y="244">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=5</text>
+</g>
+<g transform="translate(0,4440)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+<text class="sched" x="14" y="226">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=4</text>
+<text class="sched" x="14" y="244">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=5</text>
+<text class="sched" x="14" y="262">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=6</text>
+</g>
+<g transform="translate(0,4810)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+<text class="sched" x="14" y="226">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=4</text>
+<text class="sched" x="14" y="244">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=5</text>
+<text class="sched" x="14" y="262">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=6</text>
+<text class="sched" x="14" y="280">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=7</text>
+</g>
+<g transform="translate(0,5180)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+<text class="sched" x="14" y="226">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=4</text>
+<text class="sched" x="14" y="244">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=5</text>
+<text class="sched" x="14" y="262">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=6</text>
+<text class="sched" x="14" y="280">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=7</text>
+<text class="sched" x="14" y="298">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=8</text>
+</g>
+<g transform="translate(0,5550)">
+<text class="note" x="14" y="28"># two user processes, switched by the timer interrupt every 10 ms</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=umode 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=umode</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=umode</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+<text class="sched" x="14" y="226">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=4</text>
+<text class="sched" x="14" y="244">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=5</text>
+<text class="sched" x="14" y="262">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=6</text>
+<text class="sched" x="14" y="280">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=7</text>
+<text class="sched" x="14" y="298">SCHED A(pid=1) -&gt; B(pid=2) reason=timer switches=8</text>
+<text class="sched" x="14" y="316">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=9</text>
+</g>
+<g transform="translate(0,5920)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+</g>
+<g transform="translate(0,6290)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+</g>
+<g transform="translate(0,6660)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+</g>
+<g transform="translate(0,7030)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+</g>
+<g transform="translate(0,7400)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=isolation</text>
+</g>
+<g transform="translate(0,7770)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=isolation</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x000000000040027c sp=0x0000000000404000 satp=0x8000000000080216</text>
+</g>
+<g transform="translate(0,8140)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=isolation</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x000000000040027c sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+</g>
+<g transform="translate(0,8510)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=isolation</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x000000000040027c sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+</g>
+<g transform="translate(0,8880)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=isolation</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x000000000040027c sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=yield switches=2</text>
+</g>
+<g transform="translate(0,9250)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=isolation</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x000000000040027c sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=yield switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+</g>
+<g transform="translate(0,9620)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=isolation</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x000000000040027c sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=yield switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+<text class="fault" x="14" y="226">FAULT A(pid=1) scause=0x000000000000000f sepc=0x00000000004002b4 stval=0x0000000000801800 -&gt; FAULTED</text>
+</g>
+<g transform="translate(0,9990)">
+<text class="note" x="14" y="28"># process A writes into B&#x27;s memory: page fault, only A is stopped</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.test=isolation 2</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=isolation</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.test=isolation</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x000000000040027c sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="sched" x="14" y="172">SCHED - -&gt; A(pid=1) reason=start switches=1</text>
+<text class="sched" x="14" y="190">SCHED A(pid=1) -&gt; B(pid=2) reason=yield switches=2</text>
+<text class="sched" x="14" y="208">SCHED B(pid=2) -&gt; A(pid=1) reason=timer switches=3</text>
+<text class="fault" x="14" y="226">FAULT A(pid=1) scause=0x000000000000000f sepc=0x00000000004002b4 stval=0x0000000000801800 -&gt; FAULTED</text>
+<text class="sched" x="14" y="244">SCHED A(pid=1) -&gt; B(pid=2) reason=fault switches=4</text>
+</g>
+<g transform="translate(0,10360)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+</g>
+<g transform="translate(0,10730)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+</g>
+<g transform="translate(0,11100)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=normal</text>
+</g>
+<g transform="translate(0,11470)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=normal</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+</g>
+<g transform="translate(0,11840)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=normal</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.mode=normal</text>
+</g>
+<g transform="translate(0,12210)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=normal</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.mode=normal</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+</g>
+<g transform="translate(0,12580)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=normal</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.mode=normal</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+</g>
+<g transform="translate(0,12950)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=normal</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.mode=normal</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="beat" x="14" y="172">HEARTBEAT ticks=100 switches=100 A(pid=1).preempt=50 B(pid=2).preempt=50</text>
+</g>
+<g transform="translate(0,13320)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=normal</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.mode=normal</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="beat" x="14" y="172">HEARTBEAT ticks=100 switches=100 A(pid=1).preempt=50 B(pid=2).preempt=50</text>
+<text class="beat" x="14" y="190">HEARTBEAT ticks=200 switches=200 A(pid=1).preempt=100 B(pid=2).preempt=100</text>
+</g>
+<g transform="translate(0,13690)">
+<text class="note" x="14" y="28"># normal mode: A and B share the CPU, ~100 switches per second</text>
+<text class="cmd" x="14" y="46">$ sh build-scripts/run-scenario.sh protoos.mode=normal 3</text>
+<text class="out" x="14" y="64">ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes</text>
+<text class="out" x="14" y="82">hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=normal</text>
+<text class="mmu" x="14" y="100">MMU Sv39 active satp=0x800000000008020d</text>
+<text class="out" x="14" y="118">SCENARIO protoos.mode=normal</text>
+<text class="proc" x="14" y="136">PROC A(pid=1) entry=0x0000000000400000 sp=0x0000000000404000 satp=0x8000000000080216</text>
+<text class="proc" x="14" y="154">PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x800000000008021e</text>
+<text class="beat" x="14" y="172">HEARTBEAT ticks=100 switches=100 A(pid=1).preempt=50 B(pid=2).preempt=50</text>
+<text class="beat" x="14" y="190">HEARTBEAT ticks=200 switches=200 A(pid=1).preempt=100 B(pid=2).preempt=100</text>
+<text class="beat" x="14" y="208">HEARTBEAT ticks=300 switches=300 A(pid=1).preempt=150 B(pid=2).preempt=150</text>
+</g>
+</g></svg></svg>
