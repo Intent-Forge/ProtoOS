@@ -1,9 +1,11 @@
 name: acceptance
 
-# Build ProtoOS, check the ELF is byte-identical to the released one, run the
-# host tests and the full acceptance matrix (T1-T7, N1-N5, 3 clean boots each)
-# under QEMU on a stock Ubuntu 24.04 runner (QEMU 8.2.2, OpenSBI from the
-# distribution archive, gdb 15); exact versions are printed by the install step.
+# Build ProtoOS (kernel, v1.4 programs and archives), check the kernel ELF
+# and the program archive are byte-identical to the released ones, run the
+# host tests and the full acceptance matrix (T1-T22, N1-N12, 3 clean boots
+# each) under QEMU on a stock Ubuntu 24.04 runner (QEMU 8.2.2, OpenSBI from
+# the distribution archive, gdb 15); exact versions are printed by the
+# install step.
 on:
   push:
   pull_request:
@@ -15,7 +17,7 @@ permissions:
 jobs:
   acceptance:
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -33,18 +35,15 @@ jobs:
       - name: Build
         run: sh build-scripts/build-wsl.sh
 
-      - name: ELF is byte-identical to release/protoos.elf
+      - name: ELF and program archive are byte-identical to release/
         run: |
-          want=$(cut -d' ' -f1 release/SHA256SUMS)
-          got=$(sha256sum build/protoos.elf | cut -d' ' -f1)
-          echo "release: $want"
-          echo "built:   $got"
-          test "$want" = "$got"
+          cat release/SHA256SUMS
+          cd build && sha256sum -c ../release/SHA256SUMS
 
       - name: Host tests
         run: sh build-scripts/host-tests.sh
 
-      - name: Acceptance T1-T7, N1-N5 x3
+      - name: Acceptance T1-T22, N1-N12 x3
         run: python3 validation/run_acceptance.py --reps 3 --t7-seconds 30 --out "$RUNNER_TEMP/acceptance"
 
       - name: Upload evidence

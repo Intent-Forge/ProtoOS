@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "archive.h"
 #include "mem.h"
 #include "proc.h"
 #include "vm.h"
@@ -108,6 +109,8 @@ extern char a_write[], a_write_bad[], a_sleep[], a_sleep_all[], a_demo[];
 extern char b_sleep_all[], b_demo[];
 extern char p_shell[], a_read[], a_uptime[], a_read_bad[], a_flood[];
 extern char a_mem_test[], a_spawn_test[], a_kill_test[], a_multi_test[], a_spawn_bad[];
+extern char p_t_elf[], p_t_sbrk[], p_t_wait[], p_t_ctrlc[], p_t_elfbad[], p_t_arcbad[],
+    p_t_userbad[];
 enum scenario_kind { SCENARIO_NORMAL, SCENARIO_TEST, SCENARIO_BOOT, SCENARIO_BOOT_TRAP,
     SCENARIO_DEMO, SCENARIO_SHELL };
 struct scenario { const char *args; enum scenario_kind kind; char *a, *b; };
@@ -145,6 +148,14 @@ static const struct scenario scenarios[]={
     {"protoos.test=kill",         SCENARIO_TEST, a_kill_test, b_worker},
     {"protoos.test=multi",        SCENARIO_TEST, a_multi_test, b_worker},
     {"protoos.test=spawn-bad",    SCENARIO_TEST, a_spawn_bad, b_worker},
+    /* v1.4: booted with a program archive (QEMU -initrd) */
+    {"protoos.test=elf",          SCENARIO_TEST, p_t_elf, b_worker},
+    {"protoos.test=sbrk",         SCENARIO_TEST, p_t_sbrk, b_worker},
+    {"protoos.test=wait",         SCENARIO_TEST, p_t_wait, b_worker},
+    {"protoos.test=ctrlc",        SCENARIO_TEST, p_t_ctrlc, b_worker},
+    {"protoos.test=elf-bad",      SCENARIO_TEST, p_t_elfbad, b_worker},
+    {"protoos.test=archive-bad",  SCENARIO_TEST, p_t_arcbad, b_worker},
+    {"protoos.test=user-bad",     SCENARIO_TEST, p_t_userbad, b_worker},
 };
 static const struct scenario *find_scenario(const char *args) {
     for(size_t i=0;i<sizeof(scenarios)/sizeof(scenarios[0]);++i)
@@ -190,6 +201,26 @@ void kernel_main(uint64_t hart, uintptr_t dtb) {
     if(pool_end>MEM_RAM_END) pool_end=MEM_RAM_END;
     if(pool_end<=MEM_POOL_START) kernel_panic("no memory for the page pool");
     mem_init(pool_end);
+    /* v1.4: the program archive the boot loader placed in RAM (QEMU puts
+     * -initrd inside the pool): reserve its pages for good, then validate
+     * all of it once. Without one, nothing changes. */
+    const struct boot_config *bc=&boot_configuration;
+    if(bc->initrd_found) {
+        if(bc->initrd_found!=3u ||
+           !archive_range_ok(bc->initrd_start,bc->initrd_end,MEM_POOL_START,pool_end)) {
+            uart_puts("ARCHIVE ignored: not inside the page pool\n");
+        } else {
+            uint64_t pages=mem_reserve(bc->initrd_start,bc->initrd_end);
+            int aerr=archive_parse((const uint8_t *)(uintptr_t)bc->initrd_start,
+                                   bc->initrd_end-bc->initrd_start,&prog_archive);
+            uart_puts("ARCHIVE "); uart_dec(bc->initrd_end-bc->initrd_start);
+            uart_puts(" bytes at "); uart_hex(bc->initrd_start);
+            uart_puts(", "); uart_dec(pages); uart_puts(" pages reserved: ");
+            if(aerr) { uart_puts("rejected code=-"); uart_dec((uint64_t)-(int64_t)aerr); }
+            else { prog_archive_pa=bc->initrd_start; uart_dec(prog_archive.count); uart_puts(" programs"); }
+            uart_puts("\n");
+        }
+    }
     int vm_err=vm_init(pool_end);
     if(vm_err) { uart_puts("KERNEL_PANIC vm_init failed code="); uart_dec((uint64_t)vm_err); uart_puts("\n"); halt(); }
     vm_switch(vm_kernel_satp);

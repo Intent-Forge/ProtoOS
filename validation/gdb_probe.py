@@ -761,6 +761,274 @@ PROBES.update({'t13': probe_t13, 't14': probe_t14, 't15': probe_t15, 't16': prob
                'n9': probe_n9, 't17': probe_t17})
 
 
+# ------------------------------------------------------------ v1.4 probes
+ELF_BASE = 0x40000000
+USYM = CFG.get('user_symbols', {})      # program -> {symbol: user VA}
+D_R14 = 0x400                           # user.S: v1.4 results in A's data page
+D_NAME = 0x340
+ANY_READ = '*(unsigned long *)($a0 + 272) == 8 && *(unsigned long *)($a0 + 136) == 63'
+OTHER_READ = f'$a0 != {FRAME_A} && ' + ANY_READ
+
+
+def results14(n):
+    raw = phys(SYM['user_a_data'] + D_R14, 8 * n)
+    return [int.from_bytes(raw[8 * k:8 * k + 8], 'little') for k in range(n)]
+
+
+def proc14(i):
+    """proc() plus every owned page and the v1.4 fields."""
+    p = proc(i)
+    p['pages'] = [ev(f'procs[{i}].pages[{k}]') for k in range(min(p['npages'], 64))]
+    for k in ('heap_base', 'brk', 'wait_pid', 'waits_done'):
+        p[k] = ev(f'procs[{i}].{k}')
+    return p
+
+
+def procs14():
+    return [proc14(i) for i in range(8)]
+
+
+def mem14():
+    m = mem_state()
+    m['reserved'] = ev('mem.reserved')
+    return m
+
+
+def sched14():
+    s = sched()
+    for k in ('loaded', 'load_errors', 'last_load_error', 'fg_pid', 'fg_waiter', 'interrupted'):
+        s[k] = ev(f'sched.{k}')
+    return s
+
+
+def inp14():
+    i = inp()
+    for k in ('intr_armed', 'intr_pending', 'intrs'):
+        i[k] = ev(f'input.{k}')
+    return i
+
+
+def archive_info():
+    a = {k: ev(f'boot_configuration.initrd_{k}') for k in ('start', 'end', 'found')}
+    a['pa'] = ev('prog_archive_pa')
+    a['count'] = ev('prog_archive.count')
+    return a
+
+
+def archive_bits(a):
+    """Bitmap bits of every page the boot loader's archive occupies."""
+    if not a['found']:
+        return []
+    return page_bits(list(range(a['start'] & ~0xfff, (a['end'] + 0xfff) & ~0xfff, 4096)))
+
+
+def page_digest(pa):
+    import hashlib
+    return hashlib.sha256(phys(pa & ~0xfff, 4096)).hexdigest()
+
+
+def window(root, first, last):
+    """Independent walks of every page in [first, last) of a user root."""
+    return {hex(va): walk(root, va) for va in range(first, last, 4096)}
+
+
+def probe_t18():
+    hit = stop_at(USYM['t_elf']['t_elf_checkpoint'])
+    p = proc14(2)
+    root, s, a = p['satp'], satps(), archive_info()
+    walks = window(root, ELF_BASE, ELF_BASE + 0x10000)
+    walks.update(window(root, 0x401f8000, 0x40200000))
+    walks.update(window(root, 0x40100000, 0x40101000))
+    contents = {va: page_digest(w['pa']) for va, w in walks.items()
+                if w['mapped'] and int(va, 16) < 0x40100000}
+    step('checkpoint', hit=hit, cpu=cpu(), gprs=gprs(), proc=p, mem=mem14(), sched=sched14(),
+         bits=page_bits(p['pages']), satps=s, walks=walks, contents=contents, archive=a,
+         archive_bits=archive_bits(a), walk_a_data=walk(root, 0x401000),
+         walk_b_data=walk(root, 0x801000), walk_secret=walk(root, SYM['kernel_secret']),
+         walk_uart=walk(root, 0x10000000), walk_prog=walk(root, PROG_VA),
+         walk_archive=walk(root, a['start']), walk_pool_alias=walk(root, p['pages'][-1]),
+         a_sees=walk(s['A'], ELF_BASE), b_sees=walk(s['B'], ELF_BASE),
+         kernel_sees=walk(s['kernel'], ELF_BASE))
+    hit = stop_at(UVA['p_t_elf_done'])
+    step('done', hit=hit, results=results14(11), mem=mem14(), sched=sched14(), proc=proc14(2),
+         progs_name=phys(SYM['user_a_data'] + D_NAME, 16).hex())
+
+
+def probe_t19():
+    sy = USYM['t_sbrk']
+    hit = stop_at(sy['t_sbrk_checkpoint1'])
+    p = proc14(2)
+    base = p['heap_base']
+    step('cp1', hit=hit, cpu=cpu(), gprs=gprs(), proc=p, mem=mem14(),
+         heap=window(p['satp'], base, base + 5 * 4096),
+         heap_bytes=phys(walk(p['satp'], base)['pa'], 4096).hex()
+         + phys(walk(p['satp'], base + 4096)['pa'], 4096).hex()
+         + phys(walk(p['satp'], base + 8192)['pa'], 4096).hex())
+    hit = stop_at(sy['t_sbrk_checkpoint2'])
+    p = proc14(2)
+    brk, steps_ = reg('a0'), reg('a1')
+    top = (brk + 0xfff) & ~0xfff
+    step('cp2', hit=hit, cpu=cpu(), brk=brk, steps=steps_, proc=p, mem=mem14(),
+         bits=page_bits(p['pages']), heap=window(p['satp'], base, top + 4096),
+         guard=walk(p['satp'], 0x401fb000), stack=window(p['satp'], 0x401fc000, 0x40200000))
+    hit = stop_at(UVA['p_t_sbrk_done'])
+    step('done', hit=hit, results=results14(4), mem=mem14(), proc=proc14(2), sched=sched14())
+
+
+def probe_t20():
+    hit = stop_at(UVA['p_t_wait_block'])
+    hit2 = stop_at(SYM['trap_from_user'], trap_cond(FRAME_A, 8, a7=1009))
+    step('wait_ecall', hit=hit and hit2, frame=frame(0), proc_a=proc14(0), sched=sched14(),
+         results=results14(15), procs=procs14())
+    w = wait_ticks(10, watch_dispatch_a())
+    step('blocked', wait=w, proc_a=proc14(0), procs=procs14(), sched=sched14())
+    hit = stop_at(UVA['p_t_wait_ret'])
+    step('returned', hit=hit, cpu=cpu(), proc_a=proc14(0), results=results14(16),
+         procs=procs14(), sched=sched14())
+    hit = stop_at(UVA['p_t_wait_done'])
+    step('done', hit=hit, results=results14(17), mem=mem14(), sched=sched14(), procs=procs14())
+
+
+def probe_t21():
+    uart = Uart()
+    hit = stop_at(SYM['trap_from_user'], trap_cond(FRAME_A, 8, a7=1009))
+    step('fg1_ecall', hit=hit, frame=frame(0), results=results14(4), sched=sched14(),
+         input=inp14())
+    # t_fgbusy sleeps 200 ms, is refused a second foreground wait and exits
+    w = wait_ticks(60, watch_dispatch_a())
+    step('fg1_armed', wait=w, procs=procs14(), sched=sched14(), input=inp14(), cpu=cpu())
+    uart.send(b'\x03')
+    hit = stop_at(UVA['p_t_ctrlc_after1'])
+    step('after1', hit=hit, results=results14(5), procs=procs14(), sched=sched14(),
+         input=inp14(), mem=mem14())
+    hit = stop_at(UVA['p_t_ctrlc_fg2']) and stop_at(SYM['trap_from_user'],
+                                                    trap_cond(FRAME_A, 8, a7=1009))
+    step('fg2_ecall', hit=hit, frame=frame(0), results=results14(7), sched=sched14())
+    hit = stop_at(SYM['trap_from_user'], OTHER_READ)
+    step('reader_reads', hit=hit, text=uart.text(), sched=sched14())
+    uart.send(b'abc\r')
+    for _ in range(20):
+        stop_at(SYM['trap_from_user'], OTHER_READ, wall=2.0)
+        if 'got: abc' in uart.text():
+            break
+    # it answered and is back in read(): BLOCKED, nothing more to read
+    w = wait_ticks(5, (('reader_read', SYM['trap_from_user'], OTHER_READ),))
+    step('reader_answered', ok='got: abc' in uart.text(), wait=w, procs=procs14(),
+         sched=sched14(), input=inp14())
+    uart.send(b'\x03')
+    hit = stop_at(UVA['p_t_ctrlc_plain'])
+    step('after2', hit=hit, results=results14(8), procs=procs14(), sched=sched14(),
+         input=inp14(), mem=mem14())
+    hit = stop_at(SYM['trap_from_user'], read_trap())
+    step('plain_read', hit=hit, frame=frame(0), sched=sched14(), input=inp14())
+    uart.send(b'\x03')
+    hit = stop_at(UVA['p_t_ctrlc_done'])
+    step('done', hit=hit, results=results14(12), data=phys(SYM['user_a_data'] + A_IN, 4).hex(),
+         procs=procs14(), sched=sched14(), input=inp14(), mem=mem14())
+    w = wait_ticks(10)
+    step('end', wait=w, text=uart.text(), procs=procs14(), words_b=user_words('user_b_data'))
+
+
+def probe_t22():
+    uart = Uart()
+    prompts = [1]
+
+    def run_until(pred, wall=30.0):
+        """Run the guest in steps of 10 timer ticks (or up to the next read
+        ecall) until pred(UART text) holds; breakpoints only, no SIGINT."""
+        end = time.time() + wall
+        while time.time() < end:
+            if pred(uart.text()):
+                return True
+            target = ev('sched.timer_ticks') + 10
+            clear()
+            run_to(bp(SYM['trap_from_user'], f'({ANY_READ}) || sched.timer_ticks >= {target}'),
+                   wall=10.0)
+        return pred(uart.text())
+
+    def command(text, settle=True, name=None):
+        uart.send(text.encode() + b'\r')
+        prompts[0] += 1
+        ok = shell_settle(uart, prompts[0]) if settle else None
+        step(name or f'cmd {text}', cmd=text, ok=ok, mem=mem14(), procs=procs14(),
+             sched=sched14())
+        return ok
+
+    ok = shell_settle(uart, 1)
+    step('first_prompt', ok=ok, mem=mem14(), archive=archive_info(),
+         archive_bits=archive_bits(archive_info()))
+    command('ls')
+    command('run primes')
+    uart.send(b'run guess\r')
+    prompts[0] += 1
+    lo, hi, guesses, answers = 1, 100, [], []
+    for k in range(1, 9):
+        if not run_until(lambda t, k=k: t.count('Your guess: ') >= k):
+            break
+        g = (lo + hi) // 2
+        guesses.append(g)
+        uart.send(f'{g}\r'.encode())
+        got = []
+
+        def answered(t, k=k):
+            tail = t.split('Your guess: ')[k] if t.count('Your guess: ') >= k else ''
+            got[:] = [w for w in ('Too small.', 'Too big.', 'Correct!') if w in tail]
+            return bool(got)
+        if not run_until(answered):
+            break
+        answers.append(got[0])
+        if got[0] == 'Correct!':
+            break
+        lo, hi = (g + 1, hi) if got[0] == 'Too small.' else (lo, g - 1)
+    ok = shell_settle(uart, prompts[0])
+    step('guess', ok=ok, guesses=guesses, answers=answers, procs=procs14(), mem=mem14())
+    uart.send(b'run clock\r')
+    prompts[0] += 1
+    ticks = run_until(lambda t: t.split('run clock')[-1].count('uptime ') >= 3, wall=30.0)
+    step('clock_running', ok=ticks, procs=procs14(), sched=sched14(), input=inp14())
+    uart.send(b'\x03')
+    ok = shell_settle(uart, prompts[0])
+    step('clock_stopped', ok=ok, procs=procs14(), sched=sched14(), input=inp14(), mem=mem14())
+    command('run clock &')
+    run_until(lambda t: t.split('run clock &')[-1].count('uptime ') >= 1)
+    command('ps')
+    started = [int(x) for x in __import__('re').findall(r'started pid (\d+)', uart.text())]
+    command(f'kill {started[-1] if started else 0}', name='cmd kill')
+    command('run nosuch')
+    command('mem')
+    w = wait_ticks(30, watch_dispatch_a())
+    step('end', wait=w, procs=procs14(), mem=mem14(), sched=sched14(), input=inp14(),
+         socket_text=uart.text())
+
+
+def probe_n10():
+    hit = stop_at(UVA['p_t_elfbad_done'], wall=120.0)
+    step('done', hit=hit, results=results14(72), mem=mem14(), sched=sched14(), procs=procs14())
+
+
+def probe_n11():
+    hit = stop_at(UVA['p_t_arcbad_done'])
+    a = archive_info()
+    s = satps()
+    step('done', hit=hit, results=results14(4), mem=mem14(), sched=sched14(), archive=a,
+         archive_bits=archive_bits(a), walk_a_archive=walk(s['A'], a['start']),
+         words_b=user_words('user_b_data'))
+    w = wait_ticks(10)
+    step('after', wait=w, words_b=user_words('user_b_data'), procs=[proc(0), proc(1)])
+
+
+def probe_n12():
+    hit = stop_at(UVA['p_t_userbad_done'], wall=120.0)
+    step('done', hit=hit, results=results14(41), mem=mem14(), sched=sched14(), procs=procs14(),
+         words_b=user_words('user_b_data'))
+    w = wait_ticks(10)
+    step('after', wait=w, words_b=user_words('user_b_data'), procs=[proc(0), proc(1)])
+
+
+PROBES.update({'t18': probe_t18, 't19': probe_t19, 't20': probe_t20, 't21': probe_t21,
+               't22': probe_t22, 'n10': probe_n10, 'n11': probe_n11, 'n12': probe_n12})
+
+
 def main():
     gdb.execute('set pagination off')
     gdb.execute('set confirm off')

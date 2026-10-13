@@ -30,6 +30,11 @@
 .equ PROG_COUNTER, 3
 .equ PROG_CRASH, 4
 .equ PROG_MEMCHECK, 5
+.equ SYS_RUN, 1008      /* v1.4 */
+.equ SYS_WAIT, 1009
+.equ SYS_SBRK, 1010
+.equ SYS_PROGS, 1011
+.equ PROG_FILE, 16      /* program id of archive file n: PROG_FILE + n */
 
 .equ A_BASE, 0x400000
 .equ B_BASE, 0x800000
@@ -48,6 +53,8 @@
 .equ D_CHUNK, 0x180     /* v1.2 shell: one read() chunk */
 .equ D_OUT, 0x200       /* v1.2 shell: output line being built */
 .equ D_INFO, 0x300      /* v1.2 shell: procinfo() result */
+.equ D_NAME, 0x340      /* v1.4 shell: progs() name (16 bytes) */
+.equ D_R14, 0x400       /* v1.4 tests: results, one word each */
 .equ LINE_MAX, 63
 .equ D_CANARY, 0x800
 .equ CANARY_WORDS, 256
@@ -1193,6 +1200,7 @@ p_sh_enter:
     SH_CMD p_sh_c_uptime, p_sh_uptime
     SH_CMD p_sh_c_attack, p_sh_attack
     SH_CMD p_sh_c_mem, p_sh_mem
+    SH_CMD p_sh_c_ls, p_sh_ls
     addi a0, s11, D_LINE
     la a1, p_sh_c_run
     call p_strprefix
@@ -1310,14 +1318,25 @@ p_sh_ps:
     li t0, 2
     bltu s5, t0, 3f                 /* boot processes: v1.2 format */
     ld a2, D_INFO+16(s11)           /* program id */
+    li t0, 32
+    sb t0, 0(a0)
+    addi a0, a0, 1
+    li t0, PROG_FILE
+    bgeu a2, t0, 5f                 /* v1.4: a program from the archive */
     li t0, 5
     bleu a2, t0, 4f
     li a2, 0
-4:  li t0, 32
-    sb t0, 0(a0)
-    addi a0, a0, 1
-    la a1, p_sh_progs
+4:  la a1, p_sh_progs
     call p_nth
+    call p_bufstr
+    j 3f
+5:  mv s9, a0
+    addi a0, a2, -PROG_FILE
+    addi a1, s11, D_NAME
+    li a7, SYS_PROGS
+    ecall
+    mv a0, s9
+    addi a1, s11, D_NAME
     call p_bufstr
 3:  la a1, p_nl
     call p_bufstr
@@ -1327,14 +1346,15 @@ p_sh_ps:
     bltu s5, t0, 1b
     j p_sh_prompt
 
-/* run <program>: spawn it by name */
+/* run <program>: a built-in program by name (started in the background,
+ * as in v1.3), else (v1.4) a program from the archive */
 p_sh_run:
     mv s7, a0                       /* program name */
     la s8, p_sh_progs
     li s6, 0
 1:  addi s6, s6, 1
     li t0, 5
-    bgtu s6, t0, 3f
+    bgtu s6, t0, p_sh_runfile
 2:  lbu t0, 0(s8)                   /* next name in the list */
     addi s8, s8, 1
     bnez t0, 2b
@@ -1346,8 +1366,9 @@ p_sh_run:
     li a7, SYS_SPAWN
     ecall
     mv s5, a0
+    blez s5, p_sh_run_failed_out
+p_sh_run_started:                   /* s5 = pid */
     addi a0, s11, D_OUT
-    blez s5, 4f
     la a1, p_sh_started
     call p_bufstr
     mv a1, s5
@@ -1355,14 +1376,105 @@ p_sh_run:
     la a1, p_nl
     call p_bufstr
     j p_sh_out
-4:  la a1, p_sh_run_failed
+p_sh_run_failed_out:                /* s5 = error */
+    addi a0, s11, D_OUT
+    la a1, p_sh_run_failed
     call p_bufstr
     mv a1, s5
     call p_bufsigned
     la a1, p_nl
     call p_bufstr
     j p_sh_out
-3:  WRITE_RANGE p_sh_run_usage, p_sh_run_usage_end
+
+/* v1.4: run <program> [&] from the archive. Without "&" the shell waits
+ * with the program in the console foreground (Ctrl-C ends it) and then
+ * reports a non-zero status; with "&" it only reports the pid. */
+p_sh_runfile:
+    mv a0, s7
+    call p_strlen
+    mv s6, a0                       /* name length */
+    li s8, 0                        /* 1 = background */
+    li t0, 2
+    bltu s6, t0, 1f
+    add t1, s7, s6
+    lbu t2, -1(t1)
+    li t0, 38                       /* '&' */
+    bne t2, t0, 1f
+    lbu t2, -2(t1)
+    li t0, 32
+    bne t2, t0, 1f
+    li s8, 1
+    addi s6, s6, -2
+    add t1, s7, s6
+    sb zero, 0(t1)                  /* the name ends before " &" */
+1:  beqz s6, 5f
+    mv a0, s7
+    mv a1, s6
+    li a7, SYS_RUN
+    ecall
+    mv s5, a0
+    blez s5, 4f
+    bnez s8, p_sh_run_started
+    mv a0, s5
+    li a1, 1                        /* WAIT_FOREGROUND */
+    li a7, SYS_WAIT
+.globl p_sh_wait_ecall
+p_sh_wait_ecall:
+    ecall
+    mv s6, a0
+    beqz s6, p_sh_prompt
+    li t0, 130
+    bne s6, t0, 2f
+    WRITE_RANGE p_sh_intr, p_sh_intr_end
+    j p_sh_prompt
+2:  addi a0, s11, D_OUT
+    la a1, p_sh_pid
+    call p_bufstr
+    mv a1, s5
+    call p_bufdec
+    la a1, p_sh_ended
+    call p_bufstr
+    mv a1, s6
+    call p_bufsigned
+    la a1, p_nl
+    call p_bufstr
+    j p_sh_out
+4:  li t0, -2
+    bne s5, t0, p_sh_run_failed_out
+    addi a0, s11, D_OUT
+    la a1, p_sh_noprog
+    call p_bufstr
+    mv a1, s7
+    call p_bufstr
+    la a1, p_sh_tryls
+    call p_bufstr
+    j p_sh_out
+5:  WRITE_RANGE p_sh_run_usage, p_sh_run_usage_end
+    j p_sh_prompt
+
+/* v1.4 ls: "<name>  <size> bytes" per archive program */
+p_sh_ls:
+    li s5, 0
+1:  mv a0, s5
+    addi a1, s11, D_NAME
+    li a7, SYS_PROGS
+    ecall
+    bltz a0, 9f
+    mv s6, a0
+    addi a0, s11, D_OUT
+    addi a1, s11, D_NAME
+    call p_bufstr
+    la a1, p_sh_ls_gap
+    call p_bufstr
+    mv a1, s6
+    call p_bufdec
+    la a1, p_sh_bytes
+    call p_bufstr
+    OUT_FLUSH
+    addi s5, s5, 1
+    j 1b
+9:  bnez s5, p_sh_prompt
+    WRITE_RANGE p_sh_ls_none, p_sh_ls_none_end
     j p_sh_prompt
 
 /* kill <pid>: end it and report how many pages came back */
@@ -1486,6 +1598,270 @@ p_atoi:
 3:  li a0, -1
     ret
 
+/* a0 = NUL-terminated string -> a0 = its length */
+p_strlen:
+    mv t0, a0
+1:  lbu t1, 0(t0)
+    beqz t1, 2f
+    addi t0, t0, 1
+    j 1b
+2:  sub a0, t0, a0
+    ret
+
+/* a0 = NUL-terminated name -> a0 = run(name, its length) */
+p_run:
+    mv t0, a0
+1:  lbu t1, 0(t0)
+    beqz t1, 2f
+    addi t0, t0, 1
+    j 1b
+2:  sub a1, t0, a0
+    li a7, SYS_RUN
+    ecall
+    ret
+
+/* ------------------------------------------------- v1.4 test drivers (A)
+ * Run as process A (entry in these shared pages, a0 = A's data page).
+ * Results: word k at data + D_R14 + 8k; D_STAGE = 1 when done. */
+.macro R14 k
+    sd a0, D_R14+8*\k(s11)
+.endm
+.macro RUN_TO name, k
+    la a0, \name
+    call p_run
+    R14 \k
+.endm
+.macro WAIT_TO reg, flags, k
+    mv a0, \reg
+    li a1, \flags
+    li a7, SYS_WAIT
+    ecall
+    R14 \k
+.endm
+.macro MEMINFO14 k
+    li a7, SYS_MEMINFO
+    ecall
+    R14 \k
+.endm
+.macro SLEEP14 ms
+    li a0, \ms
+    li a7, SYS_SLEEP
+    ecall
+.endm
+.macro SYSCALL2_TO nr, x, y, k
+    li a0, \x
+    li a1, \y
+    li a7, \nr
+    ecall
+    R14 \k
+.endm
+.macro DONE14 label
+.globl \label
+\label:
+    li t0, 1
+    sd t0, D_STAGE(s11)
+1:  SLEEP14 1000
+    j 1b
+.endm
+
+/* T18: load t_elf (self-checks, exit 0) and t_exit42 (exit 42) */
+.globl p_t_elf
+p_t_elf:
+    mv s11, a0
+    MEMINFO14 0
+    RUN_TO n_t_elf, 1
+    mv s0, a0
+    WAIT_TO s0, 0, 2
+    MEMINFO14 3
+    RUN_TO n_t_exit42, 4
+    mv s0, a0
+    WAIT_TO s0, 0, 5
+    MEMINFO14 6
+    SYSCALL2_TO SYS_SBRK, 4096, 0, 7        /* A has no heap -> -22 */
+    li a0, 0                                /* progs(0): size, name -> D_NAME */
+    addi a1, s11, D_NAME
+    li a7, SYS_PROGS
+    ecall
+    R14 8
+    li a0, 99                               /* no such entry -> -2 */
+    addi a1, s11, D_NAME
+    li a7, SYS_PROGS
+    ecall
+    R14 9
+    SYSCALL2_TO SYS_PROGS, 0, B_DATA, 10    /* buffer not A's -> -14 */
+    DONE14 p_t_elf_done
+
+/* T19: t_sbrk grows its heap to the page limit */
+.globl p_t_sbrk
+p_t_sbrk:
+    mv s11, a0
+    MEMINFO14 0
+    RUN_TO n_t_sbrk, 1
+    mv s0, a0
+    WAIT_TO s0, 0, 2
+    MEMINFO14 3
+    DONE14 p_t_sbrk_done
+
+/* T20: wait() for exit, fault, kill, already ended, errors, and blocking */
+.globl p_t_wait
+p_t_wait:
+    mv s11, a0
+    MEMINFO14 0
+    RUN_TO n_t_exit42, 1
+    mv s0, a0
+    WAIT_TO s0, 0, 2                        /* 42 */
+    RUN_TO n_b_text, 3
+    mv s0, a0
+    WAIT_TO s0, 0, 4                        /* faulted -> 139 */
+    RUN_TO n_t_spin, 5
+    mv s0, a0
+    SLEEP14 100
+    mv a0, s0
+    li a7, SYS_KILL
+    ecall
+    R14 6                                   /* 0 */
+    WAIT_TO s0, 0, 7                        /* killed -> 137 */
+    RUN_TO n_t_exit42, 8
+    mv s0, a0
+    SLEEP14 200
+    WAIT_TO s0, 0, 9                        /* already ended -> 42 */
+    SYSCALL2_TO SYS_WAIT, 999, 0, 10        /* no such pid -> -3 */
+    SYSCALL2_TO SYS_WAIT, 1, 0, 11          /* itself -> -1 */
+    WAIT_TO s0, 2, 12                       /* unknown flag -> -22 */
+    SYSCALL2_TO SYS_WAIT, 2, 1, 13          /* foreground on boot process B -> -1 */
+    RUN_TO n_t_sleepy, 14
+    mv s0, a0
+.globl p_t_wait_block
+p_t_wait_block:
+    WAIT_TO s0, 0, 15                       /* blocks about 300 ms -> 7 */
+.globl p_t_wait_ret
+p_t_wait_ret:
+    MEMINFO14 16
+    DONE14 p_t_wait_done
+
+/* T21: Ctrl-C ends the foreground process (running, then blocked in read);
+ * a second foreground wait is refused; without one Ctrl-C is input. */
+.globl p_t_ctrlc
+p_t_ctrlc:
+    mv s11, a0
+    MEMINFO14 0
+    RUN_TO n_t_spin, 1                      /* background: must survive */
+    mv s1, a0
+    RUN_TO n_t_spin, 2
+    mv s0, a0
+    RUN_TO n_t_fgbusy, 3
+    mv s2, a0
+.globl p_t_ctrlc_fg1
+p_t_ctrlc_fg1:
+    WAIT_TO s0, 1, 4                        /* Ctrl-C -> 130 */
+.globl p_t_ctrlc_after1
+p_t_ctrlc_after1:
+    WAIT_TO s2, 0, 5                        /* 16: its foreground wait got -16 */
+    RUN_TO n_t_reader, 6
+    mv s0, a0
+.globl p_t_ctrlc_fg2
+p_t_ctrlc_fg2:
+    WAIT_TO s0, 1, 7                        /* Ctrl-C while it reads -> 130 */
+.globl p_t_ctrlc_plain
+p_t_ctrlc_plain:
+    li a0, 0                                /* no foreground: 0x03 is input */
+    addi a1, s11, D_IN
+    li a2, 4
+    li a7, SYS_READ
+    ecall
+    R14 8
+    mv a0, s1
+    li a7, SYS_KILL
+    ecall
+    R14 9                                   /* 0 */
+    WAIT_TO s1, 0, 10                       /* 137 */
+    MEMINFO14 11
+    DONE14 p_t_ctrlc_done
+
+/* N10: every malformed file is refused, nothing leaks; then bad names */
+.globl p_t_elfbad
+p_t_elfbad:
+    mv s11, a0
+    MEMINFO14 0
+    la s0, p_bad_elf_names
+    li s1, 0
+1:  lbu t0, 0(s0)
+    beqz t0, 2f
+    mv a0, s0
+    call p_run
+    slli t0, s1, 3
+    add t0, t0, s11
+    sd a0, D_R14+16(t0)                     /* words 2.. in list order */
+    mv a0, s0
+    call p_strlen
+    add s0, s0, a0
+    addi s0, s0, 1
+    addi s1, s1, 1
+    j 1b
+2:  sd s1, D_R14+8(s11)
+    RUN_TO n_nosuch, 64                     /* -2 */
+    la a0, n_ok
+    li a1, 0                                /* empty name -> -22 */
+    li a7, SYS_RUN
+    ecall
+    R14 65
+    la a0, n_ok
+    li a1, 16                               /* name too long -> -22 */
+    li a7, SYS_RUN
+    ecall
+    R14 66
+    SYSCALL2_TO SYS_RUN, B_DATA, 4, 67      /* name in B's memory -> -14 */
+    SYSCALL2_TO SYS_RUN, 0x80200000, 4, 68  /* name in the kernel -> -14 */
+    RUN_TO n_ok, 69                         /* the valid file -> pid */
+    mv s0, a0
+    WAIT_TO s0, 0, 70                       /* 42 */
+    MEMINFO14 71
+    DONE14 p_t_elfbad_done
+
+/* N11: booted with a malformed archive: no programs at all */
+.globl p_t_arcbad
+p_t_arcbad:
+    mv s11, a0
+    li a7, SYS_MEMINFO
+    ecall
+    R14 0
+    sd a1, D_R14+8(s11)
+    li a0, 0
+    addi a1, s11, D_NAME
+    li a7, SYS_PROGS
+    ecall
+    R14 2                                   /* -2 */
+    RUN_TO n_ok, 3                          /* -2 */
+    DONE14 p_t_arcbad_done
+
+/* N12: programs that break the rules fault alone; wait() reports 139 */
+.globl p_t_userbad
+p_t_userbad:
+    mv s11, a0
+    MEMINFO14 0
+    la s0, p_bad_user_names
+    li s1, 0
+1:  lbu t0, 0(s0)
+    beqz t0, 2f
+    mv a0, s0
+    call p_run
+    slli s2, s1, 4
+    add s2, s2, s11
+    sd a0, D_R14+16(s2)                     /* pid */
+    li a1, 0
+    li a7, SYS_WAIT
+    ecall
+    sd a0, D_R14+24(s2)                     /* status */
+    mv a0, s0
+    call p_strlen
+    add s0, s0, a0
+    addi s0, s0, 1
+    addi s1, s1, 1
+    j 1b
+2:  sd s1, D_R14+8(s11)
+    MEMINFO14 40
+    DONE14 p_t_userbad_done
+
 p_nl:           .asciz "\n"
 p_hello_msg:    .asciz "hello from pid "
 p_pid_prefix:   .asciz "pid "
@@ -1502,10 +1878,11 @@ p_sh_nl:        .ascii "\n"
 p_sh_nl_end:
 p_sh_help_msg:  .ascii "commands: help, ps, uptime, echo <text>, attack\n"
                 .ascii "processes: run <worker|hello|counter|crash>, kill <pid>, mem\n"
+                .ascii "programs: ls, run <program> (Ctrl-C stops it), run <program> &\n"
 p_sh_help_msg_end:
 p_sh_unknown_msg: .ascii "unknown command (try help)\n"
 p_sh_unknown_msg_end:
-p_sh_run_usage: .ascii "run: programs are worker, hello, counter, crash\n"
+p_sh_run_usage: .ascii "run: usage: run <program> [&] (built in: worker, hello, counter, crash; more: ls)\n"
 p_sh_run_usage_end:
 p_sh_kill_usage: .ascii "kill: usage: kill <pid>\n"
 p_sh_kill_usage_end:
@@ -1516,6 +1893,7 @@ p_sh_c_ps:      .asciz "ps"
 p_sh_c_uptime:  .asciz "uptime"
 p_sh_c_attack:  .asciz "attack"
 p_sh_c_mem:     .asciz "mem"
+p_sh_c_ls:      .asciz "ls"
 p_sh_c_echo:    .asciz "echo"
 p_sh_c_run:     .asciz "run "
 p_sh_c_kill:    .asciz "kill "
@@ -1550,6 +1928,39 @@ p_sh_preempted: .asciz " preempted "
 p_sh_syscalls:  .asciz " syscalls "
 p_sh_att_ans:   .asciz "kernel answered "
 p_sh_att_tail:  .asciz ": access denied, B's memory is not mapped for A\n"
+/* v1.4 */
+p_sh_intr:      .ascii "^C\n"
+p_sh_intr_end:
+p_sh_ls_none:   .ascii "no programs (start QEMU with a program archive: -initrd programs.img)\n"
+p_sh_ls_none_end:
+p_sh_ls_gap:    .asciz "  "
+p_sh_bytes:     .asciz " bytes\n"
+p_sh_ended:     .asciz " ended with status "
+p_sh_noprog:    .asciz "run: no program "
+p_sh_tryls:     .asciz " (try ls)\n"
+n_t_elf:        .asciz "t_elf"
+n_t_sbrk:       .asciz "t_sbrk"
+n_t_exit42:     .asciz "t_exit42"
+n_t_spin:       .asciz "t_spin"
+n_t_sleepy:     .asciz "t_sleepy"
+n_t_reader:     .asciz "t_reader"
+n_t_fgbusy:     .asciz "t_fgbusy"
+n_b_text:       .asciz "b_text"
+n_nosuch:       .asciz "nosuch"
+n_ok:           .asciz "ok"
+/* N10: the order of build-scripts/mkimages.py bad_elfs() */
+p_bad_elf_names:
+    .asciz "e_magic", "e_class32", "e_bigend", "e_osabi", "e_dyn", "e_machine"
+    .asciz "e_float", "e_rvc", "e_phentsize", "e_phoff", "e_nophdr", "e_trunc"
+    .asciz "e_interp", "e_dynamic", "e_tls", "e_wx", "e_noread", "e_badflag"
+    .asciz "e_memsz", "e_offset", "e_low", "e_kernel", "e_unalign", "e_overlap"
+    .asciz "e_wrap", "e_noload", "e_entry", "e_entry_odd", "e_big", "e_empty"
+    .byte 0
+/* N12 */
+p_bad_user_names:
+    .asciz "b_text", "b_rodata", "b_kernel", "b_exec", "b_stack", "b_heap"
+    .asciz "b_fpu", "b_csr"
+    .byte 0
 .balign 4
 
 /* ===================================================================== */

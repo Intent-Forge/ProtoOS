@@ -18,32 +18,41 @@ import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ELF = ROOT / 'build/protoos.elf'
+PROGRAMS = ROOT / 'build/programs.img'
 OUT = ROOT / 'docs/demo/protoos-demo.svg'
 FW = os.environ.get('OPENSBI', '/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin')
 
 # Keystrokes for the shell scene: (seconds after the banner, bytes typed).
 SHELL_TYPING = [(1.0, b'help\r'), (2.3, b'run counter\r'), (3.4, b'run worker\r'),
                 (4.7, b'ps\r'), (6.1, b'kill 4\r'), (7.3, b'run crash\r'), (8.9, b'mem\r')]
-# (bootargs, seconds to run, max captured lines, comment, real timing?, typing)
+# v1.4: programs in C from the program archive; \x03 is Ctrl-C
+PROGRAM_TYPING = [(1.0, b'ls\r'), (2.2, b'run primes\r'), (3.6, b'run clock\r'),
+                  (6.8, b'\x03'), (7.8, b'run guess\r'), (9.0, b'50\r'), (10.2, b'75\r'),
+                  (11.4, b'62\r'), (12.6, b'\x03'), (13.6, b'mem\r')]
+# (bootargs, seconds to run, max captured lines, comment, real timing?, typing, archive)
 SCENES = [
     ('protoos.mode=demo', 9, 22,
-     'demo mode: A and B print via write() and sleep(); then B attacks A', True, None),
+     'demo mode: A and B print via write() and sleep(); then B attacks A', True, None, None),
     ('protoos.mode=shell', 11, 32,
      'shell mode: A is a command shell; it starts and stops processes on demand',
-     True, SHELL_TYPING),
+     True, SHELL_TYPING, None),
+    ('protoos.mode=shell', 15, 34,
+     'v1.4: programs written in C, loaded from the program archive; Ctrl-C stops them',
+     True, PROGRAM_TYPING, PROGRAMS),
     ('protoos.test=umode', 2, 15,
-     'two user processes, switched by the timer interrupt every 10 ms', False, None),
+     'two user processes, switched by the timer interrupt every 10 ms', False, None, None),
 ]
 PACE, COMMAND_PAUSE, SCENE_HOLD = 0.22, 0.9, 2.6
 COLS, ROWS = 112, 19
 FONT, LINE_H, CHAR_W, PAD, TITLE_H = 13, 18, 7.82, 14, 28
 
 
-def record(args, seconds, max_lines, typing=None):
+def record(args, seconds, max_lines, typing=None, initrd=None):
     cmd = ['qemu-system-riscv64', '-machine', 'virt', '-accel', 'tcg', '-cpu', 'rv64',
-           '-smp', '1', '-m', '128M', '-bios', FW, '-kernel', str(ELF), '-display', 'none',
-           '-monitor', 'none', '-serial', 'stdio', '-nic', 'none', '-append', args,
-           '-no-reboot']
+           '-smp', '1', '-m', '128M', '-bios', FW, '-kernel', str(ELF)]
+    cmd += ['-initrd', str(initrd)] if initrd else []
+    cmd += ['-display', 'none', '-monitor', 'none', '-serial', 'stdio', '-nic', 'none',
+            '-append', args, '-no-reboot']
     vm = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                           stderr=subprocess.DEVNULL)
     lines, buf, started, t0 = [], b'', False, time.monotonic()
@@ -81,7 +90,10 @@ def style_of(line):
                         ('EXIT', 'exit'), ('IDLE', 'exit'), ('proto> ', 'usera'),
                         ('attack:', 'attack'), ('kernel answered', 'fault'),
                         ('pid ', 'proc'), ('started pid', 'proc'), ('killed pid', 'exit'),
-                        ('free pages', 'mmu'), ('crash:', 'attack'), ('hello from', 'userb')):
+                        ('free pages', 'mmu'), ('crash:', 'attack'), ('hello from', 'userb'),
+                        ('^C', 'attack'), ('ARCHIVE', 'mmu'), ('Primes', 'userb'),
+                        ('There are', 'userb'), ('uptime ', 'userb'), ('clock:', 'userb'),
+                        ('I picked', 'userb'), ('Your guess', 'userb'), ('Too ', 'userb')):
         if line.startswith(prefix):
             return cls
     return 'out'
@@ -89,12 +101,12 @@ def style_of(line):
 
 def frames_for(scenes):
     """Yield (visible lines, duration) for every animation frame."""
-    for args, seconds, max_lines, note, real, typing in scenes:
+    for args, seconds, max_lines, note, real, typing, initrd in scenes:
         run = ('sh build-scripts/run-shell.sh' if typing else
                f'sh build-scripts/run-scenario.sh {args} {seconds}')
         screen = [f'# {note}', f'$ {run}']
         yield list(screen), COMMAND_PAUSE
-        output = record(args, seconds, max_lines, typing)
+        output = record(args, seconds, max_lines, typing, initrd)
         if not output:
             raise SystemExit(f'no UART output captured for {args}')
         for i, (t, line) in enumerate(output):
@@ -137,7 +149,7 @@ def render(frames):
         '<circle cx="18" cy="14" r="5" fill="#ff5f57"/><circle cx="34" cy="14" r="5" fill="#febc2e"/>'
         '<circle cx="50" cy="14" r="5" fill="#28c840"/>',
         f'<text class="title" x="{width / 2:.0f}" y="18" text-anchor="middle">'
-        'ProtoOS v1.3 on QEMU virt (RISC-V RV64) - real UART output</text>',
+        'ProtoOS v1.4 on QEMU virt (RISC-V RV64) - real UART output</text>',
         f'<svg x="0" y="{TITLE_H}" width="{width}" height="{body_h}"><g class="tape">',
     ]
     for i, (screen, _) in enumerate(frames):

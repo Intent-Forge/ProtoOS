@@ -17,6 +17,7 @@ struct mem_state {
     uint64_t free;      /* pages currently free */
     uint64_t allocs;    /* successful allocations so far */
     uint64_t frees;     /* frees so far */
+    uint64_t reserved;  /* v1.4: pages taken for good at boot (program archive) */
     uint64_t bitmap[MEM_MAX_PAGES / 64u];   /* bit set = page in use */
 };
 extern struct mem_state mem;
@@ -27,4 +28,8 @@ void mem_init(uint64_t end);
 uint64_t mem_alloc(void);
 /* Return a page from mem_alloc; anything else is a kernel bug (panic). */
 void mem_free(uint64_t pa);
+/* v1.4: take the pages covering [start, end) out of the pool for good (the
+ * program archive). The range must lie inside the pool and be free; it is
+ * not counted as allocations. Returns the number of pages. */
+uint64_t mem_reserve(uint64_t start, uint64_t end);
 #endif

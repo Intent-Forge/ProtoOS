@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ProtoOS acceptance runner, 3 clean boots per check: v1.0 T1-T7 and N1-N5,
-v1.1 T8, T9, N6, v1.2 T10-T12, N7, N8.
+v1.1 T8, T9, N6, v1.2 T10-T12, N7, N8, v1.3 T13-T17, N9, v1.4 T18-T22,
+N10-N12 (v1.4 scenarios boot with a program archive, QEMU -initrd).
 
 Every scenario boot is a fresh qemu-system-riscv64 process (fresh RAM, same
 ELF, SHA-256 checked before and after). Independent evidence per boot:
@@ -12,7 +13,7 @@ UART output is recorded for correlation only and never decides a PASS alone.
 
 Statuses: PASS / FAIL (violation observed) / INCONCLUSIVE (probe incomplete).
 Usage: python3 validation/run_acceptance.py [--elf build/protoos.elf]
-       [--tests T1,T3] [--reps 3] [--t7-seconds 20]
+       [--images build] [--tests T1,T3] [--reps 3] [--t7-seconds 20]
 """
 import argparse
 import datetime
@@ -23,6 +24,7 @@ import pathlib
 import re
 import shutil
 import socket
+import struct
 import subprocess
 import sys
 import tempfile
@@ -38,6 +40,7 @@ A_BASE, B_BASE = 0x400000, 0x800000
 A_RANGE, B_RANGE = (A_BASE, A_BASE + 0x4000), (B_BASE, B_BASE + 0x4000)
 PROG_VA, PROG_PAGES = 0x4000000, 3          # v1.3 shared program pages
 PROG_RANGE = (PROG_VA, PROG_VA + PROG_PAGES * 0x1000)
+ELF_RANGE = (0x40000000, 0x40200000)        # v1.4 window of archive programs
 POOL_START = 0x80400000
 A_PATTERN, B_PATTERN = 0xa1a1a1a100000000, 0xb2b2b2b200000000
 STATE = {1: 'READY', 2: 'RUNNING', 3: 'EXITED', 4: 'FAULTED', 5: 'SLEEPING', 6: 'BLOCKED'}
@@ -78,11 +81,23 @@ MATRIX = {
     'T16': [('protoos.test=multi', 't16')],
     'T17': [('protoos.mode=shell', 't17')],
     'N9': [('protoos.test=spawn-bad', 'n9')],
+    # v1.4 (docs/SPEC_V1_4.md): the third element is the program archive
+    # given to QEMU as -initrd (from --images, built by build-wsl.sh)
+    'T18': [('protoos.test=elf', 't18', 'tests.img')],
+    'T19': [('protoos.test=sbrk', 't19', 'tests.img')],
+    'T20': [('protoos.test=wait', 't20', 'tests.img')],
+    'T21': [('protoos.test=ctrlc', 't21', 'tests.img')],
+    'T22': [('protoos.mode=shell', 't22', 'programs.img')],
+    'N10': [('protoos.test=elf-bad', 'n10', 'badelf.img')],
+    'N11': [('protoos.test=archive-bad', 'n11', f'badarc/{n}.img') for n in (
+        'a_magic', 'a_hex', 'a_trunc', 'a_name', 'a_longname', 'a_dir', 'a_check', 'a_data',
+        'a_many', 'a_dup', 'a_notrailer', 'a_tail')],
+    'N12': [('protoos.test=user-bad', 'n12', 'tests.img')],
 }
 # Scenarios whose probe types into the UART: the serial port is a UNIX
 # socket (logged to uart.log as before) instead of a plain output file.
 INPUT_SCENARIOS = {'protoos.test=read', 'protoos.mode=shell', 'protoos.test=read-bad',
-                   'protoos.test=read-flood'}
+                   'protoos.test=read-flood', 'protoos.test=ctrlc'}
 
 
 def sha256(path):
@@ -153,15 +168,17 @@ def in_range(v, rng):
 
 
 # ------------------------------------------------------------- one boot
-def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None, uart_sock=None):
+def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None, uart_sock=None, initrd=None):
     if uart_sock:
         serial = ['-chardev', f'socket,id=ser0,path={uart_sock},server=on,wait=off,'
                   f'logfile={rundir / "uart.log"}', '-serial', 'chardev:ser0']
     else:
         serial = ['-serial', f'file:{rundir / "uart.log"}']
     cmd = [QEMU, '-machine', 'virt', '-accel', 'tcg', '-cpu', 'rv64', '-smp', '1',
-           '-m', '128M', '-bios', FW, '-kernel', str(elf), '-display', 'none',
-           '-monitor', 'none'] + serial + ['-nic', 'none',
+           '-m', '128M', '-bios', FW, '-kernel', str(elf)]
+    if initrd:
+        cmd += ['-initrd', str(initrd)]
+    cmd += ['-display', 'none', '-monitor', 'none'] + serial + ['-nic', 'none',
            '-append', args, '-no-reboot', '-d', 'int,guest_errors',
            '-D', str(rundir / 'qemu-int.log')]
     if gdb_port:
@@ -171,12 +188,13 @@ def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None, uart_sock=None):
     return cmd
 
 
-def boot_with_gdb(elf, args, probe, rundir, sym, uva):
+def boot_with_gdb(elf, args, probe, rundir, sym, uva, initrd=None, usym=None):
     port = free_port()
     sock = f'/tmp/protoos-uart-{os.getpid()}-{time.time_ns()}.sock' if args in INPUT_SCENARIOS else None
-    cmd = qemu_cmd(elf, args, rundir, gdb_port=port, uart_sock=sock)
+    cmd = qemu_cmd(elf, args, rundir, gdb_port=port, uart_sock=sock, initrd=initrd)
     cfg = {'probe': probe, 'symbols': sym, 'user_va': uva, 'elf': str(elf), 'port': port,
-           'observations': str(rundir / 'observations.json'), 'uart_sock': sock}
+           'observations': str(rundir / 'observations.json'), 'uart_sock': sock,
+           'user_symbols': usym or {}}
     (rundir / 'probe-config.json').write_text(json.dumps(cfg, indent=1))
     (rundir / 'command.json').write_text(json.dumps({'qemu': cmd}, indent=1))
     env = dict(os.environ, PROTOOS_PROBE_CFG=str(rundir / 'probe-config.json'))
@@ -315,6 +333,9 @@ def common_checks(c, ctx):
     c('no S-mode exception except SBI ecall (trace)', not bad, bad[:3])
     c('no KERNEL_PANIC on UART', 'KERNEL_PANIC' not in uart)
     c('ELF unchanged during run', ctx['sha_after'] == ctx['sha'], ctx['sha_after'])
+    if ctx.get('image'):
+        c('program archive unchanged during run', ctx['image_sha_after'] == ctx['image_sha'],
+          ctx['image_sha_after'])
 
 
 def u_events(ev, rng, **kw):
@@ -748,8 +769,10 @@ def user_exceptions(trace, rng):
 
 
 def in_user(va):
-    """User code: A's or B's own text, or (v1.3) the shared program pages."""
-    return in_range(va, A_RANGE) or in_range(va, B_RANGE) or in_range(va, PROG_RANGE)
+    """User code: A's or B's own text, (v1.3) the shared program pages or
+    (v1.4) the window of archive programs."""
+    return (in_range(va, A_RANGE) or in_range(va, B_RANGE) or in_range(va, PROG_RANGE)
+            or in_range(va, ELF_RANGE))
 
 
 def ext_from_user(trace):
@@ -1139,6 +1162,426 @@ ORACLES.update({'t13': oracle_t13, 't14': oracle_t14, 't15': oracle_t15, 't16': 
                 'n9': oracle_n9, 't17': oracle_t17})
 
 
+# ------------------------------------------------------------- v1.4 oracles
+def load_v14(images, work, out, tests):
+    """v1.4: copy the program archives the selected tests boot with (SHA-256
+    recorded), read images.json, and read the symbols and program headers of
+    every program ELF here, independently of the kernel's own checker."""
+    need = sorted({e[2] for t in tests for e in MATRIX[t] if len(e) > 2})
+    res = {'images_sha256': {}, 'work_images': work / 'images', 'manifest': {}, 'usym': {},
+           'uelf': {}}
+    if not need:
+        return res
+    for rel in need + ['images.json']:
+        for dst in (work / 'images' / rel, out / 'images' / rel):
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(images / rel, dst)
+        res['images_sha256'][rel] = sha256(images / rel)
+    res['manifest'] = json.loads((images / 'images.json').read_text())
+    for elf in sorted((images / 'user').glob('*.elf')):
+        nm = subprocess.run([NM, str(elf)], capture_output=True, text=True, check=True).stdout
+        res['usym'][elf.stem] = {x[2]: int(x[0], 16) for x in map(str.split, nm.splitlines())
+                                 if len(x) == 3}
+        res['uelf'][elf.stem] = elf.read_bytes()
+    return res
+
+
+def elf_loads(data):
+    """PT_LOAD headers and entry of an ELF64 file, read with struct."""
+    phoff, = struct.unpack_from('<Q', data, 32)
+    phnum, = struct.unpack_from('<H', data, 56)
+    segs = []
+    for i in range(phnum):
+        t, f, off, va, _pa, fs, ms, _al = struct.unpack_from('<IIQQQQQQ', data, phoff + 56 * i)
+        if t == 1:
+            segs.append({'flags': f, 'offset': off, 'vaddr': va, 'filesz': fs, 'memsz': ms})
+    return struct.unpack_from('<Q', data, 24)[0], segs
+
+
+def expected_pages(data):
+    """VA -> (exact 4 KiB content, p_flags) of every page the file loads:
+    file bytes, then zeros (.bss and the tail of the last page)."""
+    pages = {}
+    for s in elf_loads(data)[1]:
+        for off in range(0, s['memsz'], 4096):
+            chunk = data[s['offset'] + off:s['offset'] + min(off + 4096, s['filesz'])] \
+                if off < s['filesz'] else b''
+            pages[s['vaddr'] + off] = ((chunk + bytes(4096))[:4096], s['flags'])
+    return pages
+
+
+def image_end(data):
+    return max(s['vaddr'] + -(-s['memsz'] // 4096) * 4096 for s in elf_loads(data)[1])
+
+
+def flags_of(w):
+    return set(w.get('flags', ''))
+
+
+PTE_FOR = {5: set('VRXUA'), 4: set('VRUA'), 6: set('VRWUAD')}   # p_flags -> exact leaf bits
+STACK_VAS = range(0x401fc000, 0x40200000, 0x1000)
+PAGE_LIMIT = 64
+
+
+def proc_pages_ok(c, label, p, mem, ctx, archive=None):
+    end = mem['base'] + mem['pages'] * 4096
+    arc = (archive['start'] & ~0xfff, (archive['end'] + 0xfff) & ~0xfff) if archive else (0, 0)
+    c(f'{label}: {p["npages"]} distinct page-aligned pool pages, outside the kernel image and the archive',
+      len(p['pages']) == p['npages'] == len(set(p['pages']))
+      and all(pa % 4096 == 0 and mem['base'] <= pa < end and not in_range(pa, arc)
+              and not ctx['sym']['__kernel_start'] <= pa < ctx['sym']['__image_end']
+              for pa in p['pages']), [hex(x) for x in p['pages'][:4]])
+
+
+def user_faults(trace):
+    return [e for e in trace if not e['async'] and e['cause'] != 8 and in_user(e['epc'])]
+
+
+def oracle_t18(c, obs, ctx):
+    st = steps(obs)
+    cp, d = st['checkpoint'], st['done']
+    r, p, mem, a = d['results'], cp['proc'], cp['mem'], cp['archive']
+    data = ctx['uelf']['t_elf']
+    pages = expected_pages(data)
+    want_pages = 3 + len(pages) + 4
+    c('t_elf stopped at its checkpoint in U-mode, under its own root',
+      cp['hit'] and cp['cpu']['priv'] == 0 and cp['cpu']['satp'] == p['satp']
+      and cp['cpu']['pc'] == ctx['usym']['t_elf']['t_elf_checkpoint'], hex(cp['cpu']['pc']))
+    c('run() returned pid 3 = its getpid() (a0 at the checkpoint); program id 16 = archive file 0',
+      r[1] == 3 == p['pid'] == cp['gprs']['x10'] and p['prog'] == 16, (r[1], p['pid'], p['prog']))
+    c(f'it owns {want_pages} pages: 3 tables + {len(pages)} segment pages (ELF headers) + 4 stack',
+      p['npages'] == want_pages, p['npages'])
+    proc_pages_ok(c, 't_elf', p, mem, ctx, a)
+    c('allocator: its pages are marked in use, free = baseline - its pages',
+      cp['bits'] == [1] * want_pages and mem['free'] == r[0] - want_pages, (mem['free'], r[0]))
+    root = (p['satp'] & ((1 << 44) - 1)) << 12
+    c('own Sv39 root (its first page), not the kernel, A or B root', p['satp'] >> 60 == 8
+      and root == p['pages'][0] and p['satp'] not in cp['satps'].values())
+    w = cp['walks']
+    bad = []
+    for va, (content, fl) in sorted(pages.items()):
+        x = w[hex(va)]
+        if not (x['mapped'] and x['leaf_level'] == 0 and flags_of(x) == PTE_FOR[fl]
+                and (x['pa'] & ~0xfff) in p['pages']
+                and cp['contents'][hex(va)] == hashlib.sha256(content).hexdigest()):
+            bad.append((hex(va), x.get('flags'), fl))
+    c('PT walk: every segment page mapped once with exactly its ELF permissions '
+      '(code R X, constants R, data R W; never W+X) and holding exactly the file bytes '
+      '(then zeros)', not bad, bad[:3])
+    stack = [w[hex(va)] for va in STACK_VAS]
+    c('PT walk: 4 stack pages R W U (not X) at 0x401fc000-0x401fffff, its own pages',
+      all(x['mapped'] and flags_of(x) == PTE_FOR[6] and (x['pa'] & ~0xfff) in p['pages']
+          for x in stack))
+    others = [va for va in w if int(va, 16) not in pages and int(va, 16) not in STACK_VAS
+              and w[va]['mapped']]
+    c('PT walk: nothing else mapped in the window (heap empty, guard 0x401fb000, 0x40100000)',
+      not others and not w[hex(0x401fb000)]['mapped']
+      and not w[hex(image_end(data))]['mapped'], others[:3])
+    c("PT walk: A's and B's data unmapped; kernel data, UART, archive and pool kernel-only",
+      not cp['walk_a_data']['mapped'] and not cp['walk_b_data']['mapped']
+      and 'U' not in flags_of(cp['walk_secret']) and 'U' not in flags_of(cp['walk_uart'])
+      and cp['walk_archive']['mapped'] and 'U' not in flags_of(cp['walk_archive'])
+      and cp['walk_pool_alias']['leaf_level'] == 1 and 'U' not in flags_of(cp['walk_pool_alias']))
+    c('PT walk: shared program pages R X U, not W', set('URX') <= flags_of(cp['walk_prog'])
+      and 'W' not in flags_of(cp['walk_prog']))
+    c("the window is not mapped in A's, B's or the kernel's root", not cp['a_sees']['mapped']
+      and not cp['b_sees']['mapped'] and not cp['kernel_sees']['mapped'])
+    n_arc = len(cp['archive_bits'])
+    c(f'archive: {n_arc} pages reserved (bitmap), {ctx["manifest"]["tests.img"].__len__()} programs',
+      cp['archive_bits'] == [1] * n_arc and mem['reserved'] == n_arc and a['found'] == 3
+      and a['pa'] == a['start'] and a['count'] == len(ctx['manifest']['tests.img'])
+      and a['end'] - a['start'] == ctx['image_size'], (mem['reserved'], a))
+    c('t_elf passed all its own checks: wait() returned 0', r[2] == 0, r[2])
+    c('all its pages came back (free = baseline)', r[3] == r[0], (r[0], r[3]))
+    c('t_exit42 started as pid 4, wait() returned 42, pages back', r[4] == 4 and r[5] == 42
+      and r[6] == r[0], r[4:7])
+    c('sbrk from A (no heap): -22', r[7] == NEG(-22), hex(r[7]))
+    c('progs(0) = size and name of t_elf; progs(99) = -2; foreign buffer = -14',
+      r[8] == len(data) and bytes.fromhex(d['progs_name']).rstrip(b'\0') == b't_elf'
+      and r[9] == NEG(-2) and r[10] == NEG(-14), (r[8], d['progs_name'], hex(r[9]), hex(r[10])))
+    m = d['mem']
+    c('allocations = frees at the end; slot owns nothing', m['allocs'] == m['frees']
+      and d['proc']['npages'] == 0 and m['free'] == r[0])
+    c('UART: t_elf reported success, exit code 0', 't_elf: all checks passed' in ctx['uart']
+      and re.search(r'EXIT C\(pid=3\) code=0', ctx['uart']))
+    c('trace: no user exception other than ecall', not user_faults(ctx['trace']))
+    c('trace: ecalls from the ELF window (the C programs ran in U-mode)',
+      any(not e['async'] and e['cause'] == 8 and in_range(e['epc'], ELF_RANGE) for e in ctx['trace']))
+
+
+def oracle_t19(c, obs, ctx):
+    st = steps(obs)
+    c1, c2, d = st['cp1'], st['cp2'], st['done']
+    r = d['results']
+    data = ctx['uelf']['t_sbrk']
+    base = image_end(data)
+    n0 = 3 + len(expected_pages(data)) + 4
+    p1 = c1['proc']
+    c('checkpoint 1: heap starts at the page after the image (= _end); break = base + 10000',
+      c1['hit'] and p1['heap_base'] == base == ctx['usym']['t_sbrk']['_end']
+      and p1['brk'] == base + 10000 == c1['gprs']['x10'], (hex(p1['heap_base']), hex(p1['brk'])))
+    h = c1['heap']
+    c('3 heap pages mapped R W U (not X), its own pages; the next two unmapped',
+      all(h[hex(base + k * 4096)]['mapped'] and flags_of(h[hex(base + k * 4096)]) == PTE_FOR[6]
+          and (h[hex(base + k * 4096)]['pa'] & ~0xfff) in p1['pages'] for k in range(3))
+      and not h[hex(base + 3 * 4096)]['mapped'] and not h[hex(base + 4 * 4096)]['mapped'])
+    hb = bytes.fromhex(c1['heap_bytes'])
+    c('heap pages hold what it wrote (10000 bytes) and zeros after', hb[:10000] == bytes(
+        (i * 7 + 1) & 0xff for i in range(10000)) and hb[10000:] == bytes(len(hb) - 10000))
+    c(f'pages owned: {n0} + 3 heap; free = baseline - that', p1['npages'] == n0 + 3
+      and c1['mem']['free'] == r[0] - n0 - 3, (p1['npages'], c1['mem']['free'], r[0]))
+    p2 = c2['proc']
+    top = (c2['brk'] + 0xfff) & ~0xfff
+    c(f'checkpoint 2: heap grew until refused at exactly {PAGE_LIMIT} pages owned',
+      c2['hit'] and p2['npages'] == PAGE_LIMIT and c2['steps'] == PAGE_LIMIT - n0 - 3
+      and c2['brk'] == p2['brk'] == base + 10000 + c2['steps'] * 4096, (p2['npages'], c2['steps']))
+    hw = c2['heap']
+    c('every heap page up to the break mapped R W U, the page after it unmapped',
+      all(hw[hex(va)]['mapped'] and flags_of(hw[hex(va)]) == PTE_FOR[6]
+          and (hw[hex(va)]['pa'] & ~0xfff) in p2['pages'] for va in range(base, top, 4096))
+      and not hw[hex(top)]['mapped'])
+    c('guard page below the stack unmapped; stack mapped', not c2['guard']['mapped']
+      and all(x['mapped'] for x in c2['stack'].values()))
+    proc_pages_ok(c, 't_sbrk at the limit', p2, c2['mem'], ctx)
+    c('allocator: all its pages marked, free = baseline - 64', c2['bits'] == [1] * PAGE_LIMIT
+      and c2['mem']['free'] == r[0] - PAGE_LIMIT)
+    c('t_sbrk passed all its own checks (zeroed pages, -22, -12, break unchanged on refusal)',
+      r[2] == 0, r[2])
+    m = d['mem']
+    c('all 64 pages came back: free = baseline, allocations = frees', r[3] == r[0] == m['free']
+      and m['allocs'] == m['frees'] and d['proc']['npages'] == 0, (r, m))
+    c('UART: t_sbrk reported success', 't_sbrk: all checks passed' in ctx['uart'])
+    c('trace: no user exception other than ecall', not user_faults(ctx['trace']))
+
+
+def oracle_t20(c, obs, ctx):
+    st = steps(obs)
+    we, bl, rt, d = st['wait_ecall'], st['blocked'], st['returned'], st['done']
+    r = d['results']
+    want = [(2, 'wait for t_exit42', 42), (4, 'wait for b_text (faulted)', 139),
+            (6, 'kill of t_spin', 0), (7, 'wait for the killed t_spin (already ended)', 137),
+            (9, 'wait for t_exit42 that ended before', 42), (10, 'wait for a pid that never existed', NEG(-3)),
+            (11, 'wait for itself', NEG(-1)), (12, 'wait with an unknown flag', NEG(-22)),
+            (13, 'foreground wait for boot process B', NEG(-1)), (15, 'wait for t_sleepy', 7)]
+    for k, name, v in want:
+        c(f'{name}: {v if v < 1 << 63 else v - (1 << 64)}', r[k] == v, hex(r[k]))
+    c('run() returned pids 3, 4, 5, 6, 7', [r[1], r[3], r[5], r[8], r[14]] == [3, 4, 5, 6, 7],
+      [r[1], r[3], r[5], r[8], r[14]])
+    f = we['frame']
+    c('A called wait(pid of t_sleepy, 0)', we['hit'] and f['x10'] == r[14] and f['x11'] == 0)
+    pa = bl['proc_a']
+    c('A BLOCKED waiting for it (wait_pid), not dispatched for 10 timer ticks',
+      bl['wait']['reached'] and bl['wait']['watch_hit'] is None and pa['state'] == 6
+      and pa['wait_pid'] == r[14] and pa['read_pending'] == 0, (pa['state'], pa['wait_pid']))
+    sleepy = [p for p in bl['procs'] if p['pid'] == r[14]]
+    c('meanwhile t_sleepy is alive (SLEEPING)', len(sleepy) == 1 and sleepy[0]['state'] == 5)
+    ra = rt['proc_a']
+    c('A resumed after t_sleepy ended, with 7; one more completed wait',
+      rt['hit'] and rt['results'][15] == 7 and ra['wait_pid'] == 0
+      and ra['waits_done'] == we['proc_a']['waits_done'] + 1)
+    c('UART: t_sleepy exited with 7', re.search(r'EXIT [A-H]\(pid=7\) code=7', ctx['uart']))
+    m = d['mem']
+    c('every page came back: free = baseline, allocations = frees', r[16] == r[0] == m['free']
+      and m['allocs'] == m['frees'] and all(p['npages'] == 0 for p in d['procs'][2:]))
+    faults = user_faults(ctx['trace'])
+    c("trace: the only user exception is b_text's store into its code", len(faults) == 1
+      and faults[0]['cause'] == 15 and faults[0]['tval'] == 0x40000000, faults[:3])
+
+
+def oracle_t21(c, obs, ctx):
+    st = steps(obs)
+    e1, arm, a1, e2 = st['fg1_ecall'], st['fg1_armed'], st['after1'], st['fg2_ecall']
+    ans, a2, pr, d = st['reader_answered'], st['after2'], st['plain_read'], st['done']
+    r = d['results']
+    bypid = lambda procs, pid: [p for p in procs if p['pid'] == pid and p['state']]  # noqa: E731
+    c('A: wait(t_spin, WAIT_FOREGROUND)', e1['hit'] and e1['frame']['x10'] == r[2]
+      and e1['frame']['x11'] == 1)
+    s, i = arm['sched'], arm['input']
+    c('foreground armed: fg_pid = that t_spin, fg_waiter = A, Ctrl-C armed in the input path',
+      s['fg_pid'] == r[2] and s['fg_waiter'] == 1 and i['intr_armed'] == 1, (s['fg_pid'], i))
+    c('A BLOCKED, not dispatched for 60 ticks', arm['wait']['reached']
+      and arm['wait']['watch_hit'] is None and arm['procs'][0]['state'] == 6)
+    busy = bypid(arm['procs'], r[3])
+    c('meanwhile a second foreground wait (t_fgbusy) was refused (-16): it exited with 16',
+      busy and busy[0]['state'] == 3 and busy[0]['exit_code'] == 16 and r[5] == 16, r[5])
+    fg = bypid(a1['procs'], r[2])
+    c('Ctrl-C: wait returned 130; t_spin EXITED by Ctrl-C (code 130, killed), pages back',
+      a1['hit'] and a1['results'][4] == 130 and fg and fg[0]['state'] == 3
+      and fg[0]['exit_code'] == 130 and fg[0]['killed'] == 1 and fg[0]['npages'] == 0)
+    c('Ctrl-C was not input: consumed by the kernel, foreground disarmed',
+      a1['input']['intrs'] == 1 and a1['input']['count'] == 0 and a1['input']['intr_armed'] == 0
+      and a1['sched']['fg_pid'] == 0 and a1['sched']['interrupted'] == 1, a1['input'])
+    bg = bypid(a1['procs'], r[1])
+    c('the background t_spin was not touched', bg and bg[0]['state'] in (1, 2))
+    rd = bypid(ans['procs'], r[6])
+    c('second foreground program t_reader answered the typed line and is BLOCKED in read()',
+      e2['hit'] and e2['frame']['x10'] == r[6] and ans['ok'] and rd and rd[0]['state'] == 6
+      and rd[0]['read_pending'] == 1 and ans['wait']['watch_hit'] is None)
+    rd2 = bypid(a2['procs'], r[6])
+    c('Ctrl-C while it was blocked: wait returned 130, reader EXITED (130), read cancelled, pages back',
+      a2['hit'] and a2['results'][7] == 130 and rd2 and rd2[0]['state'] == 3
+      and rd2[0]['exit_code'] == 130 and rd2[0]['read_pending'] == 0 and rd2[0]['npages'] == 0
+      and a2['sched']['interrupted'] == 2 and a2['input']['intrs'] == 2)
+    c('without a foreground wait Ctrl-C is an ordinary byte: A read 1 byte = 0x03',
+      pr['hit'] and pr['input']['intr_armed'] == 0 and r[8] == 1
+      and bytes.fromhex(d['data'])[:1] == b'\x03' and d['input']['intrs'] == 2)
+    c('background t_spin then killed (0), wait 137', r[9] == 0 and r[10] == 137)
+    m, inp_ = d['mem'], d['input']
+    c('kernel received exactly the 7 typed bytes, none dropped, none left', inp_['received'] == 7
+      and inp_['dropped'] == 0 and inp_['count'] == 0, inp_)
+    c('every page came back: free = baseline, allocations = frees', r[11] == r[0] == m['free']
+      and m['allocs'] == m['frees'])
+    c('UART: the reader echoed the line', 'got: abc' in ctx['uart'])
+    c('trace: no user exception other than ecall', not user_faults(ctx['trace']))
+
+
+T22_PROGRAMS = ['guess', 'primes', 'clock']
+
+
+def oracle_t22(c, obs, ctx):
+    st = steps(obs)
+    uart = ctx['uart'].replace('\r', '')
+    end = st['end']
+    first = st['first_prompt']
+    total = first['mem']['pages'] - first['mem']['reserved']
+    c('archive with the 3 programs loaded; its pages reserved',
+      re.search(r'ARCHIVE \d+ bytes at 0x[0-9a-f]+, \d+ pages reserved: 3 programs', uart)
+      and first['archive']['count'] == 3 and first['archive_bits'] == [1] * len(first['archive_bits'])
+      and first['mem']['reserved'] == len(first['archive_bits']))
+    blocks = {}
+    for b in uart.split('proto> ')[1:]:
+        lines = b.split('\n')
+        blocks.setdefault(lines[0], []).append(lines[1:])
+    ls = blocks.get('ls', [[]])[0]
+    sizes = [len(ctx['uelf'][n]) for n in T22_PROGRAMS]
+    c('ls lists guess, primes, clock with their file sizes',
+      ls[:3] == [f'{n}  {s} bytes' for n, s in zip(T22_PROGRAMS, sizes)], ls[:3])
+    pr = blocks.get('run primes', [[]])[0]
+    c('run primes: the program printed the right primes and count, exit 0', pr[:2] == [
+        'Primes below 100: 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97',
+        'There are 1229 primes below 10000 (sieve of 10000 bytes on the heap).']
+      and re.search(r'EXIT C\(pid=3\) code=0', uart), pr[:3])
+    g = st['guess']
+    m = re.search(r'Correct! The number was (\d+)\. Tries: (\d+)', uart)
+    c('run guess: the binary search found the number; the program counted the tries',
+      g['ok'] and g['answers'] and g['answers'][-1] == 'Correct!' and m
+      and int(m[1]) == g['guesses'][-1] and int(m[2]) == len(g['guesses']), (g['guesses'], g['answers']))
+    cl = blocks.get('run clock', [[]])[0]
+    ups = [float(x) for x in re.findall(r'^uptime (\d+\.\d\d) s$', '\n'.join(cl), re.M)]
+    c('run clock: at least 3 lines one second apart, then ^C and a new prompt',
+      len(ups) >= 3 and all(0.9 <= b - a <= 1.3 for a, b in zip(ups, ups[1:])) and '^C' in cl
+      and st['clock_stopped']['ok'], (ups, cl[-2:]))
+    clock = [p for p in st['clock_stopped']['procs'] if p['pid'] == 5]
+    c('Ctrl-C ended clock (pid 5): EXITED 130, killed, pages back; the shell waited in the foreground',
+      clock and clock[0]['state'] == 3 and clock[0]['exit_code'] == 130 and clock[0]['killed'] == 1
+      and clock[0]['npages'] == 0 and st['clock_stopped']['sched']['interrupted'] == 1
+      and st['clock_running']['sched']['fg_pid'] == 5 and st['clock_running']['sched']['fg_waiter'] == 1)
+    c('run clock & -> started pid 6 (background, no wait)', 'started pid 6' in uart)
+    after = uart.split('run clock &', 1)[-1]        # background output interleaves from here
+    c('ps shows the background program by name', re.search(
+        r'^pid 6 C (SLEEPING|READY|RUNNING) preempted \d+ syscalls \d+ clock$', after, re.M))
+    clock_pages = 3 + len(expected_pages(ctx['uelf']['clock'])) + 4
+    c(f'kill 6 returned its {clock_pages} pages', f'killed pid 6, {clock_pages} pages returned' in uart)
+    c('run nosuch -> not found message', re.search(r'^run: no program nosuch \(try ls\)$', after, re.M))
+    mems = [tuple(map(int, x)) for x in re.findall(r'free pages: (\d+) of (\d+)', uart)]
+    c('mem at the end: all pages free', mems and mems[-1][0] == mems[-1][1] == total, mems)
+    procs = end['procs']
+    c('at the end: shell BLOCKED at its prompt, B running, no run-time process owns pages',
+      procs[0]['state'] == 6 and procs[1]['state'] in (1, 2)
+      and all(p['npages'] == 0 for p in procs[2:]) and end['mem']['free'] == total
+      and end['wait']['watch_hit'] is None)
+    c('every command ended with a new prompt (10 prompts)', uart.count('proto> ') == 10 and all(
+        s_['ok'] for s_ in obs['steps'] if s_['name'].startswith('cmd ')), uart.count('proto> '))
+    c('trace: no user exception other than ecall', not user_faults(ctx['trace']))
+
+
+def oracle_n10(c, obs, ctx):
+    d = steps(obs)['done']
+    r, m, s = d['results'], d['mem'], d['sched']
+    bad = list(ctx['manifest']['badelf.img'].items())
+    c(f'A tried all {len(bad)} malformed files', d['hit'] and r[1] == len(bad), r[1])
+    wrong = [(n, hex(r[2 + k])) for k, (n, _) in enumerate(bad) if r[2 + k] != NEG(-8)]
+    c('run() refused every one with -8', not wrong, wrong[:4])
+    reasons = dict(re.findall(r'RUN refused name=(\w+) reason=-(\d+)', ctx['uart']))
+    wrong = [(n, reasons.get(n), -code) for n, code in bad if reasons.get(n) != str(-code)]
+    c('each for the defect it was built with (kernel reason = images.json)', not wrong, wrong[:4])
+    c('nothing was started or allocated for them: loads refused = 30, allocations = frees',
+      s['load_errors'] == len(bad) and s['loaded'] == 1 and m['allocs'] == m['frees']
+      and s['spawned'] == 0, (s['load_errors'], s['loaded'], m))
+    want = [(64, 'name not in the archive', NEG(-2)), (65, 'empty name', NEG(-22)),
+            (66, 'name longer than 15', NEG(-22)), (67, "name in B's memory", NEG(-14)),
+            (68, 'name in kernel memory', NEG(-14)), (69, 'the valid file still starts (pid 3)', 3),
+            (70, '... and exits with 42', 42)]
+    for k, name, v in want:
+        c(f'{name}: {v if v < 1 << 63 else v - (1 << 64)}', r[k] == v, hex(r[k]))
+    c('free = baseline at the end', r[71] == r[0] == m['free'], (r[0], r[71]))
+    c('no run-time process alive', all(p['state'] in (0, 3, 4) for p in d['procs'][2:]))
+    c('trace: no user exception other than ecall', not user_faults(ctx['trace']))
+
+
+def oracle_n11(c, obs, ctx):
+    st = steps(obs)
+    d, a = st['done'], st['after']
+    stem = pathlib.Path(ctx['image']).stem
+    code = ctx['manifest']['badarc'][stem]
+    r, m, arc = d['results'], d['mem'], d['archive']
+    line = re.search(r'ARCHIVE (\d+) bytes at 0x([0-9a-f]+), (\d+) pages reserved: rejected code=-(\d+)',
+                     ctx['uart'])
+    pages = len(d['archive_bits'])
+    c(f'{stem}: kernel rejected the archive with reason {code}', line
+      and int(line[4]) == -code and int(line[1]) == ctx['image_size'], line and line.groups())
+    c('no programs: progs(0) = -2, run("ok") = -2', d['hit'] and arc['count'] == 0
+      and arc['pa'] == 0 and r[2] == NEG(-2) and r[3] == NEG(-2), (hex(r[2]), hex(r[3])))
+    c('its pages stay reserved and out of the allocator', d['archive_bits'] == [1] * pages
+      and m['reserved'] == pages == int(line[3] if line else -1) and r[1] == m['pages'] - pages
+      and r[0] == m['free'])
+    c("archive memory not user-accessible in A's root", 'U' not in flags_of(d['walk_a_archive']))
+    c('the system keeps running: B counts on', a['wait']['reached']
+      and a['words_b'][0] > d['words_b'][0])
+
+
+BAD_USER = ['b_text', 'b_rodata', 'b_kernel', 'b_exec', 'b_stack', 'b_heap', 'b_fpu', 'b_csr']
+
+
+def oracle_n12(c, obs, ctx):
+    st = steps(obs)
+    d, a = st['done'], st['after']
+    r, m = d['results'], d['mem']
+    u = ctx['usym']
+    c('A ran all 8 programs', d['hit'] and r[1] == len(BAD_USER), r[1])
+    c('each started (pids 3..10) and wait() reported 139 (faulted) for each',
+      [r[2 + 2 * k] for k in range(8)] == list(range(3, 11))
+      and [r[3 + 2 * k] for k in range(8)] == [139] * 8, r[2:18])
+    faults = user_faults(ctx['trace'])
+    text = lambda e: 0x40000000 <= e['epc'] < 0x40001000  # noqa: E731
+    want = [
+        ('store into its own code', lambda e: e['cause'] == 15 and e['tval'] == u['b_text']['_start']),
+        ('store into its constants', lambda e: e['cause'] == 15
+         and e['tval'] == u['b_rodata']['b_rodata_constant']),
+        ('load from the kernel', lambda e: e['cause'] == 13 and e['tval'] == 0x80200000),
+        ('jump into its data', lambda e: e['cause'] == 12 and e['epc'] == e['tval']
+         == u['b_exec']['b_exec_code']),
+        ('stack overflow into the guard page', lambda e: e['cause'] == 15
+         and 0x401fb000 <= e['tval'] < 0x401fc000),
+        ('store past its heap', lambda e: e['cause'] == 15 and e['tval'] == u['b_heap']['_end'] + 4096),
+        ('floating-point instruction (FP off)', lambda e: e['cause'] == 2 and text(e)),
+        ('write to satp', lambda e: e['cause'] == 2 and text(e)),
+    ]
+    c('trace: exactly 8 user exceptions', len(faults) == 8, len(faults))
+    for k, (name, ok) in enumerate(want):
+        e = faults[k] if k < len(faults) else None
+        c(f'{BAD_USER[k]}: {name}', e is not None and ok(e) and (k == 3 or text(e)), e)
+    c('UART: 8 FAULT lines, one per program', len(re.findall(r'^FAULT [A-H]\(pid=', ctx['uart'], re.M)) == 8)
+    c('every page came back: free = baseline, allocations = frees', r[40] == r[0] == m['free']
+      and m['allocs'] == m['frees'] and all(p['npages'] == 0 for p in d['procs'][2:]))
+    c('A and B unaffected: B keeps counting', a['wait']['reached'] and a['words_b'][0] > d['words_b'][0]
+      and a['procs'][0]['state'] in (1, 2, 5) and a['procs'][1]['state'] in (1, 2))
+
+
+ORACLES.update({'t18': oracle_t18, 't19': oracle_t19, 't20': oracle_t20, 't21': oracle_t21,
+                't22': oracle_t22, 'n10': oracle_n10, 'n11': oracle_n11, 'n12': oracle_n12})
+
+
 def judge(probe, obs, ctx):
     c = Checks()
     if not obs.get('complete'):
@@ -1156,6 +1599,8 @@ def judge(probe, obs, ctx):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--elf', default=str(ROOT / 'build/protoos.elf'))
+    ap.add_argument('--images', default=str(ROOT / 'build'),
+                    help='v1.4 program archives, user/*.elf and images.json (build-wsl.sh)')
     ap.add_argument('--tests', default=','.join(MATRIX))
     ap.add_argument('--reps', type=int, default=3)
     ap.add_argument('--t7-seconds', type=int, default=20)
@@ -1172,20 +1617,25 @@ def main():
     shutil.copyfile(elf_src, elf)
     sym, uva = load_symbols(elf)
     offsets = struct_offsets(elf)
+    images = pathlib.Path(args.images).resolve()
+    v14 = load_v14(images, work, out, args.tests.split(','))
     procs_addr = [sym['procs'] + i * offsets['sizeof_process'] for i in (0, 1)]
     env = {'elf_sha256': image, 'firmware': FW, 'firmware_sha256': sha256(FW),
            'qemu': tool_version([QEMU, '--version']), 'gdb': tool_version([GDB, '--version']),
            'zig': tool_version([os.path.expanduser('~/.protoos-venv/bin/zig'), 'version']),
            'host': f'{os.uname().sysname} {os.uname().release} {os.uname().machine}', 'python': sys.version.split()[0],
            'git_head': git_head(),
-           'struct_offsets': offsets}
+           'struct_offsets': offsets, 'images': v14['images_sha256']}
     (out / 'environment.json').write_text(json.dumps(env, indent=1))
     results = []
     for test in args.tests.split(','):
         for rep in range(1, args.reps + 1):
             parts = []
-            for scenario, probe in MATRIX[test]:
-                rel = pathlib.Path('raw') / test / f'run{rep}' / scenario.split('=')[1]
+            for scenario, probe, *img in MATRIX[test]:
+                img = img[0] if img else None
+                name = scenario.split('=')[1] + (f'+{pathlib.Path(img).stem}' if img else '')
+                rel = pathlib.Path('raw') / test / f'run{rep}' / name
+                initrd = v14['work_images'] / img if img else None
                 # QEMU writes the -d int trace synchronously from the vCPU
                 # thread; on a slow filesystem (WSL /mnt/c) that stretches
                 # every trap past the 10 ms quantum. Record on local tmpfs,
@@ -1196,15 +1646,21 @@ def main():
                 if probe == 't7':
                     obs = boot_free_running(elf, scenario, rundir, sym, offsets, args.t7_seconds)
                 else:
-                    obs = boot_with_gdb(elf, scenario, probe, rundir, sym, uva)
+                    obs = boot_with_gdb(elf, scenario, probe, rundir, sym, uva, initrd,
+                                        v14['usym'])
                 ctx = {'trace': parse_trace(rundir / 'qemu-int.log')
                        if (rundir / 'qemu-int.log').exists() else [],
                        'uart': (rundir / 'uart.log').read_text(errors='replace')
                        if (rundir / 'uart.log').exists() else '',
                        'sym': sym, 'uva': uva, 'sha': image, 'sha_after': sha256(elf),
-                       'procs_addr': procs_addr, 't7_seconds': args.t7_seconds}
+                       'procs_addr': procs_addr, 't7_seconds': args.t7_seconds,
+                       'image': img, 'image_sha': v14['images_sha256'].get(img),
+                       'image_sha_after': sha256(initrd) if initrd else None,
+                       'image_size': initrd.stat().st_size if initrd else None,
+                       'manifest': v14['manifest'], 'usym': v14['usym'], 'uelf': v14['uelf']}
                 status, items, note = judge(probe, obs, ctx)
                 verdict = {'test': test, 'repetition': rep, 'scenario': scenario, 'probe': probe,
+                           'program_archive': img,
                            'status': status, 'note': note, 'elf_sha256': image,
                            'seconds': round(time.time() - t0, 2), 'checks': items,
                            'summary': obs.get('summary'),
@@ -1216,13 +1672,14 @@ def main():
                     shutil.copyfile(f, out / rel / f.name)
                 parts.append(verdict)
                 bad = [i['check'] for i in items if not i['ok']]
-                print(f'{test} run{rep} {scenario:28s} {status:12s} '
+                print(f'{test} run{rep} {name:28s} {status:12s} '
                       f'{len(items) - len(bad)}/{len(items)} checks {note} {bad[:2]}', flush=True)
             st = [p['status'] for p in parts]
             rep_status = 'PASS' if all(s == 'PASS' for s in st) else (
                 'FAIL' if 'FAIL' in st else 'INCONCLUSIVE')
             results.append({'test': test, 'repetition': rep, 'status': rep_status,
-                            'boots': [{k: p[k] for k in ('scenario', 'status', 'note', 'seconds')}
+                            'boots': [{k: p[k] for k in ('scenario', 'program_archive', 'status', 'note',
+                                              'seconds')}
                                       for p in parts]})
     per_test = {}
     for t in args.tests.split(','):

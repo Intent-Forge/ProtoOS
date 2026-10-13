@@ -42,3 +42,19 @@ void mem_free(uint64_t pa)
     mem.free++;
     mem.frees++;
 }
+
+uint64_t mem_reserve(uint64_t start, uint64_t end)
+{
+    uint64_t first = (start & ~UINT64_C(4095)) - mem.base;
+    uint64_t last = ((end + 4095u) & ~UINT64_C(4095)) - mem.base;
+    if (start < mem.base || end <= start || last / 4096u > mem.pages)
+        kernel_panic("mem_reserve outside the pool");
+    for (uint64_t page = first / 4096u; page < last / 4096u; ++page) {
+        uint64_t bit = UINT64_C(1) << (page % 64u);
+        if (mem.bitmap[page / 64u] & bit) kernel_panic("mem_reserve of a page in use");
+        mem.bitmap[page / 64u] |= bit;
+        mem.free--;
+        mem.reserved++;
+    }
+    return (last - first) / 4096u;
+}

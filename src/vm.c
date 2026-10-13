@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "elf.h"
 #include "input.h"
 #include "mem.h"
 #include "sv39_builder.h"
@@ -194,10 +195,47 @@ uint64_t vm_create(uint64_t base, uint64_t pages[VM_PROC_PAGES])
     return satp_for_root(pages[0]);
 }
 
-void vm_destroy(const uint64_t pages[VM_PROC_PAGES])
+void vm_destroy(const uint64_t *pages, uint64_t n)
 {
-    for (unsigned i = 0; i < VM_PROC_PAGES; ++i)
+    for (uint64_t i = 0; i < n; ++i)
         mem_free(pages[i]);
+}
+
+/* v1.4: the ELF window is exactly what one level-0 table covers, in a
+ * 1 GiB region of its own. */
+_Static_assert(ELF_LOAD_BASE % (UINT64_C(1) << 30) == 0, "ELF window starts a 1 GiB region");
+_Static_assert(ELF_STACK_TOP - ELF_LOAD_BASE == SV39_MEGA_SIZE, "ELF window = one L0 table");
+_Static_assert(ELF_LOAD_END <= ELF_HEAP_END, "segments end below the stack guard");
+
+uint64_t vm_elf_create(uint64_t pages[ELF_TABLE_PAGES])
+{
+    for (unsigned i = 0; i < ELF_TABLE_PAGES; ++i) {
+        if (!(pages[i] = mem_alloc())) {
+            while (i--) mem_free(pages[i]);
+            return 0;
+        }
+    }
+    /* The root starts as a copy of the template root: the kernel, UART,
+     * PLIC and program-page tables are shared (all U=0 except the program
+     * pages). Only the window's L1 slot and L0 are private. */
+    volatile sv39_pte_t *root = (volatile sv39_pte_t *)(uintptr_t)pages[0];
+    volatile sv39_pte_t *l1 = (volatile sv39_pte_t *)(uintptr_t)pages[1];
+    const sv39_pte_t *troot = table_at(template_as.pool_pa);
+    for (unsigned e = 0; e < SV39_PT_ENTRIES; ++e) root[e] = troot[e];
+    if (troot[vpn(ELF_LOAD_BASE, 2)]) kernel_panic("ELF window collides with a template mapping");
+    root[vpn(ELF_LOAD_BASE, 2)] = table_entry(pages[1]);
+    l1[vpn(ELF_LOAD_BASE, 1)] = table_entry(pages[2]);
+    return satp_for_root(pages[0]);
+}
+
+void vm_elf_map(uint64_t l0_pa, uint64_t va, uint64_t pa, uint64_t pte)
+{
+    if (va < ELF_LOAD_BASE || va >= ELF_STACK_TOP || (va & SV39_PAGE_OFFSET_MASK) ||
+        (pa & SV39_PAGE_OFFSET_MASK))
+        kernel_panic("vm_elf_map outside the ELF window");
+    volatile sv39_pte_t *l0 = (volatile sv39_pte_t *)(uintptr_t)l0_pa;
+    if (l0[vpn(va, 0)]) kernel_panic("vm_elf_map over an existing mapping");
+    l0[vpn(va, 0)] = leaf_entry(pa, pte);
 }
 
 void vm_switch(uint64_t satp)

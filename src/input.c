@@ -45,6 +45,11 @@ void input_irq(void)
         while (uart()[UART_LSR] & UART_LSR_DR) {
             uint8_t c = uart()[UART_RBR];
             input.received++;
+            if (c == INPUT_INTR && input.intr_armed) {
+                input.intr_pending = 1;
+                input.intrs++;
+                continue;
+            }
             /* Full buffer: keep the oldest bytes, drop the new one. */
             if (input.count == INPUT_CAPACITY) { input.dropped++; continue; }
             input.buf[(input.head + input.count) % INPUT_CAPACITY] = c;

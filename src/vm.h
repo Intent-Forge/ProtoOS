@@ -28,6 +28,25 @@
 /* Pages owned by a run-time process: root, low L1, user L0, data, stack. */
 #define VM_PROC_PAGES 5u
 
+/* v1.4 programs from the archive (src/elf.h): every one sees the same
+ * 2 MiB window in its own root, behind a private level-1 table (the 1 GiB
+ * at ELF_LOAD_BASE is unused by the kernel and the template) and a private
+ * level-0 table:
+ *   0x40000000 ... ELF segments (below ELF_LOAD_END), then the heap
+ *   ELF_HEAP_END   guard page, never mapped
+ *   0x401fc000 ... stack, ELF_STACK_PAGES R W U, sp = ELF_STACK_TOP */
+#define ELF_TABLE_PAGES 3u          /* root, L1, L0 */
+#define ELF_STACK_PAGES 4u
+#define ELF_STACK_TOP  UINT64_C(0x40200000)
+#define ELF_STACK_BASE (ELF_STACK_TOP - ELF_STACK_PAGES * UINT64_C(4096))
+#define ELF_HEAP_END   (ELF_STACK_BASE - UINT64_C(4096))
+/* Upper bound on the pages one run-time process may own (tables included). */
+#define PROC_PAGE_LIMIT 64u
+/* User leaf permissions (A and D preset). */
+#define VM_PTE_UTEXT UINT64_C(0x5b)     /* V R X U A */
+#define VM_PTE_URO   UINT64_C(0x53)     /* V R U A */
+#define VM_PTE_URW   UINT64_C(0xd7)     /* V R W U A D */
+
 extern uint64_t vm_kernel_satp;
 extern uint64_t vm_proc_satp[PROC_STATIC];
 
@@ -42,8 +61,16 @@ int vm_user_range_ok(uint64_t satp, uint64_t va, uint64_t len, uint64_t need);
  * program pages shared from the template, fresh zeroed data and stack.
  * Fills pages[] and returns the satp value, or 0 if memory ran out. */
 uint64_t vm_create(uint64_t base, uint64_t pages[VM_PROC_PAGES]);
-/* Free everything vm_create allocated. The root must not be in use. */
-void vm_destroy(const uint64_t pages[VM_PROC_PAGES]);
+/* Free pages[0..n) (from vm_create, vm_elf_create or later mappings). No
+ * root among them may be in use. */
+void vm_destroy(const uint64_t *pages, uint64_t n);
+/* v1.4: new address space for an ELF program: root copied from the
+ * template, private L1 and L0 for the window. pages[0..2] = root, L1, L0.
+ * Returns the satp value, or 0 if memory ran out (nothing kept). */
+uint64_t vm_elf_create(uint64_t pages[ELF_TABLE_PAGES]);
+/* Map user page va (4 KiB aligned, inside the window) to pa in the window's
+ * level-0 table with leaf flags pte (VM_PTE_*). */
+void vm_elf_map(uint64_t l0_pa, uint64_t va, uint64_t pa, uint64_t pte);
 /* Install satp and flush all translations. */
 void vm_switch(uint64_t satp);
 #endif

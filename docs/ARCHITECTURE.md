@@ -1,14 +1,14 @@
-# ProtoOS v1.3 — architecture
+# ProtoOS v1.4 — architecture
 
-Normative basis: the frozen specification v1.0 ([`TECHNICAL_SPECIFICATION_RU.md`](../TECHNICAL_SPECIFICATION_RU.md)) and decisions 01–19 ([`DECISION_REGISTER_RU.md`](../DECISION_REGISTER_RU.md)). v1.1 extensions (`write`, `sleep`, demo mode) are specified in [`SPEC_V1_1.md`](SPEC_V1_1.md), v1.2 extensions (console input through the PLIC, `read`, `uptime`, `procinfo`, the shell) in [`SPEC_V1_2.md`](SPEC_V1_2.md), v1.3 extensions (page allocator, 8 process slots, `spawn`/`kill`/`meminfo`/`slotinfo`, built-in programs) and the v1.3.1 corrections in [`SPEC_V1_3.md`](SPEC_V1_3.md). This document records the technical choices the specifications leave to the implementer. Russian version: [`ARCHITECTURE_V1_RU.md`](ARCHITECTURE_V1_RU.md).
+Normative basis: the frozen specification v1.0 ([`TECHNICAL_SPECIFICATION_RU.md`](../TECHNICAL_SPECIFICATION_RU.md)) and decisions 01–19 ([`DECISION_REGISTER_RU.md`](../DECISION_REGISTER_RU.md)). v1.1 extensions (`write`, `sleep`, demo mode) are specified in [`SPEC_V1_1.md`](SPEC_V1_1.md), v1.2 extensions (console input through the PLIC, `read`, `uptime`, `procinfo`, the shell) in [`SPEC_V1_2.md`](SPEC_V1_2.md), v1.3 extensions (page allocator, 8 process slots, `spawn`/`kill`/`meminfo`/`slotinfo`, built-in programs) and the v1.3.1 corrections in [`SPEC_V1_3.md`](SPEC_V1_3.md), v1.4 extensions (programs in C loaded from a program archive, `run`/`wait`/`sbrk`/`progs`, Ctrl-C) in [`SPEC_V1_4.md`](SPEC_V1_4.md). This document records the technical choices the specifications leave to the implementer. Russian version: [`ARCHITECTURE_V1_RU.md`](ARCHITECTURE_V1_RU.md).
 
 ## Platform
 QEMU `virt`, `-cpu rv64 -smp 1 -m 128M`; OpenSBI `fw_dynamic.bin` runs in M-mode and enters the kernel in S-mode at `0x80200000` (`a0` = hart id, `a1` = device tree). Kernel and user ISA: RV64IM + Zicsr + Zifencei, LP64, no floating point. In U-mode `sstatus.FS = VS = Off`, so any FP/vector instruction raises an illegal-instruction exception and the process is marked FAULTED (no FP state is kept).
 
 ## Boot sequence
 1. `_start` (`boot.S`): interrupts off, `sscratch = 0`, clear `.bss` and the user pages, install `stvec`.
-2. `kernel_main` (`kernel.c`): check hart 0 and `satp = 0`, parse the device tree (UART address, timebase, `bootargs` from `/chosen`), select the scenario.
-3. Set up the page pool below the device tree (`mem.c`), build the kernel, template, A and B Sv39 roots (`vm.c`), switch to the kernel root, verify `satp` was accepted.
+2. `kernel_main` (`kernel.c`): check hart 0 and `satp = 0`, parse the device tree (UART address, timebase, `bootargs` and, since v1.4, the program archive `linux,initrd-start/-end` from `/chosen`), select the scenario.
+3. Set up the page pool below the device tree (`mem.c`); v1.4: if the boot loader supplied a program archive inside the pool, reserve its pages and check it completely (`archive.c`); build the kernel, template, A and B Sv39 roots (`vm.c`), switch to the kernel root, verify `satp` was accepted.
 4. Create processes A and B, enable the UART receive interrupt in the UART and the PLIC (`input.c`), arm the timer, set `sie.STIE` and `sie.SEIE`, enter the first process with `sret` (`proc.c`, `trap.S`).
 
 ## Physical memory (static)
@@ -23,6 +23,7 @@ QEMU `virt`, `-cpu rv64 -smp 1 -m 128M`; OpenSBI `fw_dynamic.bin` runs in M-mode
 | `__user_prog_text` (3 pages, v1.3) | shared built-in programs and the shell | every process root at `0x4000000`, R X U |
 | `user_{a,b}_{data,stack}` | data and stack pages of A and B | owner's root only, U=1 |
 | `0x80400000` – 2 MiB below the device tree (v1.3) | page pool: tables, data and stack pages of run-time processes | every root: 2 MiB leaves R W, U=0; plus the owner's 4 KiB user mappings |
+| inside the pool, where the boot loader put it (QEMU: `0x84200000`) (v1.4) | program archive (`-initrd`) | reserved in the allocator for good; kernel-only through the pool map |
 | `0x10000000` | UART 16550 | R W, U=0 |
 | `0x0C000000`, `0x0C002000`, `0x0C201000` | PLIC: priorities, S-mode enables, S-mode threshold/claim (v1.2) | R W, U=0 |
 
@@ -30,6 +31,20 @@ The static user pages lie after `__kernel_end` and are **not** part of the kerne
 
 ## Page allocator (v1.3)
 `mem.c` manages the pool `[0x80400000, end)`, where `end` is the 2 MiB boundary below the device tree (31 232 pages on QEMU `virt` with 128 MiB), with a bitmap; `mem_alloc` takes the lowest free page and **zeroes it**, `mem_free` panics on a page that is not allocated. Lowest-first makes the reuse of freed pages deterministic, which test T13 exploits to show that a reused page arrives zeroed.
+
+## Programs from the archive (v1.4)
+The archive is a cpio "newc" file. `archive_parse` (`archive.c`) checks all of it once at boot — magic, every header field, names (1–15 characters `a–z 0–9 _`, unique), regular files only, data inside the archive, at most 32 files, the trailer and nothing but zeros after it — and indexes the files; any defect rejects the whole archive. `elf_check` (`elf.c`) checks a program file completely before anything is allocated: ELF64 RISC-V `ET_EXEC`, little endian, `e_flags` = 0, 1–4 `PT_LOAD` segments in order, page-aligned, non-overlapping, inside `[0x40000000, 0x40100000)`, readable and never both writable and executable, file bytes inside the file, no dynamic linking or TLS, the entry inside executable file bytes, at most 57 pages. Both are pure functions over a byte array, read bytewise (no alignment assumptions), and tested on the host with every defect, every truncation and mutation fuzzing.
+
+`run` then builds the process (`proc.c`, `vm.c`): a root copied from the template, a private level-1 table for the 1 GiB at `0x40000000` and a private level-0 table for its 2 MiB window, one zeroed pool page per segment page (file bytes copied in, the rest stays zero: `.bss`), mapped with the segment's permissions, and 4 stack pages; then `fence.i`, so instruction fetch sees the code that was written with ordinary stores. If memory runs out, every page taken so far is returned.
+
+| Program VA | Contents | Permissions |
+|---|---|---|
+| `0x40000000` … | ELF segments | code R X U, constants R U, data R W U |
+| after the image | heap (`sbrk`, page by page, zeroed) | R W U |
+| `0x401fb000` | guard page, never mapped | — |
+| `0x401fc000`–`0x401fffff` | stack, `sp` = `0x40200000` | R W U |
+
+A run-time process owns at most 64 pages; `sbrk` allocates every page it needs before mapping any (all or nothing) and refuses growth into the guard page or beyond the limit.
 
 ## Virtual memory
 Sv39 roots (`vm.c`): kernel, a template (kernel + program pages, never installed), A, B, and one per run-time process; 4 KiB user leaves; A/D bits preset in software (no reliance on Svadu). ASID 0 everywhere: every `satp` change is bracketed by `sfence.vma zero, zero`. Every root also maps the page pool with 2 MiB leaves, U=0, so the kernel can build and clear pages of any process whatever root is installed.
@@ -42,7 +57,7 @@ Sv39 roots (`vm.c`): kernel, a template (kernel + program pages, never installed
 | stack | `0x403000` (sp = `0x404000`) | `0x803000` (sp = `0x804000`) | `+ 0x3000` (sp = `+ 0x4000`) | R W U |
 | programs | `0x4000000`–`0x4002FFF` | same | same | R X U (shared, read-only) |
 
-Disjoint VA ranges make a cross-process access name an address that is simply unmapped in the attacker's root. A run-time root is assembled by `vm_create` from 5 pool pages: the root and the low level-1 table start as copies of the template (sharing the kernel's high level-1 table and the UART, PLIC and program level-0 tables), then one private level-0 table maps the data and stack page. `vm_destroy` frees exactly these 5 pages.
+Disjoint VA ranges make a cross-process access name an address that is simply unmapped in the attacker's root. Archive programs (v1.4) all use the same window at `0x40000000` instead, each in its own root, so another program's pages are simply not in it. A run-time root is assembled by `vm_create` from 5 pool pages: the root and the low level-1 table start as copies of the template (sharing the kernel's high level-1 table and the UART, PLIC and program level-0 tables), then one private level-0 table maps the data and stack page. `vm_destroy` frees exactly these 5 pages.
 
 ## Traps
 One vector, `trap_entry` (`trap.S`). `sscratch` protocol: while a process runs in U-mode it holds the address of that process's `struct trap_frame`; while the kernel runs it is 0. The kernel never sets `sstatus.SIE`, so a trap with `sscratch == 0` is a synchronous S-mode exception: it switches to the emergency stack and reports `KERNEL_PANIC` with `scause`/`sepc`/`stval` — including a kernel stack overflow into the guard page. From U-mode the entry saves x1–x31 plus `sepc`, `sstatus`, `scause`, `stval` (288 bytes) and continues on an empty kernel stack; `user_return` restores a frame and executes `sret`.
@@ -52,7 +67,10 @@ Interrupts from U-mode: the S timer (cause 5) preempts the process; the S extern
 ## Scheduler
 Round robin over the 8 process slots (v1.3; A and B in slots 0 and 1) with a 10 ms quantum (`timebase / 100`; 100 000 ticks on QEMU `virt`), driven by the S-mode timer through SBI TIME (`sbi_set_timer`). Choosing the next process and switching context are done by the kernel. The search for the next process starts at the slot after the last dispatched one, even if that process has just ended (v1.3.1: the position is kept in `sched.last_slot`). A run-time process that exits, faults or is killed gives all its pages back at once (`reclaim`); if its root is installed, the kernel switches to its own root first. Pids increase from 3 and are never reused: when they are exhausted, `spawn` returns −11 (v1.3.1).
 
-States: READY, RUNNING, SLEEPING, BLOCKED (v1.2: waiting for input), EXITED, FAULTED. At every scheduling point the kernel first moves SLEEPING processes whose wake-up time has passed, and BLOCKED readers if input is buffered, to READY. A reader is dispatched only with input waiting: `sched_dispatch` installs its root and then copies the bytes into its buffer and sets its `a0`. If no process is READY but some are SLEEPING or BLOCKED, `sched_wait` arms the timer for the earliest wake-up (or disarms it) and waits in `wfi` (with `sstatus.SIE` still 0, so no trap is taken), servicing a pending external interrupt by polling and returning early when input arrives for a blocked reader; then scheduling resumes with a fresh quantum. Only when no process is READY, RUNNING, SLEEPING or BLOCKED does `sched_idle` turn the timer off, clear `sie`, install the kernel root and park in a `wfi` loop in `halt()`; no process context is ever loaded again.
+States: READY, RUNNING, SLEEPING, BLOCKED (v1.2: waiting for input; v1.4: or for another process to end), EXITED, FAULTED. At every scheduling point the kernel first moves SLEEPING processes whose wake-up time has passed, and BLOCKED readers if input is buffered, to READY. A process BLOCKED in `wait` (v1.4) becomes READY, with the status in `a0`, the moment the awaited process ends (exit, fault, kill or Ctrl-C). A reader is dispatched only with input waiting: `sched_dispatch` installs its root and then copies the bytes into its buffer and sets its `a0`. If no process is READY but some are SLEEPING or BLOCKED, `sched_wait` arms the timer for the earliest wake-up (or disarms it) and waits in `wfi` (with `sstatus.SIE` still 0, so no trap is taken), servicing a pending external interrupt by polling and returning early when input arrives for a blocked reader; then scheduling resumes with a fresh quantum. Only when no process is READY, RUNNING, SLEEPING or BLOCKED does `sched_idle` turn the timer off, clear `sie`, install the kernel root and park in a `wfi` loop in `halt()`; no process context is ever loaded again.
+
+## Console foreground and Ctrl-C (v1.4)
+A `wait` with the foreground flag makes the awaited process the console foreground (`sched.fg_pid`) and arms Ctrl-C in the input path (`input.intr_armed`). While armed, the receive interrupt does not buffer the byte 0x03 but sets `input.intr_pending`; the kernel then ends the foreground process like `kill` (exit code 130) — at once if the interrupt came from user mode, or from the wait loop — whether it is running, sleeping or blocked in `read`. Ending the foreground process or its waiter disarms Ctrl-C; without a foreground wait 0x03 is ordinary input.
 
 ## System calls
 `ecall` from U-mode; number in `a7`, arguments in `a0`–`a2`, result in `a0`; execution resumes at `sepc + 4`. Numbers follow the RISC-V Linux table, except the ProtoOS-specific ones (1001 and up).
@@ -66,14 +84,18 @@ States: READY, RUNNING, SLEEPING, BLOCKED (v1.2: waiting for input), EXITED, FAU
 | `procinfo(pid, buf)` | 1003 | v1.2: writes state, preemptions, system calls and dispatches of `pid` (any pid with a slot since v1.3, else −22) as four words into 32 bytes of the caller's U+R+W memory (else −14); returns 0 |
 | `spawn(program)` | 1004 | v1.3: starts built-in program 1–5 in the lowest free slot; returns its pid. Errors: −22 unknown program, −11 no free slot (or pids exhausted, v1.3.1), −12 out of memory |
 | `kill(pid)` | 1005 | v1.3: ends a live run-time process (exit code 137), its pages return; 0. Errors: −3 no such live process, −1 the caller or a boot process |
-| `meminfo()` | 1006 | v1.3: free pages in `a0`, pool pages in `a1` |
-| `slotinfo(slot, buf)` | 1007 | v1.3: pid, state, program, preemptions, system calls, pages of slot 0–7 as six words into 48 bytes of U+R+W memory; 0. Errors: −22, −14 |
+| `meminfo()` | 1006 | v1.3: free pages in `a0`, pool pages in `a1` (v1.4: without the archive's pages) |
+| `slotinfo(slot, buf)` | 1007 | v1.3: pid, state, program, preemptions, system calls, pages of slot 0–7 as six words into 48 bytes of U+R+W memory; 0. Errors: −22, −14. v1.4: program 16 + n = archive file n |
+| `run(name, len)` | 1008 | v1.4: starts archive program `name`; returns its pid. Errors: −22, −14, −2 not found, −8 not a valid program, −11, −12 |
+| `wait(pid, flags)` | 1009 | v1.4: status of `pid` once it has ended (exit code & 0xff, 137 killed, 130 Ctrl-C, 139 faulted), BLOCKED until then; flag 1 = foreground. Errors: −22, −3, −1, −16 |
+| `sbrk(bytes)` | 1010 | v1.4: grows an archive program's heap; returns the old end. Errors: −22, −12 |
+| `progs(index, buf)` | 1011 | v1.4: name (16 bytes) of archive file `index`; returns its size. Errors: −2, −14 |
 | `exit(code)` | 93 | process becomes EXITED and never runs again; a run-time process's pages return at once |
 | `yield()` | 124 | process becomes READY, the scheduler switches; returns 0 |
-| `getpid()` | 172 | returns the pid: 1 for A, 2 for B, 3 and up for run-time processes |
+| `getpid()` | 172 | returns the pid: 1 for A, 2 for B, 3 and up for run-time processes (built-in or archive programs) |
 | anything else | — | returns `-38` (ENOSYS); the process keeps running |
 
-Any other synchronous exception from U-mode (page or access fault, illegal instruction, misaligned access, breakpoint) marks only that process FAULTED (a run-time process also gives its pages back); the others keep running.
+Any other synchronous exception from U-mode (page or access fault, illegal instruction, misaligned access, breakpoint) marks only that process FAULTED (a run-time process also gives its pages back; v1.4: processes waiting for it wake with 139); the others keep running.
 
 ## One image, many scenarios
 The scenario is chosen only by `bootargs` (device tree `/chosen`); the ELF is identical for all of them.
@@ -82,7 +104,9 @@ The scenario is chosen only by `bootargs` (device tree `/chosen`); the ELF is id
 |---|---|---|---|
 | `protoos.mode=normal` | worker | worker | normal mode, T7 |
 | `protoos.mode=demo` | prints every 400 ms | prints every 700 ms, then writes into A's memory | v1.1 demonstration |
-| `protoos.mode=shell` | `proto>` shell: `help`, `ps`, `uptime`, `echo`, `attack`, and since v1.3 `run`, `kill`, `mem` | worker | interactive mode, T12, T17 |
+| `protoos.mode=shell` | `proto>` shell: `help`, `ps`, `uptime`, `echo`, `attack`, since v1.3 `run`, `kill`, `mem`, since v1.4 `ls`, `run <program> [&]` | worker | interactive mode, T12, T17; with `programs.img` T22 |
+| `protoos.test=elf` / `sbrk` / `wait` / `ctrlc` / `user-bad` (with `tests.img`) | load programs / heap / wait / Ctrl-C / 8 rule-breaking programs | worker | T18 / T19 / T20 / T21 / N12 |
+| `protoos.test=elf-bad` (`badelf.img`) / `archive-bad` (a `badarc/` image) | 30 malformed program files / a malformed archive | worker | N10 / N11 |
 | `protoos.test=mem` / `spawn` / `kill` / `multi` / `spawn-bad` | `memcheck` twice / one worker / kill and respawn / three workers and a crash / rejected calls and 200 cycles | worker | T13 / T14 / T15 / T16 / N9 |
 | `protoos.test=read` / `read-bad` / `read-flood` | valid / rejected / flooded `read` | worker | T10 / N7 / N8 |
 | `protoos.test=uptime` | `uptime` around `sleep(100)` | worker | T11 |
@@ -112,15 +136,18 @@ The scenario is chosen only by `bootargs` (device tree `/chosen`); the ELF is id
 | `src/vm.c`, `src/sv39_builder.c`, `src/sv39.h` | Sv39 page tables |
 | `src/proc.c` | processes, scheduler, system calls, fault handling, idle |
 | `src/input.c` | v1.2: PLIC setup, UART receive interrupt, input ring buffer |
-| `src/mem.c` | v1.3: physical page allocator (bitmap, zero on allocation) |
+| `src/mem.c` | v1.3: physical page allocator (bitmap, zero on allocation); v1.4: reservation of the archive |
+| `src/archive.c`, `src/elf.c` | v1.4: program archive parser, program file checker (pure, host-tested) |
 | `src/user.S` | user programs A and B; the shared program pages (shell, `worker`, `hello`, `counter`, `crash`, `memcheck`) |
 | `src/linker.ld` | memory layout and size checks |
+| `user/` | v1.4: `crt0.S`, library, `user.ld`; programs `guess`, `primes`, `clock`; test programs |
+| `build-scripts/mkimages.py` | v1.4: program archives, malformed test files and archives, `images.json` |
 
 ## Build and verify
 ```sh
-sh build-scripts/build-wsl.sh            # Zig 0.13.0 -> build/protoos.elf
-sh build-scripts/host-tests.sh           # Sv39 builder + device-tree parser (host)
+sh build-scripts/build-wsl.sh            # Zig 0.13.0 -> build/protoos.elf, programs, archives
+sh build-scripts/host-tests.sh           # Sv39 builder, device-tree, archive and ELF checkers (host)
 sh build-scripts/run-scenario.sh protoos.mode=normal 5
-sh build-scripts/run-shell.sh            # interactive shell; quit with Ctrl-A, X
-python3 validation/run_acceptance.py     # T1-T17, N1-N9 x3 -> evidence/acceptance/<run>/
+sh build-scripts/run-shell.sh            # interactive shell with programs.img; quit with Ctrl-A, X
+python3 validation/run_acceptance.py     # T1-T22, N1-N12 x3 -> evidence/acceptance/<run>/
 ```

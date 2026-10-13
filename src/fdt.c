@@ -31,6 +31,7 @@ int parse_dtb(const void *blob, size_t available, struct boot_config *out) {
     int found_uart=0,found_cpus=0,root_closed=0;
     unsigned root_cells=0,soc_cells=0; int soc_identity=0;
     out->uart=0; out->timebase_hz=0; out->bootargs[0]=0;
+    out->initrd_start=0; out->initrd_end=0; out->initrd_found=0;
     while ((size_t)(end-p)>=4) {
         uint32_t token=be32(p); p+=4;
         if (token==1) {
@@ -81,6 +82,16 @@ int parse_dtb(const void *blob, size_t available, struct boot_config *out) {
                 size_t n=bounded_len(p,len);
                 if(n==len || n>=sizeof(out->bootargs)) return -6;
                 for(size_t i=0;i<=n;++i) out->bootargs[i]=(char)p[i];
+            }
+            /* v1.4: program archive loaded by the boot loader (QEMU -initrd).
+             * QEMU 8 writes one cell, QEMU 10 two; anything else is malformed. */
+            if(k==1 && (eq(name,"linux,initrd-start") || eq(name,"linux,initrd-end"))) {
+                uint32_t bit=eq(name,"linux,initrd-start")?1u:2u;
+                if((len!=4 && len!=8) || (out->initrd_found&bit)) return -6;
+                uint64_t v=be32(p);
+                if(len==8) v=(v<<32)|be32(p+4);
+                if(bit==1u) out->initrd_start=v; else out->initrd_end=v;
+                out->initrd_found|=bit;
             }
             if(k==2 && eq(name,"timebase-frequency")) {
                 if(len!=4 || !be32(p) || found_cpus) return -6;

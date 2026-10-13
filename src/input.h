@@ -10,6 +10,7 @@
 #define PLIC_CONTEXT_PAGE  (PLIC_PHYS + 0x201000)
 #define UART_IRQ           10u
 #define INPUT_CAPACITY     128u
+#define INPUT_INTR         0x03u    /* v1.4: Ctrl-C */
 
 struct input_state {
     uint64_t count;     /* bytes waiting in buf */
@@ -18,6 +19,9 @@ struct input_state {
     uint64_t received;  /* bytes read from the UART */
     uint64_t dropped;   /* bytes discarded because buf was full */
     uint64_t spurious;  /* claims that were not the UART */
+    /* v1.4: while a foreground wait() is armed, Ctrl-C is not input: it
+     * sets intr_pending and the scheduler ends the foreground process. */
+    uint64_t intr_armed, intr_pending, intrs;
     uint8_t buf[INPUT_CAPACITY];
 };
 extern struct input_state input;
