@@ -255,13 +255,13 @@ def boot_free_running(elf, args, rundir, sym, offsets, seconds):
     samples, error = [], None
     try:
         q = Qmp(sock)
-        t0 = time.time()
+        t0 = time.monotonic()
         time.sleep(1.0)
         n = int(seconds // 5)
         for i in range(n + 1):
             if i:
-                time.sleep(max(0.0, t0 + 1.0 + 5 * i - time.time()))
-            s = {'host_elapsed': time.time() - t0}
+                time.sleep(max(0.0, t0 + 1.0 + 5 * i - time.monotonic()))
+            s = {'host_elapsed': time.monotonic() - t0}
             for k in ('counter', 'pid', 'error'):
                 off = {'counter': 0, 'pid': 8, 'error': 16}[k]
                 s[f'a_{k}'] = q.xp(sym['user_a_data'] + off)
@@ -1671,7 +1671,7 @@ def main():
                 # then copy the finished boot directory into the evidence.
                 rundir = work / rel
                 rundir.mkdir(parents=True)
-                t0 = time.time()
+                t0 = time.monotonic()
                 if probe == 't7':
                     obs = boot_free_running(elf, scenario, rundir, sym, offsets, args.t7_seconds)
                 else:
@@ -1691,7 +1691,7 @@ def main():
                 verdict = {'test': test, 'repetition': rep, 'scenario': scenario, 'probe': probe,
                            'program_archive': img,
                            'status': status, 'note': note, 'elf_sha256': image,
-                           'seconds': round(time.time() - t0, 2), 'checks': items,
+                           'seconds': round(time.monotonic() - t0, 2), 'checks': items,
                            'summary': obs.get('summary'),
                            'raw_sha256': {p.name: sha256(p) for p in sorted(rundir.iterdir())
                                           if p.is_file()}}

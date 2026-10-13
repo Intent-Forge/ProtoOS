@@ -215,16 +215,27 @@ def bp(addr, cond=None):
 
 def run_to(*bps, wall=30.0):
     """Continue until one of bps stops the target or `wall` seconds pass.
-    Returns the breakpoint that was hit, or None on the wall-clock limit."""
+    Returns the breakpoint that was hit, or None on the wall-clock limit.
+    The limit interrupts `continue` with SIGINT. GDB sometimes drops that
+    SIGINT (seen in T22 while a conditional breakpoint kept being hit and
+    resumed; `continue` then never returned and the probe timed out), so the
+    interrupt is repeated every 0.5 s until `continue` has returned."""
     before = {b.number: b.hit_count for b in bps}
-    timer = threading.Timer(wall, lambda: os.kill(os.getpid(), signal.SIGINT))
-    timer.start()
+    done = threading.Event()
+
+    def interrupt():
+        if done.wait(wall):
+            return
+        while not done.is_set():
+            os.kill(os.getpid(), signal.SIGINT)
+            done.wait(0.5)
+    threading.Thread(target=interrupt, daemon=True).start()
     try:
         gdb.execute('continue', to_string=True)
     except (KeyboardInterrupt, gdb.error):
         pass
     finally:
-        timer.cancel()
+        done.set()
     for b in bps:
         if b.hit_count != before[b.number]:
             return b
@@ -557,8 +568,8 @@ SHELL_SCRIPT = ['help', 'ps', 'uptime', 'echo hello from the test', 'attack', 'p
 def shell_settle(uart, prompts, wall=20.0):
     """Let the guest run until the shell has printed `prompts` prompts and is
     back in read(); every stop is at A's read ecall, so no output is cut."""
-    end = time.time() + wall
-    while time.time() < end:
+    end = time.monotonic() + wall
+    while time.monotonic() < end:
         clear()
         b = bp(SYM['trap_from_user'], read_trap())
         run_to(b, wall=1.0)
@@ -972,8 +983,8 @@ def probe_t22():
     def run_until(pred, wall=30.0):
         """Run the guest in steps of 10 timer ticks (or up to the next read
         ecall) until pred(UART text) holds; breakpoints only, no SIGINT."""
-        end = time.time() + wall
-        while time.time() < end:
+        end = time.monotonic() + wall
+        while time.monotonic() < end:
             if pred(uart.text()):
                 return True
             target = ev('sched.timer_ticks') + 10
