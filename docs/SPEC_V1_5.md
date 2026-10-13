@@ -10,10 +10,10 @@ Owner decisions on the plan: **A** — the argument comes with a new call `run_a
 - The first transport with magic `virt`, device ID 2 is the disk. Version 1 (legacy) is refused with a boot line; only virtio-mmio version 2 (virtio 1.x) is used.
 
 ### Driver (`src/virtio_blk.c`)
-- Init as virtio 1.2 §3.1.1: reset (bounded wait for status 0) → ACKNOWLEDGE → DRIVER → features → FEATURES_OK, read back → queue 0 (size min(8, QueueNumMax), at least 3) → DRIVER_OK. Negotiated: `VIRTIO_F_VERSION_1` (required), and `VIRTIO_BLK_F_RO` / `VIRTIO_BLK_F_FLUSH` when offered; nothing else. Capacity is read until the configuration generation is stable.
+- Init as virtio 1.2 §3.1.1: reset (bounded wait for status 0) → ACKNOWLEDGE → DRIVER → features → FEATURES_OK, read back → queue 0 (size 8, or 4 if QueueNumMax < 8; a split queue's size is a power of two; QueueNumMax < 4 fails) → DRIVER_OK. Negotiated: `VIRTIO_F_VERSION_1` (required), and `VIRTIO_BLK_F_RO` / `VIRTIO_BLK_F_FLUSH` when offered; nothing else. Capacity is read until the configuration generation is stable.
 - One split virtqueue, one request at a time, polled; every wait is bounded (2 s on the `time` CSR). Fences around the ring updates and the notify.
 - Descriptors point only at kernel memory in the identity-mapped kernel image: the 16-byte request header, a 4 KiB bounce buffer, and the status byte. Never at user memory.
-- 4 KiB blocks (8 sectors of 512 bytes): read, write, flush. A timeout, a non-zero request status, or NEEDS_RESET/FAILED in the device status marks the device failed until reboot (its buffers and descriptors are never touched again); every later request returns EIO.
+- 4 KiB blocks (8 sectors of 512 bytes): read, write, flush. A timeout, a non-zero request status, or NEEDS_RESET/FAILED in the device status marks the device failed until reboot (its buffers, descriptors and request header are never written again); every later request returns EIO.
 - No interrupts: the scheduler pauses while a request runs. Every file system call runs whole in the kernel with interrupts off, so no other process runs during it.
 
 ### Boot lines
@@ -53,7 +53,7 @@ The superblock is checked, then both copies; the copy used is the valid one with
 | 10 | directory unreadable | 18 | overlapping extents; 19: an unused entry that is not all zero |
 
 ### Changing a file
-`fs_write` replaces a file whole, `fs_delete` removes it: (1) the data goes to blocks that are free in the mounted directory (first fit; the old version of the file keeps its blocks); (2) flush; (3) the new directory (seq + 1) goes into the copy that is **not** the mounted one; (4) flush; only then is the operation reported done and the new copy becomes the mounted one. A failed write or flush returns EIO and stops the file system (EIO for every call until reboot). There is no defragmentation: a file needs one free extent, otherwise ENOSPC.
+`fs_write` replaces a file whole, `fs_delete` removes it: (1) the data goes to blocks that are free in the mounted directory (first fit; the old version of the file keeps its blocks); (2) flush; (3) the new directory (seq + 1) goes into the copy that is **not** the mounted one; (4) flush; only then is the operation reported done and the new copy becomes the mounted one. A failed write or flush returns EIO and stops the file system (EIO for every call until reboot). A mounted directory whose seq is already 2^64−1 takes no more changes (−28): seq + 1 would wrap to 0 and lose to the old copy at the next mount. There is no defragmentation: a file needs one free extent, otherwise ENOSPC.
 
 ### Reading
 Every `fs_read` reads the whole file and checks its CRC before it copies a byte (at most 32 block reads): a damaged file gives EIO, even for a read of a part that is not damaged, and the file system goes on. Reading a file in many small pieces therefore costs O(n²); `cat`, `note` and the library read in one call. There is no cache.
@@ -73,7 +73,7 @@ Names are pointer + length. Arguments are checked first (−22, −14), then the
 | `fs_list(index, buf)` | 1012 | name of the `index`-th file in directory order (16 bytes, NUL padded) into U+R+W `buf`; returns its size. −2 past the end, −14, −19 |
 | `fs_read(name, namelen, off, buf, len)` | 1013 | bytes `[off, off+len)` of the file into U+R+W `buf` after the whole-file CRC check; returns the count (0 at or after the end). −22 bad name or `len` > 128 KiB, −14, −19, −2, −5 |
 | `fs_write(name, namelen, buf, len)` | 1014 | create or replace the file with U+R `buf[0..len)`; returns 0 once the new directory is durable. −22, −27 `len` > 128 KiB, −14, −19, −30 read-only, −28 no free extent or 63 files, −5 |
-| `fs_delete(name, namelen)` | 1015 | same path; −22, −19, −30, −2, −5 |
+| `fs_delete(name, namelen)` | 1015 | same path; −22, −19, −30, −28 (seq at its maximum), −2, −5 |
 | `args(buf, len)` | 1016 | the caller's argument line (no NUL, at most `len` bytes) into U+R+W `buf`; returns its full length (0 if started by 1008). −14 |
 | `run_arg(name, namelen, arg, arglen)` | 1017 | as `run`, with an argument line of at most 55 bytes (the shell line is 63). −22 `arglen` > 55, −14 bad `arg` |
 

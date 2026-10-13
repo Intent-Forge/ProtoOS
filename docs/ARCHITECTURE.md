@@ -101,7 +101,7 @@ A `wait` with the foreground flag makes the awaited process the console foregrou
 | `fs_list(index, buf)` | 1012 | v1.5: name (16 bytes) of the `index`-th file on the disk; returns its size. Errors: −14, −19 no disk, −2 |
 | `fs_read(name, namelen, off, buf, len)` | 1013 | v1.5: bytes of a file after a whole-file CRC check; returns the count. Errors: −22, −14, −19, −2, −5 |
 | `fs_write(name, namelen, buf, len)` | 1014 | v1.5: create or replace a file whole; 0 once durable. Errors: −22, −27, −14, −19, −30, −28, −5 |
-| `fs_delete(name, namelen)` | 1015 | v1.5: remove a file. Errors: −22, −19, −30, −2, −5 |
+| `fs_delete(name, namelen)` | 1015 | v1.5: remove a file. Errors: −22, −19, −30, −28, −2, −5 |
 | `args(buf, len)` | 1016 | v1.5: the caller's argument line; returns its length. Errors: −14 |
 | `run_arg(name, namelen, arg, arglen)` | 1017 | v1.5: `run` with an argument line (≤ 55 bytes), the archive first, then the disk. Errors: as `run`, and −5 |
 | `exit(code)` | 93 | process becomes EXITED and never runs again; a run-time process's pages return at once |

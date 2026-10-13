@@ -388,6 +388,14 @@ static void api_tests(void)
     CHECK(pfs_mount(&fs, &sim) == 0 && fs.slot == 1);
     durable[PFS_BLOCK + 30] ^= 1;
     CHECK(pfs_mount(&fs, &sim) == 0 && fs.slot == 2);
+    /* seq at its maximum: no more changes (seq + 1 would wrap to 0 and
+     * lose to the old copy after a reboot) */
+    reset_disk();
+    put64(durable + PFS_BLOCK + 8, UINT64_MAX);
+    fix_crc(durable + PFS_BLOCK, 16);
+    CHECK(pfs_mount(&fs, &sim) == 0 && fs.slot == 1 && fs.seq == UINT64_MAX);
+    CHECK(pfs_write(&fs, "q", 1, data, 1) == PFS_ENOSPC && pfs_delete(&fs, "q", 1) == PFS_ENOSPC);
+    CHECK(calls == 0);
     printf("api: ok\n");
 }
 

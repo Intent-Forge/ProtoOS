@@ -275,6 +275,7 @@ int pfs_write(struct pfs *fs, const char *name, uint64_t len, const uint8_t *dat
     if (size > PFS_FILE_MAX) return PFS_EFBIG;
     if (fs->failed) return PFS_EIO;
     if (fs->dev->readonly) return PFS_EROFS;
+    if (fs->seq == UINT64_MAX) return PFS_ENOSPC;   /* seq + 1 would lose to the old copy */
     int idx = pfs_find(fs, name, len);
     if (idx < 0) {
         for (unsigned i = 0; i < PFS_FILES && idx < 0; ++i)
@@ -313,6 +314,7 @@ int pfs_delete(struct pfs *fs, const char *name, uint64_t len)
     if (!pfs_name_ok(name, len)) return PFS_EINVAL;
     if (fs->failed) return PFS_EIO;
     if (fs->dev->readonly) return PFS_EROFS;
+    if (fs->seq == UINT64_MAX) return PFS_ENOSPC;
     int idx = pfs_find(fs, name, len);
     if (idx < 0) return PFS_ENOENT;
     static struct pfs_entry next[PFS_FILES];

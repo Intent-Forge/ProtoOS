@@ -120,8 +120,9 @@ static uint64_t init_device(void)
     if (!(rd(MMIO_STATUS) & ST_FEATURES_OK)) return fail(VBLK_R_FEATURES);
     wr(MMIO_QUEUE_SEL, 0);
     uint32_t max = rd(MMIO_QUEUE_NUM_MAX);
-    if (rd(MMIO_QUEUE_READY) || max < 3) return fail(VBLK_R_QUEUE);
-    vblk.qsize = max < VBLK_QSIZE ? max : VBLK_QSIZE;
+    if (rd(MMIO_QUEUE_READY) || max < 4) return fail(VBLK_R_QUEUE);
+    /* A split queue's size is a power of two: 8, or 4 (3 descriptors used). */
+    vblk.qsize = max < VBLK_QSIZE ? 4 : VBLK_QSIZE;
     wr(MMIO_QUEUE_NUM, (uint32_t)vblk.qsize);
     uint64_t d = (uintptr_t)vq.desc, a = (uintptr_t)&vq.avail, u = (uintptr_t)&vq.used;
     wr(MMIO_QUEUE_DESC, (uint32_t)d);
@@ -208,6 +209,7 @@ static void header(uint32_t type, uint64_t sector)
 
 static int data_request(uint32_t type, uint32_t block)
 {
+    if (vblk.state != VBLK_READY) return -5;    /* the device may own them */
     if ((uint64_t)block * 8u + 8u > vblk.capacity) return -5;
     header(type, (uint64_t)block * 8u);
     vq.desc[1] = (struct vq_desc){ (uintptr_t)bounce, sizeof(bounce),
@@ -235,7 +237,7 @@ int vblk_write(uint32_t block, const uint8_t *buf)
 
 int vblk_flush(void)
 {
-    if (!(vblk.features & VIRTIO_BLK_F_FLUSH)) return -5;
+    if (vblk.state != VBLK_READY || !(vblk.features & VIRTIO_BLK_F_FLUSH)) return -5;
     header(REQ_FLUSH, 0);
     vq.desc[1] = (struct vq_desc){ (uintptr_t)&req_status, 1, DESC_F_WRITE, 0 };
     if (submit()) return -5;

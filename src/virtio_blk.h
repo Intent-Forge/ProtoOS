@@ -18,7 +18,7 @@ enum vblk_reason {
     VBLK_R_RESET = 1,       /* status did not read 0 after reset */
     VBLK_R_NO_V1 = 2,       /* VIRTIO_F_VERSION_1 not offered */
     VBLK_R_FEATURES = 3,    /* FEATURES_OK not kept by the device */
-    VBLK_R_QUEUE = 4,       /* queue 0 busy or smaller than 3 */
+    VBLK_R_QUEUE = 4,       /* queue 0 busy or smaller than 4 */
     VBLK_R_CAPACITY = 5,    /* capacity unstable or below 8 sectors */
     VBLK_R_TIMEOUT = 6,     /* a request did not complete in time */
     VBLK_R_STATUS = 7,      /* the device reported an error for a request */
