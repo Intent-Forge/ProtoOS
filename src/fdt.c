@@ -28,10 +28,13 @@ int parse_dtb(const void *blob, size_t available, struct boot_config *out) {
     const unsigned char *p=b+so, *end=p+ss, *names=b+no;
     unsigned depth=0; unsigned kind[16]={0};
     unsigned char uart_reg[16]={0}; unsigned uart_len=0; int uart_ok=0;
+    unsigned char vio_reg[16]={0}; unsigned vio_len=0; int vio_ok=0;    /* v1.5 */
     int found_uart=0,found_cpus=0,root_closed=0;
     unsigned root_cells=0,soc_cells=0; int soc_identity=0;
     out->uart=0; out->timebase_hz=0; out->bootargs[0]=0;
     out->initrd_start=0; out->initrd_end=0; out->initrd_found=0;
+    out->virtio_count=0;
+    for(unsigned i=0;i<BOOT_VIRTIO_MAX;++i) out->virtio[i]=0;
     while ((size_t)(end-p)>=4) {
         uint32_t token=be32(p); p+=4;
         if (token==1) {
@@ -49,6 +52,10 @@ int parse_dtb(const void *blob, size_t available, struct boot_config *out) {
             if(depth==2 && kind[1]==3 && prefix(name,"serial@")) {
                 k=4; uart_len=0; uart_ok=0;
             }
+            /* v1.5: virtio-mmio transports, collected in DT order */
+            if(depth==2 && kind[1]==3 && prefix(name,"virtio_mmio@")) {
+                k=5; vio_len=0; vio_ok=0;
+            }
             kind[depth++]=k; p+=skip;
         } else if (token==2) {
             if (!depth) return -4;
@@ -56,6 +63,15 @@ int parse_dtb(const void *blob, size_t available, struct boot_config *out) {
                 if (found_uart || be32(uart_reg)!=0 || be32(uart_reg+8)!=0 ||
                     be32(uart_reg+12)<8) return -4;
                 out->uart=be32(uart_reg+4); found_uart=1;
+            }
+            /* One transport: below 4 GiB, page aligned, at most one page.
+             * More than BOOT_VIRTIO_MAX transports: the rest are ignored. */
+            if (kind[depth-1]==5 && vio_ok) {
+                if (vio_len!=16 || be32(vio_reg)!=0 || be32(vio_reg+8)!=0 ||
+                    (be32(vio_reg+4)&0xfffu) || be32(vio_reg+12)==0 ||
+                    be32(vio_reg+12)>0x1000u) return -4;
+                if (out->virtio_count<BOOT_VIRTIO_MAX)
+                    out->virtio[out->virtio_count++]=be32(vio_reg+4);
             }
             --depth; if(!depth) root_closed=1;
         } else if (token==3) {
@@ -108,6 +124,20 @@ int parse_dtb(const void *blob, size_t available, struct boot_config *out) {
                     size_t n=bounded_len(p+i,len-i);
                     if(n==len-i) return -6;
                     if(eq((const char *)(p+i),"ns16550a")) uart_ok=1;
+                    i+=n+1;
+                }
+            }
+            if(k==5 && eq(name,"reg")) {
+                if(len!=16) return -6;
+                for(unsigned i=0;i<16;++i) vio_reg[i]=p[i];
+                vio_len=len;
+            }
+            if(k==5 && eq(name,"compatible")) {
+                size_t i=0;
+                while(i<len) {
+                    size_t n=bounded_len(p+i,len-i);
+                    if(n==len-i) return -6;
+                    if(eq((const char *)(p+i),"virtio,mmio")) vio_ok=1;
                     i+=n+1;
                 }
             }

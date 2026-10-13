@@ -35,6 +35,8 @@
 .equ SYS_SBRK, 1010
 .equ SYS_PROGS, 1011
 .equ PROG_FILE, 16      /* program id of archive file n: PROG_FILE + n */
+.equ SYS_RUN_ARG, 1017  /* v1.5 */
+.equ PROG_DISK, 256     /* v1.5: program id of disk file entry n: PROG_DISK + n */
 
 .equ A_BASE, 0x400000
 .equ B_BASE, 0x800000
@@ -1331,13 +1333,18 @@ p_sh_ps:
     call p_nth
     call p_bufstr
     j 3f
-5:  mv s9, a0
+5:  li t0, PROG_DISK
+    bgeu a2, t0, 6f                 /* v1.5: a program from the disk */
+    mv s9, a0
     addi a0, a2, -PROG_FILE
     addi a1, s11, D_NAME
     li a7, SYS_PROGS
     ecall
     mv a0, s9
     addi a1, s11, D_NAME
+    call p_bufstr
+    j 3f
+6:  la a1, p_sh_disk_tag
     call p_bufstr
 3:  la a1, p_nl
     call p_bufstr
@@ -1409,9 +1416,28 @@ p_sh_runfile:
     add t1, s7, s6
     sb zero, 0(t1)                  /* the name ends before " &" */
 1:  beqz s6, 5f
+    /* v1.5: the name, then one argument line after the first space;
+     * every start goes through run_arg (1017) */
+    li t0, 0
+    li t2, 32
+6:  bgeu t0, s6, 7f
+    add t1, s7, t0
+    lbu t3, 0(t1)
+    beq t3, t2, 8f
+    addi t0, t0, 1
+    j 6b
+7:  mv a1, s6                       /* no argument */
+    add a2, s7, s6
+    li a3, 0
+    j 9f
+8:  sb zero, 0(t1)                  /* the name ends at the space */
+    mv a1, t0
+    addi a2, t1, 1
+    sub a3, s6, t0
+    addi a3, a3, -1
+9:  beqz a1, 5f                     /* "run  x": no name */
     mv a0, s7
-    mv a1, s6
-    li a7, SYS_RUN
+    li a7, SYS_RUN_ARG
     ecall
     mv s5, a0
     blez s5, 4f
@@ -1881,11 +1907,12 @@ p_sh_nl:        .ascii "\n"
 p_sh_nl_end:
 p_sh_help_msg:  .ascii "commands: help, ps, uptime, echo <text>, attack\n"
                 .ascii "processes: run <worker|hello|counter|crash>, kill <pid>, mem\n"
-                .ascii "programs: ls, run <program> (Ctrl-C stops it), run <program> &\n"
+                .ascii "programs: ls, run <program> [argument] (Ctrl-C stops it), run <program> &\n"
+                .ascii "disk: run files, run cat <file>, run note <file>, run rm <file>\n"
 p_sh_help_msg_end:
 p_sh_unknown_msg: .ascii "unknown command (try help)\n"
 p_sh_unknown_msg_end:
-p_sh_run_usage: .ascii "run: usage: run <program> [&] (built in: worker, hello, counter, crash; more: ls)\n"
+p_sh_run_usage: .ascii "run: usage: run <program> [argument] [&] (built in: worker, hello, counter, crash; more: ls)\n"
 p_sh_run_usage_end:
 p_sh_kill_usage: .ascii "kill: usage: kill <pid>\n"
 p_sh_kill_usage_end:
@@ -1921,6 +1948,7 @@ p_sh_states:    .asciz "UNUSED"
                 .asciz "SLEEPING"
                 .asciz "BLOCKED"
 /* index = program id (src/proc.h); 0 is a placeholder */
+p_sh_disk_tag:  .asciz "(disk)"
 p_sh_progs:     .asciz "-"
                 .asciz "worker"
                 .asciz "hello"

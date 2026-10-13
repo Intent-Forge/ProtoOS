@@ -1,15 +1,16 @@
-# ProtoOS v1.4 — architecture
+# ProtoOS v1.5 — architecture
 
-Normative basis: the frozen specification v1.0 ([`TECHNICAL_SPECIFICATION_RU.md`](../TECHNICAL_SPECIFICATION_RU.md)) and decisions 01–19 ([`DECISION_REGISTER_RU.md`](../DECISION_REGISTER_RU.md)). v1.1 extensions (`write`, `sleep`, demo mode) are specified in [`SPEC_V1_1.md`](SPEC_V1_1.md), v1.2 extensions (console input through the PLIC, `read`, `uptime`, `procinfo`, the shell) in [`SPEC_V1_2.md`](SPEC_V1_2.md), v1.3 extensions (page allocator, 8 process slots, `spawn`/`kill`/`meminfo`/`slotinfo`, built-in programs) and the v1.3.1 corrections in [`SPEC_V1_3.md`](SPEC_V1_3.md), v1.4 extensions (programs in C loaded from a program archive, `run`/`wait`/`sbrk`/`progs`, Ctrl-C) in [`SPEC_V1_4.md`](SPEC_V1_4.md). This document records the technical choices the specifications leave to the implementer. Russian version: [`ARCHITECTURE_V1_RU.md`](ARCHITECTURE_V1_RU.md).
+Normative basis: the frozen specification v1.0 ([`TECHNICAL_SPECIFICATION_RU.md`](../TECHNICAL_SPECIFICATION_RU.md)) and decisions 01–19 ([`DECISION_REGISTER_RU.md`](../DECISION_REGISTER_RU.md)). v1.1 extensions (`write`, `sleep`, demo mode) are specified in [`SPEC_V1_1.md`](SPEC_V1_1.md), v1.2 extensions (console input through the PLIC, `read`, `uptime`, `procinfo`, the shell) in [`SPEC_V1_2.md`](SPEC_V1_2.md), v1.3 extensions (page allocator, 8 process slots, `spawn`/`kill`/`meminfo`/`slotinfo`, built-in programs) and the v1.3.1 corrections in [`SPEC_V1_3.md`](SPEC_V1_3.md), v1.4 extensions (programs in C loaded from a program archive, `run`/`wait`/`sbrk`/`progs`, Ctrl-C) in [`SPEC_V1_4.md`](SPEC_V1_4.md), v1.5 extensions (virtio-blk disk, the PFS file system, `fs_*`, `args`, `run_arg`, programs from the disk) in [`SPEC_V1_5.md`](SPEC_V1_5.md). This document records the technical choices the specifications leave to the implementer. Russian version: [`ARCHITECTURE_V1_RU.md`](ARCHITECTURE_V1_RU.md).
 
 ## Platform
 QEMU `virt`, `-cpu rv64 -smp 1 -m 128M`; OpenSBI `fw_dynamic.bin` runs in M-mode and enters the kernel in S-mode at `0x80200000` (`a0` = hart id, `a1` = device tree). Kernel and user ISA: RV64IM + Zicsr + Zifencei, LP64, no floating point. In U-mode `sstatus.FS = VS = Off`, so any FP/vector instruction raises an illegal-instruction exception and the process is marked FAULTED (no FP state is kept).
 
 ## Boot sequence
 1. `_start` (`boot.S`): interrupts off, `sscratch = 0`, clear `.bss` and the user pages, install `stvec`.
-2. `kernel_main` (`kernel.c`): check hart 0 and `satp = 0`, parse the device tree (UART address, timebase, `bootargs` and, since v1.4, the program archive `linux,initrd-start/-end` from `/chosen`), select the scenario.
+2. `kernel_main` (`kernel.c`): check hart 0 and `satp = 0`, parse the device tree (UART address, timebase, `bootargs`, since v1.4 the program archive `linux,initrd-start/-end` from `/chosen`, since v1.5 the `/soc/virtio_mmio@*` transports), select the scenario.
 3. Set up the page pool below the device tree (`mem.c`); v1.4: if the boot loader supplied a program archive inside the pool, reserve its pages and check it completely (`archive.c`); build the kernel, template, A and B Sv39 roots (`vm.c`), switch to the kernel root, verify `satp` was accepted.
-4. Create processes A and B, enable the UART receive interrupt in the UART and the PLIC (`input.c`), arm the timer, set `sie.STIE` and `sie.SEIE`, enter the first process with `sret` (`proc.c`, `trap.S`).
+4. v1.5: find and start the disk (`virtio_blk.c`) and mount its file system (`pfs.c`, `disk.c`); without a virtio block device nothing happens and nothing is printed.
+5. Create processes A and B (v1.5 test scenarios: and one archive program, "autorun"), enable the UART receive interrupt in the UART and the PLIC (`input.c`), arm the timer, set `sie.STIE` and `sie.SEIE`, enter the first process with `sret` (`proc.c`, `trap.S`).
 
 ## Physical memory (static)
 | Range | Contents | Mapping |
@@ -26,6 +27,8 @@ QEMU `virt`, `-cpu rv64 -smp 1 -m 128M`; OpenSBI `fw_dynamic.bin` runs in M-mode
 | inside the pool, where the boot loader put it (QEMU: `0x84200000`) (v1.4) | program archive (`-initrd`) | reserved in the allocator for good; kernel-only through the pool map |
 | `0x10000000` | UART 16550 | R W, U=0 |
 | `0x0C000000`, `0x0C002000`, `0x0C201000` | PLIC: priorities, S-mode enables, S-mode threshold/claim (v1.2) | R W, U=0 |
+| `0x10001000`–`0x10008FFF` (from the DT) | virtio-mmio transports (v1.5) | R W, U=0, in the UART's level-0 table |
+| in `.bss` (v1.5) | disk: virtqueue page, 4 KiB bounce buffer, request header and status byte; the mounted directory; a 128 KiB file buffer | R W, U=0 (part of the kernel image) |
 
 The static user pages lie after `__kernel_end` and are **not** part of the kernel's identity map: neither the kernel nor the other process can see them. The whole image must stay below `0x80400000` (checked at link time).
 
@@ -45,6 +48,11 @@ The archive is a cpio "newc" file. `archive_parse` (`archive.c`) checks all of i
 | `0x401fc000`–`0x401fffff` | stack, `sp` = `0x40200000` | R W U |
 
 A run-time process owns at most 64 pages; `sbrk` allocates every page it needs before mapping any (all or nothing) and refuses growth into the guard page or beyond the limit.
+
+## Disk and files (v1.5)
+Three layers. `virtio_blk.c` drives one virtio-mmio version 2 block device: full virtio 1.x initialisation, one split virtqueue of 8 in a page of the kernel image, one request at a time (header, 4 KiB bounce buffer, status byte — descriptors never point at user memory), polled with a 2 s bound; any timeout or device error marks the device failed until reboot. `pfs.c` is the file system, pure code over a block interface (host-tested with a simulated faulty disk): a superblock, two directory copies A and B (seq + CRC-32, 63 entries) and contiguous file extents; a change writes the data into blocks free in the mounted copy, flushes, writes the new directory into the other copy with seq + 1 and flushes again, and mount takes the valid copy with the higher seq — so after a stop at any moment every file is entirely old or entirely new. A failed write or flush stops the file system (EIO until reboot). Every read checks the CRC of the whole file. `disk.c` connects the two, prints the boot lines and owns the 128 KiB file buffer through which `fs_read`, `fs_write` and programs started from the disk pass. A disk without flush support (or with `readonly=on`) is mounted read-only. Each `fs_*` call runs whole in the kernel with interrupts off.
+
+`run` and `run_arg` share one path (`start_program`): the archive first, then the disk; a disk program is read whole and its CRC checked, then `elf_check` and the loader treat it exactly like an archive file. The argument line (≤ 55 bytes) is kept in the process slot for `args`.
 
 ## Virtual memory
 Sv39 roots (`vm.c`): kernel, a template (kernel + program pages, never installed), A, B, and one per run-time process; 4 KiB user leaves; A/D bits preset in software (no reliance on Svadu). ASID 0 everywhere: every `satp` change is bracketed by `sfence.vma zero, zero`. Every root also maps the page pool with 2 MiB leaves, U=0, so the kernel can build and clear pages of any process whatever root is installed.
@@ -73,7 +81,7 @@ States: READY, RUNNING, SLEEPING, BLOCKED (v1.2: waiting for input; v1.4: or for
 A `wait` with the foreground flag makes the awaited process the console foreground (`sched.fg_pid`) and arms Ctrl-C in the input path (`input.intr_armed`). While armed, the receive interrupt does not buffer the byte 0x03 but sets `input.intr_pending`; the kernel then ends the foreground process like `kill` (exit code 130) — at once if the interrupt came from user mode, or from the wait loop — whether it is running, sleeping or blocked in `read`. Ending the foreground process or its waiter disarms Ctrl-C; without a foreground wait 0x03 is ordinary input.
 
 ## System calls
-`ecall` from U-mode; number in `a7`, arguments in `a0`–`a2`, result in `a0`; execution resumes at `sepc + 4`. Numbers follow the RISC-V Linux table, except the ProtoOS-specific ones (1001 and up).
+`ecall` from U-mode; number in `a7`, arguments in `a0`–`a4` (five since v1.5), result in `a0`; execution resumes at `sepc + 4`. **Numbering rule:** a call uses the RISC-V Linux number only where its meaning is the Linux one; every other call is ProtoOS-specific, numbered from 1001 up; a number, once released, never changes its meaning (v1.5 adds `run_arg` as 1017 instead of changing `run`, 1008).
 
 | Call | `a7` | Behaviour |
 |---|---|---|
@@ -90,6 +98,12 @@ A `wait` with the foreground flag makes the awaited process the console foregrou
 | `wait(pid, flags)` | 1009 | v1.4: status of `pid` once it has ended (exit code & 0xff, 137 killed, 130 Ctrl-C, 139 faulted), BLOCKED until then; flag 1 = foreground. Errors: −22, −3, −1, −16 |
 | `sbrk(bytes)` | 1010 | v1.4: grows an archive program's heap; returns the old end. Errors: −22, −12 |
 | `progs(index, buf)` | 1011 | v1.4: name (16 bytes) of archive file `index`; returns its size. Errors: −2, −14 |
+| `fs_list(index, buf)` | 1012 | v1.5: name (16 bytes) of the `index`-th file on the disk; returns its size. Errors: −14, −19 no disk, −2 |
+| `fs_read(name, namelen, off, buf, len)` | 1013 | v1.5: bytes of a file after a whole-file CRC check; returns the count. Errors: −22, −14, −19, −2, −5 |
+| `fs_write(name, namelen, buf, len)` | 1014 | v1.5: create or replace a file whole; 0 once durable. Errors: −22, −27, −14, −19, −30, −28, −5 |
+| `fs_delete(name, namelen)` | 1015 | v1.5: remove a file. Errors: −22, −19, −30, −2, −5 |
+| `args(buf, len)` | 1016 | v1.5: the caller's argument line; returns its length. Errors: −14 |
+| `run_arg(name, namelen, arg, arglen)` | 1017 | v1.5: `run` with an argument line (≤ 55 bytes), the archive first, then the disk. Errors: as `run`, and −5 |
 | `exit(code)` | 93 | process becomes EXITED and never runs again; a run-time process's pages return at once |
 | `yield()` | 124 | process becomes READY, the scheduler switches; returns 0 |
 | `getpid()` | 172 | returns the pid: 1 for A, 2 for B, 3 and up for run-time processes (built-in or archive programs) |
@@ -104,7 +118,8 @@ The scenario is chosen only by `bootargs` (device tree `/chosen`); the ELF is id
 |---|---|---|---|
 | `protoos.mode=normal` | worker | worker | normal mode, T7 |
 | `protoos.mode=demo` | prints every 400 ms | prints every 700 ms, then writes into A's memory | v1.1 demonstration |
-| `protoos.mode=shell` | `proto>` shell: `help`, `ps`, `uptime`, `echo`, `attack`, since v1.3 `run`, `kill`, `mem`, since v1.4 `ls`, `run <program> [&]` | worker | interactive mode, T12, T17; with `programs.img` T22 |
+| `protoos.mode=shell` | `proto>` shell: `help`, `ps`, `uptime`, `echo`, `attack`, since v1.3 `run`, `kill`, `mem`, since v1.4 `ls`, `run <program> [&]`, since v1.5 `run <program> <argument>` | worker | interactive mode, T12, T17; with `programs.img` T22; with a disk T23, T26, N13 |
+| `protoos.test=fs` / `fs-ro` / `persist-w` / `persist-r` / `crash` / `fs-bad` / `no-disk` (with `tests.img` and a disk) | the shell, idle; the kernel also starts `t_fs` / `t_fsro` / `t_pw` / `t_pr` / `t_crash` / `t_fsbad` / `t_nodisk` at boot | worker | T24 / T24 / T25 / T25 / T27 / N14 / N15 (v1.5) |
 | `protoos.test=elf` / `sbrk` / `wait` / `ctrlc` / `user-bad` (with `tests.img`) | load programs / heap / wait / Ctrl-C / 8 rule-breaking programs | worker | T18 / T19 / T20 / T21 / N12 |
 | `protoos.test=elf-bad` (`badelf.img`) / `archive-bad` (a `badarc/` image) | 30 malformed program files / a malformed archive | worker | N10 / N11 |
 | `protoos.test=mem` / `spawn` / `kill` / `multi` / `spawn-bad` | `memcheck` twice / one worker / kill and respawn / three workers and a crash / rejected calls and 200 cycles | worker | T13 / T14 / T15 / T16 / N9 |
@@ -132,7 +147,8 @@ The scenario is chosen only by `bootargs` (device tree `/chosen`); the ELF is id
 | `src/boot.S` | entry point, stacks, `.bss` clearing |
 | `src/trap.S` | trap vector, context save/restore, fatal S-mode path |
 | `src/kernel.c` | UART, boot flow, scenario table, panic |
-| `src/fdt.c` | bounded device-tree parser (UART, timebase, `bootargs`) |
+| `src/fdt.c` | bounded device-tree parser (UART, timebase, `bootargs`, archive, v1.5 virtio-mmio transports) |
+| `src/virtio_blk.c`, `src/pfs.c`, `src/disk.c` | v1.5: virtio-blk driver, PFS file system (pure, host-tested), their glue and boot lines |
 | `src/vm.c`, `src/sv39_builder.c`, `src/sv39.h` | Sv39 page tables |
 | `src/proc.c` | processes, scheduler, system calls, fault handling, idle |
 | `src/input.c` | v1.2: PLIC setup, UART receive interrupt, input ring buffer |
@@ -140,14 +156,15 @@ The scenario is chosen only by `bootargs` (device tree `/chosen`); the ELF is id
 | `src/archive.c`, `src/elf.c` | v1.4: program archive parser, program file checker (pure, host-tested) |
 | `src/user.S` | user programs A and B; the shared program pages (shell, `worker`, `hello`, `counter`, `crash`, `memcheck`) |
 | `src/linker.ld` | memory layout and size checks |
-| `user/` | v1.4: `crt0.S`, library, `user.ld`; programs `guess`, `primes`, `clock`; test programs |
-| `build-scripts/mkimages.py` | v1.4: program archives, malformed test files and archives, `images.json` |
+| `user/` | v1.4: `crt0.S`, library, `user.ld`; programs `guess`, `primes`, `clock`, v1.5 `files`, `cat`, `note`, `rm`, `hello` (on the disk); test programs |
+| `build-scripts/mkimages.py` | v1.4: program archives, malformed test files and archives, `images.json`; v1.5: `disk.img` and the test disks |
+| `build-scripts/mkpfs.py`, `build-scripts/pfsck.py` | v1.5: PFS image builder; independent checker written from the specification |
 
 ## Build and verify
 ```sh
-sh build-scripts/build-wsl.sh            # Zig 0.13.0 -> build/protoos.elf, programs, archives
-sh build-scripts/host-tests.sh           # Sv39 builder, device-tree, archive and ELF checkers (host)
+sh build-scripts/build-wsl.sh            # Zig 0.13.0 -> build/protoos.elf, programs, archives, disks
+sh build-scripts/host-tests.sh           # Sv39 builder, device tree, archive/ELF checkers, PFS fault model
 sh build-scripts/run-scenario.sh protoos.mode=normal 5
-sh build-scripts/run-shell.sh            # interactive shell with programs.img; quit with Ctrl-A, X
-python3 validation/run_acceptance.py     # T1-T22, N1-N12 x3 -> evidence/acceptance/<run>/
+sh build-scripts/run-shell.sh            # shell with programs.img and a copy of disk.img; quit: Ctrl-A, X
+python3 validation/run_acceptance.py     # T1-T27, N1-N15 x3 -> evidence/acceptance/<run>/
 ```

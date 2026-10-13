@@ -12,13 +12,14 @@ def prop(name,data):
 def node(name): return word(1)+align(name.encode()+b'\0')
 end=word(2)
 cells=lambda: prop('#address-cells',word(2))+prop('#size-cells',word(2))
-def make(chosen=lambda: b''):
-    """QEMU virt subset; chosen() adds properties to /chosen (v1.4 initrd)."""
+def make(chosen=lambda: b'', soc=lambda: b''):
+    """QEMU virt subset; chosen() adds properties to /chosen (v1.4 initrd),
+    soc() adds nodes under /soc (v1.5 virtio-mmio transports)."""
     names.clear()
     tree=node('')+cells()
     tree+=node('chosen')+prop('bootargs',b'protoos.test=boot\0')+chosen()+end
     tree+=node('cpus')+prop('timebase-frequency',word(10000000))+end
-    tree+=node('soc')+cells()+prop('ranges',b'')
+    tree+=node('soc')+cells()+prop('ranges',b'')+soc()
     tree+=node('serial@10000000')+prop('compatible',b'ns16550a\0')
     tree+=prop('reg',word(0)+word(0x10000000)+word(0)+word(0x100))+end+end+end+word(9)
     offset=56; strings=offset+len(tree); total=strings+len(names)
@@ -27,7 +28,8 @@ def make(chosen=lambda: b''):
 blob,strings=make()
 class Config(c.Structure):
     _fields_=[('uart',c.c_size_t),('timebase_hz',c.c_uint32),('bootargs',c.c_char*128),
-              ('initrd_start',c.c_uint64),('initrd_end',c.c_uint64),('initrd_found',c.c_uint32)]
+              ('initrd_start',c.c_uint64),('initrd_end',c.c_uint64),('initrd_found',c.c_uint32),
+              ('virtio_count',c.c_uint32),('virtio',c.c_uint64*8)]
 with tempfile.TemporaryDirectory() as td:
     so=pathlib.Path(td)/'fdt.so'
     cmd=['gcc','-std=c11','-Wall','-Wextra','-Werror','-O2','-shared','-fPIC',str(root/'src/fdt.c'),'-o',str(so)]
@@ -57,6 +59,28 @@ with tempfile.TemporaryDirectory() as td:
         b,_=make(chosen); rc,out=parse(b)
         if want[0]: assert rc==want[0],(rc,want)
         else: assert rc==0 and (out.initrd_start,out.initrd_end,out.initrd_found)==want[1:],(rc,want)
+    # v1.5: /soc/virtio_mmio@* nodes (QEMU lists 0x10008000 first, down to 0x10001000).
+    def vio(addr,size=0x1000,compat=b'virtio,mmio\0',reg=None):
+        r=reg if reg is not None else word(0)+word(addr)+word(0)+word(size)
+        return node(f'virtio_mmio@{addr:x}')+prop('interrupts',word(8))+prop('reg',r)+prop('compatible',compat)+end
+    V=lambda *a,**k: (lambda: vio(*a,**k))
+    S=lambda *fs: (lambda: b''.join(f() for f in fs))
+    virtio_cases=[
+        (S(V(0x10008000),V(0x10007000)),(0,[0x10008000,0x10007000])),
+        (S(V(0x10008000,compat=b'other\0'),V(0x10007000)),(0,[0x10007000])),
+        (S(*[V(0x10001000+0x1000*i) for i in range(10)]),(0,[0x10001000+0x1000*i for i in range(8)])),
+        (S(V(0x10008000,size=0x2000)),(-4,)),
+        (S(V(0x10008800)),(-4,)),
+        (S(V(0x10008000,size=0)),(-4,)),
+        (S(V(0x10008000,reg=word(1)+word(0x10008000)+word(0)+word(0x1000))),(-4,)),
+        (S(V(0x10008000,reg=word(0)+word(0x10008000)+word(0))),(-6,)),
+        (S(V(0x10008000,compat=b'virtio,mmio')),(-6,)),
+    ]
+    for soc,want in virtio_cases:
+        b,_=make(soc=soc); rc,out=parse(b)
+        if want[0]: assert rc==want[0],(rc,want)
+        else: assert rc==0 and list(out.virtio[:out.virtio_count])==want[1],(rc,list(out.virtio[:out.virtio_count]),want)
+    assert parse(blob)[1].virtio_count==0
     # Every truncated input must fail, even if the header still declares full size.
     for i in range(len(blob)):assert parse(blob[:i])[0]<0,i
     for off,val in [(0,0),(4,0xffffffff),(8,0xffffffff),(12,0xffffffff),(32,0xffffffff),(36,0xffffffff),(20,16),(24,18)]:
@@ -70,6 +94,6 @@ with tempfile.TemporaryDirectory() as td:
         bad=bytearray(blob if k%2 else initrd_blob)
         for _ in range(rng.randrange(1,6)):bad[rng.randrange(len(bad))]=rng.randrange(256)
         parse(bad)
-report={'suite':'host_fdt','status':'PASS','valid_fixture':1,'initrd_cases':len(initrd_cases),'truncations':len(blob),'invalid_headers':8,'missing_end':1,'mutation_smoke_cases':10000,'seed':18019,'scope':'Host C parser only; no RV64 assembly, guest execution, hardware protection or acceptance proof','compiler_command':cmd}
+report={'suite':'host_fdt','status':'PASS','valid_fixture':1,'initrd_cases':len(initrd_cases),'virtio_cases':len(virtio_cases),'truncations':len(blob),'invalid_headers':8,'missing_end':1,'mutation_smoke_cases':10000,'seed':18019,'scope':'Host C parser only; no RV64 assembly, guest execution, hardware protection or acceptance proof','compiler_command':cmd}
 (root/'evidence/host_fdt.json').write_text(json.dumps(report,indent=2)+'\n')
 print(json.dumps(report))

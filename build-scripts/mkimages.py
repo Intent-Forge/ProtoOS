@@ -17,10 +17,14 @@ import json
 import pathlib
 import struct
 import sys
+import zlib
 
-PROGRAMS = ['guess', 'primes', 'clock']
+import mkpfs
+
+PROGRAMS = ['guess', 'primes', 'clock', 'files', 'cat', 'note', 'rm']
 TESTS = ['t_elf', 't_sbrk', 't_exit42', 't_spin', 't_sleepy', 't_reader', 't_fgbusy',
-         'b_text', 'b_rodata', 'b_kernel', 'b_exec', 'b_stack', 'b_heap', 'b_fpu', 'b_csr']
+         'b_text', 'b_rodata', 'b_kernel', 'b_exec', 'b_stack', 'b_heap', 'b_fpu', 'b_csr',
+         't_fs', 't_fsro', 't_pw', 't_pr', 't_crash', 't_fsbad', 't_nodisk']
 
 
 def newc(files, mode=0o100555, trailer=True):
@@ -142,6 +146,133 @@ def bad_archives(ok):
     return out
 
 
+# ------------------------------------------------------------- v1.5 disks
+def pat(n, tag):
+    """The test data pattern (user/include/ptest.h): byte i of tag t."""
+    return bytes((i * 131 + tag * 17 + 7) & 255 for i in range(n))
+
+
+def damaged(img, first, size, at):
+    """img with one byte of a file (data block `first`, offset `at`) flipped."""
+    b = bytearray(img)
+    assert at < size
+    b[first * mkpfs.BLOCK + at] ^= 0x5a
+    return bytes(b)
+
+
+def bad_disks():
+    """N13: name -> (image, refusal code); exactly one defect each, in both
+    directory copies where it is a directory defect (so neither copy is
+    valid and the code is that of copy A)."""
+    E, D, S = mkpfs.entry, mkpfs.directory, mkpfs.superblock
+    a = (b'a', b'hello\n', 3, 1)                     # name, data, first, count
+    b = (b'b', pat(5000, 9), 4, 2)
+
+    def ent(f, **kw):
+        name, data, first, count = f
+        v = dict(name=name, size=len(data), first=first, count=count,
+                 crc=zlib.crc32(data) & 0xffffffff)
+        v.update(kw)
+        return E(v['name'], v['size'], v['first'], v['count'], v['crc'])
+
+    def disk(entries=None, sb=None, dirs=None, blocks=256):
+        entries = entries if entries is not None else [ent(a), ent(b)]
+        da, db = dirs if dirs else (D(entries, 1), D(entries, 0))
+        data = [a[1] + bytes(4096 - len(a[1])), b[1] + bytes(8192 - len(b[1]))]
+        data = [data[0], data[1][:4096], data[1][4096:]]
+        return mkpfs.assemble(blocks, sb if sb is not None else S(256), da, db, data)
+
+    def both(fn):
+        """The same edit applied to both copies, CRC recomputed after it."""
+        ds = []
+        for seq in (1, 0):
+            d = D([ent(a), ent(b)], seq)
+            fn(d)
+            struct.pack_into('<I', d, 16, mkpfs.crc_block(d, 16))
+            ds.append(d)
+        return ds
+
+    def raw_both(fn):
+        """The same edit applied to both copies, CRC left stale."""
+        ds = []
+        for seq in (1, 0):
+            d = D([ent(a), ent(b)], seq)
+            fn(d)
+            ds.append(d)
+        return ds
+
+    sb_crc = S(256)
+    struct.pack_into('<I', sb_crc, 8, 300)           # blocks changed, CRC stale
+    b_reserved = ent(b)
+    b_reserved[60] = 1                               # entry reserved byte
+    out = {
+        'sb_magic': (disk(sb=S(256, magic=b'PFS2')), 2),
+        'sb_version': (disk(sb=S(256, version=2)), 3),
+        'sb_crc': (disk(sb=sb_crc), 4),
+        'sb_small': (disk(sb=S(255)), 5),
+        'sb_huge': (disk(sb=S(16385)), 5),
+        'sb_device': (disk(sb=S(512)), 6),
+        'sb_reserved': (disk(sb=S(256, reserved=b'\x01')), 7),
+        'dir_magic': (disk(dirs=both(lambda d: d.__setitem__(slice(0, 8), b'PFSDIR02'))), 11),
+        'dir_crc': (disk(dirs=raw_both(lambda d: d.__setitem__(64 + 20, 9))), 12),
+        'dir_reserved': (disk(dirs=both(lambda d: d.__setitem__(40, 1))), 13),
+        'entry_reserved': (disk([ent(a), b_reserved]), 13),
+        'name_upper': (disk([ent(a, name=b'Bad'), ent(b)]), 14),
+        'name_pad': (disk([ent(a, name=b'a\0x'), ent(b)]), 14),
+        'name_long': (disk([ent(a, name=b'abcdefghijklmnop'), ent(b)]), 14),
+        'dup': (disk([ent(a), ent(b, name=b'a')]), 15),
+        'range_low': (disk([ent(a, first=2), ent(b)]), 16),
+        'range_high': (disk([ent(a), ent(b, first=255)]), 16),
+        'range_empty': (disk([ent(a, size=0, count=0, first=5), ent(b)]), 16),
+        'size_big': (disk([ent(a), ent(b, size=131073, count=33)]), 17),
+        'size_count': (disk([ent(a), ent(b, count=1)]), 17),
+        'overlap': (disk([ent(a), ent(b, first=3)]), 18),
+        'empty_garbage': (disk([ent(a), ent(b), bytes(63) + b'\x01']), 19),
+    }
+    return out
+
+
+def fallback_disk():
+    """Copy A (seq 1) damaged, copy B (seq 0) valid with one file: mounts B."""
+    entries_b = [mkpfs.entry('a', 6, 3, 1, zlib.crc32(b'hello\n') & 0xffffffff)]
+    da = mkpfs.directory(entries_b, 1)
+    da[64 + 3] ^= 1                                  # stale CRC
+    return mkpfs.assemble(256, mkpfs.superblock(256), da, mkpfs.directory(entries_b, 0),
+                          [b'hello\n' + bytes(4090)])
+
+
+def disks(build, elf):
+    """disk.img (released) and the test disks; returns their manifest."""
+    (build / 'disk.img').write_bytes(mkpfs.image(256, [('hello', elf['hello'])]))
+    d = build / 'disks'
+    (d / 'bad').mkdir(parents=True, exist_ok=True)
+    (d / 'blank.img').write_bytes(mkpfs.image(256))
+    (d / 'ro.img').write_bytes(mkpfs.image(256, [('ro.txt', pat(5000, 5))]))
+    bad_magic = bytearray(elf['t_exit42'])
+    bad_magic[1] = ord('X')
+    files = [('good', pat(3000, 7)), ('dmg', pat(9000, 8)), ('badelf', bytes(bad_magic)),
+             ('dmgprog', elf['t_exit42'])]
+    img = mkpfs.image(256, files)
+    first, info = mkpfs.DATA_START, {}
+    for name, data in files:
+        count = -(-len(data) // mkpfs.BLOCK)
+        info[name] = (first, len(data), count)
+        first += count
+    f, n, c = info['dmg']
+    img = damaged(img, f, n, (c - 1) * mkpfs.BLOCK + 100)      # last block
+    f, n, c = info['dmgprog']
+    img = damaged(img, f, n, n - 1)                              # last byte
+    (d / 'crcbad.img').write_bytes(img)
+    (d / 'fallback.img').write_bytes(fallback_disk())
+    bad = bad_disks()
+    for name, (b, _) in bad.items():
+        (d / 'bad' / f'{name}.img').write_bytes(b)
+    return {'disk.img': {'hello': len(elf['hello'])},
+            'disks/crcbad.img': {n: {'first': v[0], 'size': v[1]} for n, v in info.items()},
+            'disks/bad': {n: code for n, (_, code) in bad.items()},
+            'disks/fallback.img': {'files': 1, 'slot': 2}}
+
+
 def main():
     build = pathlib.Path(sys.argv[1])
     elf = {p.stem: p.read_bytes() for p in sorted((build / 'user').glob('*.elf'))}
@@ -158,6 +289,7 @@ def main():
     for n, (b, r) in bad_archives(elf['t_exit42']).items():
         (arcdir / f'{n}.img').write_bytes(b)
         manifest['badarc'][n] = r
+    manifest['disks'] = disks(build, elf)
     (build / 'images.json').write_text(json.dumps(manifest, indent=1) + '\n')
 
 
