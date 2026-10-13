@@ -25,10 +25,13 @@ FW = os.environ.get('OPENSBI', '/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dy
 # Keystrokes for the shell scene: (seconds after the banner, bytes typed).
 SHELL_TYPING = [(1.0, b'help\r'), (2.3, b'run counter\r'), (3.4, b'run worker\r'),
                 (4.7, b'ps\r'), (6.1, b'kill 4\r'), (7.3, b'run crash\r'), (8.9, b'mem\r')]
-# v1.4: programs in C from the program archive; \x03 is Ctrl-C
+# v1.4: programs in C from the program archive; \x03 is Ctrl-C. GUESS types
+# the next guess of a binary search over the game's answers seen so far
+# (skipped once the number is found).
+GUESS = b'GUESS'
 PROGRAM_TYPING = [(1.0, b'ls\r'), (2.2, b'run primes\r'), (3.6, b'run clock\r'),
-                  (6.8, b'\x03'), (7.8, b'run guess\r'), (9.0, b'50\r'), (10.2, b'75\r'),
-                  (11.4, b'62\r'), (12.6, b'\x03'), (13.6, b'mem\r')]
+                  (6.8, b'\x03'), (7.8, b'run guess\r')] + \
+                 [(9.0 + 1.1 * k, GUESS) for k in range(7)] + [(17.0, b'mem\r')]
 # (bootargs, seconds to run, max captured lines, comment, real timing?, typing, archive)
 SCENES = [
     ('protoos.mode=demo', 9, 22,
@@ -36,7 +39,7 @@ SCENES = [
     ('protoos.mode=shell', 11, 32,
      'shell mode: A is a command shell; it starts and stops processes on demand',
      True, SHELL_TYPING, None),
-    ('protoos.mode=shell', 15, 34,
+    ('protoos.mode=shell', 19, 40,
      'v1.4: programs written in C, loaded from the program archive; Ctrl-C stops them',
      True, PROGRAM_TYPING, PROGRAMS),
     ('protoos.test=umode', 2, 15,
@@ -58,10 +61,21 @@ def record(args, seconds, max_lines, typing=None, initrd=None):
     lines, buf, started, t0 = [], b'', False, time.monotonic()
     t_start = t0
     pending = list(typing or [])
+    lo, hi, guess, found, mark = 1, 100, None, False, 0
     try:
         while time.monotonic() - t0 < seconds and len(lines) < max_lines:
             if started and pending and time.monotonic() - t_start >= pending[0][0]:
-                vm.stdin.write(pending.pop(0)[1])
+                data = pending.pop(0)[1]
+                if data == GUESS:
+                    for _, text in lines[mark:]:      # the answer to the last guess
+                        if guess is not None and 'Too small.' in text:
+                            lo = guess + 1
+                        if guess is not None and 'Too big.' in text:
+                            hi = guess - 1
+                        found = found or 'Correct!' in text
+                    guess, mark = (None if found else (lo + hi) // 2), len(lines)
+                    data = b'' if found else f'{guess}\r'.encode()
+                vm.stdin.write(data)
                 vm.stdin.flush()
             ready, _, _ = select.select([vm.stdout], [], [], 0.05)
             if not ready:

@@ -832,23 +832,44 @@ def window(root, first, last):
     return {hex(va): walk(root, va) for va in range(first, last, 4096)}
 
 
+def root_pa(satp):
+    return (satp & ((1 << 44) - 1)) << 12
+
+
+def table(pa):
+    raw = phys(pa, 4096)
+    return [int.from_bytes(raw[8 * i:8 * i + 8], 'little') for i in range(512)]
+
+
+def window_tables(satp):
+    """Independent read of the WHOLE ELF window of a root: the root entry
+    for the 1 GiB at 0x40000000 (VPN2 = 1), all 512 entries of its level-1
+    table and, through entry 0, all 512 entries of the level-0 table of the
+    2 MiB window (absent levels are omitted)."""
+    out = {'root_entry': phys_u64(root_pa(satp) + 8)}
+    e = out['root_entry']
+    if e & 1 and not e & 0xe:
+        out['l1'] = table((e >> 10) << 12)
+        e0 = out['l1'][0]
+        if e0 & 1 and not e0 & 0xe:
+            out['l0'] = table((e0 >> 10) << 12)
+    return out
+
+
 def probe_t18():
     hit = stop_at(USYM['t_elf']['t_elf_checkpoint'])
     p = proc14(2)
     root, s, a = p['satp'], satps(), archive_info()
-    walks = window(root, ELF_BASE, ELF_BASE + 0x10000)
-    walks.update(window(root, 0x401f8000, 0x40200000))
-    walks.update(window(root, 0x40100000, 0x40101000))
-    contents = {va: page_digest(w['pa']) for va, w in walks.items()
-                if w['mapped'] and int(va, 16) < 0x40100000}
+    tables = window_tables(root)
+    contents = {hex(ELF_BASE + 4096 * i): page_digest((pte >> 10) << 12)
+                for i, pte in enumerate(tables.get('l0', [])) if pte & 1}
     step('checkpoint', hit=hit, cpu=cpu(), gprs=gprs(), proc=p, mem=mem14(), sched=sched14(),
-         bits=page_bits(p['pages']), satps=s, walks=walks, contents=contents, archive=a,
+         bits=page_bits(p['pages']), satps=s, tables=tables, contents=contents, archive=a,
          archive_bits=archive_bits(a), walk_a_data=walk(root, 0x401000),
          walk_b_data=walk(root, 0x801000), walk_secret=walk(root, SYM['kernel_secret']),
          walk_uart=walk(root, 0x10000000), walk_prog=walk(root, PROG_VA),
          walk_archive=walk(root, a['start']), walk_pool_alias=walk(root, p['pages'][-1]),
-         a_sees=walk(s['A'], ELF_BASE), b_sees=walk(s['B'], ELF_BASE),
-         kernel_sees=walk(s['kernel'], ELF_BASE))
+         other_roots={k: phys_u64(root_pa(v) + 8) for k, v in s.items()})
     hit = stop_at(UVA['p_t_elf_done'])
     step('done', hit=hit, results=results14(11), mem=mem14(), sched=sched14(), proc=proc14(2),
          progs_name=phys(SYM['user_a_data'] + D_NAME, 16).hex())
@@ -897,7 +918,22 @@ def probe_t21():
     # t_fgbusy sleeps 200 ms, is refused a second foreground wait and exits
     w = wait_ticks(60, watch_dispatch_a())
     step('fg1_armed', wait=w, procs=procs14(), sched=sched14(), input=inp14(), cpu=cpu())
+    # Type Ctrl-C while the foreground t_spin itself is executing (audit): stop
+    # in it under its own root, deliver the byte while the CPU is held, then
+    # observe the kernel at console_intr().
+    fg = ev('sched.fg_pid')
+    slot = [i for i in range(8) if ev(f'procs[{i}].pid') == fg][0]
+    fg_satp = ev(f'procs[{slot}].satp')
+    hit = stop_at(USYM['t_spin']['t_spin_step'], f'$satp == {fg_satp}')
+    step('fg_running', hit=hit, cpu=cpu(), slot=slot, fg_satp=fg_satp,
+         state=ev(f'procs[{slot}].state'))
     uart.send(b'\x03')
+    time.sleep(0.5)
+    hit = stop_at(SYM['console_intr'])
+    step('intr', hit=hit, cpu=cpu(), current=ev('(unsigned long)current'),
+         fg_frame=ev(f'(unsigned long)&procs[{slot}]'), fg_state=ev(f'procs[{slot}].state'),
+         fg_scause=ev(f'procs[{slot}].frame.scause'), fg_sepc=ev(f'procs[{slot}].frame.sepc'),
+         input=inp14(), sched=sched14())
     hit = stop_at(UVA['p_t_ctrlc_after1'])
     step('after1', hit=hit, results=results14(5), procs=procs14(), sched=sched14(),
          input=inp14(), mem=mem14())
@@ -959,7 +995,9 @@ def probe_t22():
          archive_bits=archive_bits(archive_info()))
     command('ls')
     command('run primes')
-    uart.send(b'run guess\r')
+    # The first guess is typed ahead together with the command (audit): the
+    # shell must leave "50\r" in the kernel buffer for the game.
+    uart.send(b'run guess\r50\r')
     prompts[0] += 1
     lo, hi, guesses, answers = 1, 100, [], []
     for k in range(1, 9):
@@ -967,7 +1005,8 @@ def probe_t22():
             break
         g = (lo + hi) // 2
         guesses.append(g)
-        uart.send(f'{g}\r'.encode())
+        if k > 1:
+            uart.send(f'{g}\r'.encode())
         got = []
 
         def answered(t, k=k):
@@ -1002,6 +1041,11 @@ def probe_t22():
 
 
 def probe_n10():
+    hit = stop_at(UVA['p_t_elfbad'])
+    m0, s0 = mem14(), sched14()
+    hit = stop_at(UVA['p_t_elfbad_refused'], wall=120.0) and hit
+    step('refused', hit=hit, mem_before=m0, sched_before=s0, mem=mem14(), sched=sched14(),
+         results=results14(32))
     hit = stop_at(UVA['p_t_elfbad_done'], wall=120.0)
     step('done', hit=hit, results=results14(72), mem=mem14(), sched=sched14(), procs=procs14())
 

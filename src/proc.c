@@ -129,8 +129,9 @@ static void ended(const struct process *q)
 static void reclaim(struct process *p);
 
 /* v1.4: Ctrl-C arrived while a foreground wait() was armed. End the
- * foreground process like kill() (exit code 130). 1 if a process ended. */
-static int console_intr(void)
+ * foreground process like kill() (exit code 130). 1 if a process ended.
+ * Out of line: an observation point for validation (T21). */
+__attribute__((noinline)) static int console_intr(void)
 {
     input.intr_pending = 0;
     struct process *q = find_pid(sched.fg_pid);
@@ -519,13 +520,17 @@ static struct trap_frame *sys_wait(struct process *p, struct trap_frame *f)
     struct process *q = find_pid(pid);
     if (!q) { f->x[10] = SYS_ESRCH; return f; }
     if (q == p) { f->x[10] = SYS_EPERM; return f; }
+    /* Never a foreground wait for a boot process, ended or not (audit). */
+    if ((flags & WAIT_FOREGROUND) && q - procs < (ptrdiff_t)PROC_STATIC) {
+        f->x[10] = SYS_EPERM;
+        return f;
+    }
     if (!alive(q)) {
         f->x[10] = wait_status(q);
         p->waits_done++;
         return f;
     }
     if (flags & WAIT_FOREGROUND) {
-        if (q - procs < (ptrdiff_t)PROC_STATIC) { f->x[10] = SYS_EPERM; return f; }
         if (sched.fg_pid) { f->x[10] = SYS_EBUSY; return f; }
         sched.fg_pid = q->pid;
         sched.fg_waiter = p->pid;

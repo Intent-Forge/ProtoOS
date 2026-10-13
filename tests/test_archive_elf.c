@@ -309,7 +309,8 @@ static void archive_tests(void)
     CHECK(!archive_range_ok(0x803fffff, 0x80400100, 0x80400000, 0x87e00000));
     CHECK(!archive_range_ok(0x87dfff00, 0x87e00001, 0x80400000, 0x87e00000));
     CHECK(archive_range_ok(0x87dfff00, 0x87e00000, 0x80400000, 0x87e00000));
-    CHECK(!archive_range_ok(0x80400000, 0x80400000 + ARCHIVE_MAX_BYTES + 1, 0x80400000, 0x88000000));
+    CHECK(archive_range_ok(0x80400000, 0x80400000 + ARCHIVE_MAX_BYTES + 1, 0x80400000, 0x88000000));
+    CHECK(archive_range_ok(0x80400000, 0x87e00000, 0x80400000, 0x87e00000));  /* the whole pool */
     CHECK(archive_range_ok(0x80400000, 0x80400000 + ARCHIVE_MAX_BYTES, 0x80400000, 0x88000000));
     CHECK(!archive_range_ok(UINT64_MAX - 10, UINT64_MAX, 0x80400000, UINT64_MAX - 1));
     /* mutation fuzz */

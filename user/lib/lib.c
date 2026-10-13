@@ -1,4 +1,5 @@
 #include "proto.h"
+#include <limits.h>
 
 size_t strlen(const char *s)
 {
@@ -60,12 +61,21 @@ void print_int(long v)
     else print_dec((unsigned long)v);
 }
 
+/* 1 after a CR: an LF right after it ends no second line. It starts at 1
+ * because the shell that started the program read the CR of its command
+ * line; an LF sent with it must not become an empty first line here. */
+static int after_cr = 1;
+
 long read_line(char *buf, size_t max)
 {
     size_t n = 0;
+    if (max == 0) return -1;
     for (;;) {
         char c;
         if (sys_read(&c, 1) != 1) continue;
+        int lf_of_crlf = (c == '\n' && after_cr);
+        after_cr = (c == '\r');
+        if (lf_of_crlf) continue;
         if (c == '\r' || c == '\n') {
             sys_write("\n", 1);
             buf[n] = 0;
@@ -96,6 +106,7 @@ int to_int(const char *s, long *out)
 
 void *malloc(size_t n)
 {
+    if (n > (size_t)LONG_MAX - 15u) return 0;       /* rounding would wrap */
     n = (n + 15u) & ~(size_t)15u;
     long p = sys_sbrk((long)n);
     return p < 0 ? 0 : (void *)p;

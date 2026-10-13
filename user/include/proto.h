@@ -64,7 +64,7 @@ void print_dec(unsigned long v);
 void print_int(long v);
 /* Read one line with echo and backspace editing; the line ends with Enter
  * and is NUL-terminated (at most max-1 characters). Returns its length. */
-long read_line(char *buf, size_t max);
+long read_line(char *buf, size_t max);       /* -1 if max is 0 */
 /* Decimal number with an optional '-' and nothing else: 1 and *out, else 0. */
 int to_int(const char *s, long *out);
 /* Heap memory from sbrk (never freed); 0 if the kernel refuses. */

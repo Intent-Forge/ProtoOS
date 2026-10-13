@@ -137,6 +137,8 @@ def bad_archives(ok):
     out['a_dup'] = (newc([('ok', ok), ('ok', ok)]), -8)
     out['a_notrailer'] = (newc([('ok', ok)], trailer=False), -9)
     out['a_tail'] = (good + b'\0\0\0\0junk', -10)
+    # inside the pool but over 4 MiB: reserved, then rejected (audit, v1.4)
+    out['a_big'] = (good + bytes(4 * 1024 * 1024 + 1 - len(good)), -1)
     return out
 
 

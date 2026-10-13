@@ -1136,7 +1136,8 @@ p_sh_char:
     bltu s2, s1, 1f
     li a0, 0                        /* chunk used up: wait for input */
     addi a1, s11, D_CHUNK
-    li a2, 16
+    li a2, 1                        /* v1.4: one byte at a time: input after the
+                                     * command line stays for the program it starts */
     li a7, SYS_READ
 .globl p_shell_read_ecall
 p_shell_read_ecall:
@@ -1799,6 +1800,8 @@ p_t_elfbad:
     addi s1, s1, 1
     j 1b
 2:  sd s1, D_R14+8(s11)
+.globl p_t_elfbad_refused
+p_t_elfbad_refused:                         /* all 30 refused: nothing allocated */
     RUN_TO n_nosuch, 64                     /* -2 */
     la a0, n_ok
     li a1, 0                                /* empty name -> -22 */

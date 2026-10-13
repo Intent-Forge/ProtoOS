@@ -113,5 +113,7 @@ int archive_find(const struct archive *a, const char *name, uint64_t len)
 
 int archive_range_ok(uint64_t start, uint64_t end, uint64_t lo, uint64_t hi)
 {
-    return start < end && end - start <= ARCHIVE_MAX_BYTES && start >= lo && end <= hi;
+    /* Containment only; the size limit is archive_parse's (audit: an oversized
+     * archive inside the pool is reserved, then rejected with ARCHIVE_E_SIZE). */
+    return start < end && start >= lo && end <= hi;
 }

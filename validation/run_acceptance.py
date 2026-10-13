@@ -91,7 +91,7 @@ MATRIX = {
     'N10': [('protoos.test=elf-bad', 'n10', 'badelf.img')],
     'N11': [('protoos.test=archive-bad', 'n11', f'badarc/{n}.img') for n in (
         'a_magic', 'a_hex', 'a_trunc', 'a_name', 'a_longname', 'a_dir', 'a_check', 'a_data',
-        'a_many', 'a_dup', 'a_notrailer', 'a_tail')],
+        'a_many', 'a_dup', 'a_notrailer', 'a_tail', 'a_big')],
     'N12': [('protoos.test=user-bad', 'n12', 'tests.img')],
 }
 # Scenarios whose probe types into the UART: the serial port is a UNIX
@@ -1257,26 +1257,32 @@ def oracle_t18(c, obs, ctx):
     root = (p['satp'] & ((1 << 44) - 1)) << 12
     c('own Sv39 root (its first page), not the kernel, A or B root', p['satp'] >> 60 == 8
       and root == p['pages'][0] and p['satp'] not in cp['satps'].values())
-    w = cp['walks']
-    bad = []
-    for va, (content, fl) in sorted(pages.items()):
-        x = w[hex(va)]
-        if not (x['mapped'] and x['leaf_level'] == 0 and flags_of(x) == PTE_FOR[fl]
-                and (x['pa'] & ~0xfff) in p['pages']
-                and cp['contents'][hex(va)] == hashlib.sha256(content).hexdigest()):
-            bad.append((hex(va), x.get('flags'), fl))
-    c('PT walk: every segment page mapped once with exactly its ELF permissions '
-      '(code R X, constants R, data R W; never W+X) and holding exactly the file bytes '
-      '(then zeros)', not bad, bad[:3])
-    stack = [w[hex(va)] for va in STACK_VAS]
-    c('PT walk: 4 stack pages R W U (not X) at 0x401fc000-0x401fffff, its own pages',
-      all(x['mapped'] and flags_of(x) == PTE_FOR[6] and (x['pa'] & ~0xfff) in p['pages']
-          for x in stack))
-    others = [va for va in w if int(va, 16) not in pages and int(va, 16) not in STACK_VAS
-              and w[va]['mapped']]
-    c('PT walk: nothing else mapped in the window (heap empty, guard 0x401fb000, 0x40100000)',
-      not others and not w[hex(0x401fb000)]['mapped']
-      and not w[hex(image_end(data))]['mapped'], others[:3])
+    t = cp['tables']
+    pte_pa = lambda e: (e >> 10) << 12  # noqa: E731
+    l1, l0 = t.get('l1', []), t.get('l0', [])
+    c('window tables: root -> its own level-1 table -> its own level-0 table (non-leaf, '
+      'no U); the level-1 table holds nothing else', t['root_entry'] & 0xff == 1
+      and pte_pa(t['root_entry']) == p['pages'][1] and len(l1) == 512 and l1[0] & 0xff == 1
+      and pte_pa(l1[0]) == p['pages'][2] and not any(l1[1:]) and len(l0) == 512,
+      hex(t['root_entry']))
+    want = {va: PTE_FOR[fl] for va, (_, fl) in pages.items()}
+    want.update({va: PTE_FOR[6] for va in STACK_VAS})
+    got = {ELF_RANGE[0] + 4096 * i: e for i, e in enumerate(l0) if e}
+    bits = lambda e: {b for i, b in enumerate('VRWXUGAD') if e >> i & 1}  # noqa: E731
+    wrong = [(hex(va), hex(e)) for va, e in sorted(got.items())
+             if va not in want or bits(e) != want[va] or e & ~((1 << 54) - 1) or e & 0x300]
+    c('all 512 entries of the window: exactly the segment pages (with exactly their ELF '
+      'permissions: code R X, constants R, data R W, never W+X) and the 4 stack pages R W U; '
+      'nothing else (heap empty, guard 0x401fb000 unmapped)',
+      set(got) == set(want) and not wrong, (wrong[:3], sorted(set(want) ^ set(got))[:3]))
+    leaves = [pte_pa(e) for e in got.values()]
+    c('one to one: the window maps each of its own non-table pages exactly once, and never '
+      'one of its page tables', sorted(leaves) == sorted(p['pages'][3:])
+      and len(set(leaves)) == len(leaves), [hex(x) for x in leaves[:4]])
+    bad = [hex(va) for va, (content, _) in sorted(pages.items())
+           if cp['contents'].get(hex(va)) != hashlib.sha256(content).hexdigest()]
+    c('every segment page holds exactly the file bytes (then zeros): SHA-256 of the '
+      'physical page = the page computed from the ELF file', not bad, bad[:3])
     c("PT walk: A's and B's data unmapped; kernel data, UART, archive and pool kernel-only",
       not cp['walk_a_data']['mapped'] and not cp['walk_b_data']['mapped']
       and 'U' not in flags_of(cp['walk_secret']) and 'U' not in flags_of(cp['walk_uart'])
@@ -1284,8 +1290,8 @@ def oracle_t18(c, obs, ctx):
       and cp['walk_pool_alias']['leaf_level'] == 1 and 'U' not in flags_of(cp['walk_pool_alias']))
     c('PT walk: shared program pages R X U, not W', set('URX') <= flags_of(cp['walk_prog'])
       and 'W' not in flags_of(cp['walk_prog']))
-    c("the window is not mapped in A's, B's or the kernel's root", not cp['a_sees']['mapped']
-      and not cp['b_sees']['mapped'] and not cp['kernel_sees']['mapped'])
+    c("no part of the window's 1 GiB is mapped in A's, B's or the kernel's root (root entry 0)",
+      cp['other_roots'] == {'kernel': 0, 'A': 0, 'B': 0}, cp['other_roots'])
     n_arc = len(cp['archive_bits'])
     c(f'archive: {n_arc} pages reserved (bitmap), {ctx["manifest"]["tests.img"].__len__()} programs',
       cp['archive_bits'] == [1] * n_arc and mem['reserved'] == n_arc and a['found'] == 3
@@ -1404,6 +1410,17 @@ def oracle_t21(c, obs, ctx):
     busy = bypid(arm['procs'], r[3])
     c('meanwhile a second foreground wait (t_fgbusy) was refused (-16): it exited with 16',
       busy and busy[0]['state'] == 3 and busy[0]['exit_code'] == 16 and r[5] == 16, r[5])
+    run_, it = st['fg_running'], st['intr']
+    c('Ctrl-C typed while the foreground t_spin itself was executing: U-mode, its root installed',
+      run_['hit'] and run_['cpu']['priv'] == 0 and run_['cpu']['satp'] == run_['fg_satp']
+      and run_['cpu']['pc'] == ctx['usym']['t_spin']['t_spin_step'] and run_['state'] == 2)
+    c('the kernel handled it on the interrupt from that process: at console_intr() the '
+      'current process is the foreground one, RUNNING, its root installed, trapped by the '
+      'external interrupt (cause 9) inside its code',
+      it['hit'] and it['current'] == it['fg_frame'] and it['fg_state'] == 2
+      and it['cpu']['satp'] == run_['fg_satp'] and it['fg_scause'] == (1 << 63) | 9
+      and in_range(it['fg_sepc'], ELF_RANGE) and it['input']['intr_pending'] == 1,
+      (hex(it['current']), hex(it['fg_frame']), it['fg_state'], hex(it['fg_scause'])))
     fg = bypid(a1['procs'], r[2])
     c('Ctrl-C: wait returned 130; t_spin EXITED by Ctrl-C (code 130, killed), pages back',
       a1['hit'] and a1['results'][4] == 130 and fg and fg[0]['state'] == 3
@@ -1463,6 +1480,10 @@ def oracle_t22(c, obs, ctx):
       and re.search(r'EXIT C\(pid=3\) code=0', uart), pr[:3])
     g = st['guess']
     m = re.search(r'Correct! The number was (\d+)\. Tries: (\d+)', uart)
+    c('typed ahead with the command, "50" reached the game, not the shell (answered by the '
+      'game; no "unknown command")', g['guesses'][:1] == [50] and len(g['answers']) >= 1
+      and 'unknown command' not in uart and re.search(r'Your guess: 50\n(Too small\.|Too big\.|'
+                                                      r'Correct!)', uart), g['guesses'][:2])
     c('run guess: the binary search found the number; the program counted the tries',
       g['ok'] and g['answers'] and g['answers'][-1] == 'Correct!' and m
       and int(m[1]) == g['guesses'][-1] and int(m[2]) == len(g['guesses']), (g['guesses'], g['answers']))
@@ -1505,7 +1526,15 @@ def oracle_n10(c, obs, ctx):
     reasons = dict(re.findall(r'RUN refused name=(\w+) reason=-(\d+)', ctx['uart']))
     wrong = [(n, reasons.get(n), -code) for n, code in bad if reasons.get(n) != str(-code)]
     c('each for the defect it was built with (kernel reason = images.json)', not wrong, wrong[:4])
-    c('nothing was started or allocated for them: loads refused = 30, allocations = frees',
+    rf = steps(obs)['refused']
+    c('checked before allocation: across the 30 refusals the allocator handed out and took '
+      'back nothing (allocations, frees and free pages unchanged), nothing started',
+      rf['hit'] and rf['mem']['allocs'] == rf['mem_before']['allocs']
+      and rf['mem']['frees'] == rf['mem_before']['frees']
+      and rf['mem']['free'] == rf['mem_before']['free'] and rf['sched']['loaded'] == 0
+      and rf['sched']['load_errors'] == len(bad) and rf['results'][1] == len(bad),
+      (rf['mem_before'], rf['mem']))
+    c('in all: loads refused = 30, the valid file loaded once, allocations = frees',
       s['load_errors'] == len(bad) and s['loaded'] == 1 and m['allocs'] == m['frees']
       and s['spawned'] == 0, (s['load_errors'], s['loaded'], m))
     want = [(64, 'name not in the archive', NEG(-2)), (65, 'empty name', NEG(-22)),

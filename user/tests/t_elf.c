@@ -47,6 +47,10 @@ int main(void)
     data_words[0] = 1;
     bss_area[5000] = 9;
     if (data_words[0] != 1 || bss_area[5000] != 9) return 7;
+    /* library edge cases from the independent audit */
+    if (malloc((size_t)-1) != 0 || malloc((size_t)-1 - 7) != 0) return 8;
+    char one[1];
+    if (read_line(one, 0) != -1) return 9;
     print("t_elf: all checks passed\n");
     return 0;
 }

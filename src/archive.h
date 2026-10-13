@@ -42,7 +42,7 @@ enum archive_result {
 int archive_parse(const uint8_t *img, uint64_t size, struct archive *out);
 /* Index of the file whose name is exactly name[0..len), or -1. */
 int archive_find(const struct archive *a, const char *name, uint64_t len);
-/* 1 if [start, end) is a non-empty range of at most ARCHIVE_MAX_BYTES that
- * lies inside [lo, hi). */
+/* 1 if [start, end) is a non-empty range inside [lo, hi) (any size: the
+ * size limit is checked by archive_parse). */
 int archive_range_ok(uint64_t start, uint64_t end, uint64_t lo, uint64_t hi);
 #endif
