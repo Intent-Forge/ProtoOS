@@ -1,0 +1,702 @@
+
+OpenSBI v1.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 1
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 317 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 61 KB
+Firmware Heap Offset        : 0x46000
+Firmware Heap Size          : 37 KB (total), 2 KB (reserved), 11 KB (used), 23 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : ipi,pmu,srst,sse,hsm,rfnc,fwft,time,base,legacy,dbcn,dbtr
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*
+Domain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region03            : 0x0000000080040000-0x000000008004ffff M: (R,W) S/U: ()
+Domain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x0000000087e00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sstc,zicntr,zihpm,zicboz,zicbom,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000001666
+Boot HART MEDELEG           : 0x0000000000f0b509
+ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes
+hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=spawn-bad
+MMU Sv39 active satp=0x8000000000080211
+SCENARIO protoos.test=spawn-bad
+PROC A(pid=1) entry=0x0000000000400a84 sp=0x0000000000404000 satp=0x8000000000080227
+PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x8000000000080231
+SCHED - -> A(pid=1) reason=start switches=1
+SPAWN C(pid=3) prog=1 satp=0x8000000000080400 free=31227
+SPAWN D(pid=4) prog=1 satp=0x8000000000080405 free=31222
+SPAWN E(pid=5) prog=1 satp=0x800000000008040a free=31217
+SPAWN F(pid=6) prog=1 satp=0x800000000008040f free=31212
+SPAWN G(pid=7) prog=1 satp=0x8000000000080414 free=31207
+SPAWN H(pid=8) prog=1 satp=0x8000000000080419 free=31202
+KILL C(pid=3) by A(pid=1)
+RECLAIM C(pid=3) pages=5 free=31207
+KILL D(pid=4) by A(pid=1)
+RECLAIM D(pid=4) pages=5 free=31212
+KILL E(pid=5) by A(pid=1)
+RECLAIM E(pid=5) pages=5 free=31217
+KILL F(pid=6) by A(pid=1)
+RECLAIM F(pid=6) pages=5 free=31222
+KILL G(pid=7) by A(pid=1)
+RECLAIM G(pid=7) pages=5 free=31227
+KILL H(pid=8) by A(pid=1)
+RECLAIM H(pid=8) pages=5 free=31232
+SPAWN C(pid=9) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=9) by A(pid=1)
+RECLAIM C(pid=9) pages=5 free=31232
+SPAWN C(pid=10) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=10) by A(pid=1)
+RECLAIM C(pid=10) pages=5 free=31232
+SPAWN C(pid=11) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=11) by A(pid=1)
+RECLAIM C(pid=11) pages=5 free=31232
+SPAWN C(pid=12) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=12) by A(pid=1)
+RECLAIM C(pid=12) pages=5 free=31232
+SPAWN C(pid=13) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=13) by A(pid=1)
+RECLAIM C(pid=13) pages=5 free=31232
+SPAWN C(pid=14) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=14) by A(pid=1)
+RECLAIM C(pid=14) pages=5 free=31232
+SPAWN C(pid=15) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=15) by A(pid=1)
+RECLAIM C(pid=15) pages=5 free=31232
+SPAWN C(pid=16) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=16) by A(pid=1)
+RECLAIM C(pid=16) pages=5 free=31232
+SPAWN C(pid=17) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=17) by A(pid=1)
+RECLAIM C(pid=17) pages=5 free=31232
+SPAWN C(pid=18) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=18) by A(pid=1)
+RECLAIM C(pid=18) pages=5 free=31232
+SPAWN C(pid=19) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=19) by A(pid=1)
+RECLAIM C(pid=19) pages=5 free=31232
+SPAWN C(pid=20) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=20) by A(pid=1)
+RECLAIM C(pid=20) pages=5 free=31232
+SPAWN C(pid=21) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=21) by A(pid=1)
+RECLAIM C(pid=21) pages=5 free=31232
+SPAWN C(pid=22) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=22) by A(pid=1)
+RECLAIM C(pid=22) pages=5 free=31232
+SPAWN C(pid=23) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=23) by A(pid=1)
+RECLAIM C(pid=23) pages=5 free=31232
+SPAWN C(pid=24) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=24) by A(pid=1)
+RECLAIM C(pid=24) pages=5 free=31232
+SPAWN C(pid=25) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=25) by A(pid=1)
+RECLAIM C(pid=25) pages=5 free=31232
+SPAWN C(pid=26) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=26) by A(pid=1)
+RECLAIM C(pid=26) pages=5 free=31232
+SPAWN C(pid=27) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=27) by A(pid=1)
+RECLAIM C(pid=27) pages=5 free=31232
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=2
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=3
+SPAWN C(pid=28) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=28) by A(pid=1)
+RECLAIM C(pid=28) pages=5 free=31232
+SPAWN C(pid=29) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=29) by A(pid=1)
+RECLAIM C(pid=29) pages=5 free=31232
+SPAWN C(pid=30) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=30) by A(pid=1)
+RECLAIM C(pid=30) pages=5 free=31232
+SPAWN C(pid=31) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=31) by A(pid=1)
+RECLAIM C(pid=31) pages=5 free=31232
+SPAWN C(pid=32) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=32) by A(pid=1)
+RECLAIM C(pid=32) pages=5 free=31232
+SPAWN C(pid=33) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=33) by A(pid=1)
+RECLAIM C(pid=33) pages=5 free=31232
+SPAWN C(pid=34) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=34) by A(pid=1)
+RECLAIM C(pid=34) pages=5 free=31232
+SPAWN C(pid=35) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=35) by A(pid=1)
+RECLAIM C(pid=35) pages=5 free=31232
+SPAWN C(pid=36) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=36) by A(pid=1)
+RECLAIM C(pid=36) pages=5 free=31232
+SPAWN C(pid=37) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=37) by A(pid=1)
+RECLAIM C(pid=37) pages=5 free=31232
+SPAWN C(pid=38) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=38) by A(pid=1)
+RECLAIM C(pid=38) pages=5 free=31232
+SPAWN C(pid=39) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=39) by A(pid=1)
+RECLAIM C(pid=39) pages=5 free=31232
+SPAWN C(pid=40) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=40) by A(pid=1)
+RECLAIM C(pid=40) pages=5 free=31232
+SPAWN C(pid=41) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=41) by A(pid=1)
+RECLAIM C(pid=41) pages=5 free=31232
+SPAWN C(pid=42) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=42) by A(pid=1)
+RECLAIM C(pid=42) pages=5 free=31232
+SPAWN C(pid=43) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=43) by A(pid=1)
+RECLAIM C(pid=43) pages=5 free=31232
+SPAWN C(pid=44) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=44) by A(pid=1)
+RECLAIM C(pid=44) pages=5 free=31232
+SPAWN C(pid=45) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=45) by A(pid=1)
+RECLAIM C(pid=45) pages=5 free=31232
+SPAWN C(pid=46) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=46) by A(pid=1)
+RECLAIM C(pid=46) pages=5 free=31232
+SPAWN C(pid=47) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=47) by A(pid=1)
+RECLAIM C(pid=47) pages=5 free=31232
+SPAWN C(pid=48) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=48) by A(pid=1)
+RECLAIM C(pid=48) pages=5 free=31232
+SPAWN C(pid=49) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=49) by A(pid=1)
+RECLAIM C(pid=49) pages=5 free=31232
+SPAWN C(pid=50) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=50) by A(pid=1)
+RECLAIM C(pid=50) pages=5 free=31232
+SPAWN C(pid=51) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=51) by A(pid=1)
+RECLAIM C(pid=51) pages=5 free=31232
+SPAWN C(pid=52) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=52) by A(pid=1)
+RECLAIM C(pid=52) pages=5 free=31232
+SPAWN C(pid=53) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=53) by A(pid=1)
+RECLAIM C(pid=53) pages=5 free=31232
+SPAWN C(pid=54) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=54) by A(pid=1)
+RECLAIM C(pid=54) pages=5 free=31232
+SPAWN C(pid=55) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=55) by A(pid=1)
+RECLAIM C(pid=55) pages=5 free=31232
+SPAWN C(pid=56) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=56) by A(pid=1)
+RECLAIM C(pid=56) pages=5 free=31232
+SPAWN C(pid=57) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=57) by A(pid=1)
+RECLAIM C(pid=57) pages=5 free=31232
+SPAWN C(pid=58) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=58) by A(pid=1)
+RECLAIM C(pid=58) pages=5 free=31232
+SPAWN C(pid=59) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=59) by A(pid=1)
+RECLAIM C(pid=59) pages=5 free=31232
+SPAWN C(pid=60) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=60) by A(pid=1)
+RECLAIM C(pid=60) pages=5 free=31232
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=4
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=5
+SPAWN C(pid=61) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=61) by A(pid=1)
+RECLAIM C(pid=61) pages=5 free=31232
+SPAWN C(pid=62) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=62) by A(pid=1)
+RECLAIM C(pid=62) pages=5 free=31232
+SPAWN C(pid=63) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=63) by A(pid=1)
+RECLAIM C(pid=63) pages=5 free=31232
+SPAWN C(pid=64) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=64) by A(pid=1)
+RECLAIM C(pid=64) pages=5 free=31232
+SPAWN C(pid=65) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=65) by A(pid=1)
+RECLAIM C(pid=65) pages=5 free=31232
+SPAWN C(pid=66) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=66) by A(pid=1)
+RECLAIM C(pid=66) pages=5 free=31232
+SPAWN C(pid=67) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=67) by A(pid=1)
+RECLAIM C(pid=67) pages=5 free=31232
+SPAWN C(pid=68) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=68) by A(pid=1)
+RECLAIM C(pid=68) pages=5 free=31232
+SPAWN C(pid=69) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=69) by A(pid=1)
+RECLAIM C(pid=69) pages=5 free=31232
+SPAWN C(pid=70) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=70) by A(pid=1)
+RECLAIM C(pid=70) pages=5 free=31232
+SPAWN C(pid=71) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=71) by A(pid=1)
+RECLAIM C(pid=71) pages=5 free=31232
+SPAWN C(pid=72) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=72) by A(pid=1)
+RECLAIM C(pid=72) pages=5 free=31232
+SPAWN C(pid=73) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=73) by A(pid=1)
+RECLAIM C(pid=73) pages=5 free=31232
+SPAWN C(pid=74) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=74) by A(pid=1)
+RECLAIM C(pid=74) pages=5 free=31232
+SPAWN C(pid=75) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=75) by A(pid=1)
+RECLAIM C(pid=75) pages=5 free=31232
+SPAWN C(pid=76) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=76) by A(pid=1)
+RECLAIM C(pid=76) pages=5 free=31232
+SPAWN C(pid=77) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=77) by A(pid=1)
+RECLAIM C(pid=77) pages=5 free=31232
+SPAWN C(pid=78) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=78) by A(pid=1)
+RECLAIM C(pid=78) pages=5 free=31232
+SPAWN C(pid=79) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=79) by A(pid=1)
+RECLAIM C(pid=79) pages=5 free=31232
+SPAWN C(pid=80) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=80) by A(pid=1)
+RECLAIM C(pid=80) pages=5 free=31232
+SPAWN C(pid=81) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=81) by A(pid=1)
+RECLAIM C(pid=81) pages=5 free=31232
+SPAWN C(pid=82) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=82) by A(pid=1)
+RECLAIM C(pid=82) pages=5 free=31232
+SPAWN C(pid=83) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=83) by A(pid=1)
+RECLAIM C(pid=83) pages=5 free=31232
+SPAWN C(pid=84) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=84) by A(pid=1)
+RECLAIM C(pid=84) pages=5 free=31232
+SPAWN C(pid=85) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=85) by A(pid=1)
+RECLAIM C(pid=85) pages=5 free=31232
+SPAWN C(pid=86) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=86) by A(pid=1)
+RECLAIM C(pid=86) pages=5 free=31232
+SPAWN C(pid=87) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=87) by A(pid=1)
+RECLAIM C(pid=87) pages=5 free=31232
+SPAWN C(pid=88) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=88) by A(pid=1)
+RECLAIM C(pid=88) pages=5 free=31232
+SPAWN C(pid=89) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=89) by A(pid=1)
+RECLAIM C(pid=89) pages=5 free=31232
+SPAWN C(pid=90) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=90) by A(pid=1)
+RECLAIM C(pid=90) pages=5 free=31232
+SPAWN C(pid=91) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=91) by A(pid=1)
+RECLAIM C(pid=91) pages=5 free=31232
+SPAWN C(pid=92) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=92) by A(pid=1)
+RECLAIM C(pid=92) pages=5 free=31232
+SPAWN C(pid=93) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=93) by A(pid=1)
+RECLAIM C(pid=93) pages=5 free=31232
+SPAWN C(pid=94) prog=1 satp=0x8000000000080400 free=31227
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=6
+SCHED B(pid=2) -> C(pid=94) reason=timer switches=7
+SCHED C(pid=94) -> A(pid=1) reason=timer switches=8
+KILL C(pid=94) by A(pid=1)
+RECLAIM C(pid=94) pages=5 free=31232
+SPAWN C(pid=95) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=95) by A(pid=1)
+RECLAIM C(pid=95) pages=5 free=31232
+SPAWN C(pid=96) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=96) by A(pid=1)
+RECLAIM C(pid=96) pages=5 free=31232
+SPAWN C(pid=97) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=97) by A(pid=1)
+RECLAIM C(pid=97) pages=5 free=31232
+SPAWN C(pid=98) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=98) by A(pid=1)
+RECLAIM C(pid=98) pages=5 free=31232
+SPAWN C(pid=99) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=99) by A(pid=1)
+RECLAIM C(pid=99) pages=5 free=31232
+SPAWN C(pid=100) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=100) by A(pid=1)
+RECLAIM C(pid=100) pages=5 free=31232
+SPAWN C(pid=101) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=101) by A(pid=1)
+RECLAIM C(pid=101) pages=5 free=31232
+SPAWN C(pid=102) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=102) by A(pid=1)
+RECLAIM C(pid=102) pages=5 free=31232
+SPAWN C(pid=103) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=103) by A(pid=1)
+RECLAIM C(pid=103) pages=5 free=31232
+SPAWN C(pid=104) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=104) by A(pid=1)
+RECLAIM C(pid=104) pages=5 free=31232
+SPAWN C(pid=105) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=105) by A(pid=1)
+RECLAIM C(pid=105) pages=5 free=31232
+SPAWN C(pid=106) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=106) by A(pid=1)
+RECLAIM C(pid=106) pages=5 free=31232
+SPAWN C(pid=107) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=107) by A(pid=1)
+RECLAIM C(pid=107) pages=5 free=31232
+SPAWN C(pid=108) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=108) by A(pid=1)
+RECLAIM C(pid=108) pages=5 free=31232
+SPAWN C(pid=109) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=109) by A(pid=1)
+RECLAIM C(pid=109) pages=5 free=31232
+SPAWN C(pid=110) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=110) by A(pid=1)
+RECLAIM C(pid=110) pages=5 free=31232
+SPAWN C(pid=111) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=111) by A(pid=1)
+RECLAIM C(pid=111) pages=5 free=31232
+SPAWN C(pid=112) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=112) by A(pid=1)
+RECLAIM C(pid=112) pages=5 free=31232
+SPAWN C(pid=113) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=113) by A(pid=1)
+RECLAIM C(pid=113) pages=5 free=31232
+SPAWN C(pid=114) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=114) by A(pid=1)
+RECLAIM C(pid=114) pages=5 free=31232
+SPAWN C(pid=115) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=115) by A(pid=1)
+RECLAIM C(pid=115) pages=5 free=31232
+SPAWN C(pid=116) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=116) by A(pid=1)
+RECLAIM C(pid=116) pages=5 free=31232
+SPAWN C(pid=117) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=117) by A(pid=1)
+RECLAIM C(pid=117) pages=5 free=31232
+SPAWN C(pid=118) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=118) by A(pid=1)
+RECLAIM C(pid=118) pages=5 free=31232
+SPAWN C(pid=119) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=119) by A(pid=1)
+RECLAIM C(pid=119) pages=5 free=31232
+SPAWN C(pid=120) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=120) by A(pid=1)
+RECLAIM C(pid=120) pages=5 free=31232
+SPAWN C(pid=121) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=121) by A(pid=1)
+RECLAIM C(pid=121) pages=5 free=31232
+SPAWN C(pid=122) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=122) by A(pid=1)
+RECLAIM C(pid=122) pages=5 free=31232
+SPAWN C(pid=123) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=123) by A(pid=1)
+RECLAIM C(pid=123) pages=5 free=31232
+SPAWN C(pid=124) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=124) by A(pid=1)
+RECLAIM C(pid=124) pages=5 free=31232
+SPAWN C(pid=125) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=125) by A(pid=1)
+RECLAIM C(pid=125) pages=5 free=31232
+SPAWN C(pid=126) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=126) by A(pid=1)
+RECLAIM C(pid=126) pages=5 free=31232
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=9
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=10
+SPAWN C(pid=127) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=127) by A(pid=1)
+RECLAIM C(pid=127) pages=5 free=31232
+SPAWN C(pid=128) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=128) by A(pid=1)
+RECLAIM C(pid=128) pages=5 free=31232
+SPAWN C(pid=129) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=129) by A(pid=1)
+RECLAIM C(pid=129) pages=5 free=31232
+SPAWN C(pid=130) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=130) by A(pid=1)
+RECLAIM C(pid=130) pages=5 free=31232
+SPAWN C(pid=131) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=131) by A(pid=1)
+RECLAIM C(pid=131) pages=5 free=31232
+SPAWN C(pid=132) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=132) by A(pid=1)
+RECLAIM C(pid=132) pages=5 free=31232
+SPAWN C(pid=133) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=133) by A(pid=1)
+RECLAIM C(pid=133) pages=5 free=31232
+SPAWN C(pid=134) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=134) by A(pid=1)
+RECLAIM C(pid=134) pages=5 free=31232
+SPAWN C(pid=135) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=135) by A(pid=1)
+RECLAIM C(pid=135) pages=5 free=31232
+SPAWN C(pid=136) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=136) by A(pid=1)
+RECLAIM C(pid=136) pages=5 free=31232
+SPAWN C(pid=137) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=137) by A(pid=1)
+RECLAIM C(pid=137) pages=5 free=31232
+SPAWN C(pid=138) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=138) by A(pid=1)
+RECLAIM C(pid=138) pages=5 free=31232
+SPAWN C(pid=139) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=139) by A(pid=1)
+RECLAIM C(pid=139) pages=5 free=31232
+SPAWN C(pid=140) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=140) by A(pid=1)
+RECLAIM C(pid=140) pages=5 free=31232
+SPAWN C(pid=141) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=141) by A(pid=1)
+RECLAIM C(pid=141) pages=5 free=31232
+SPAWN C(pid=142) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=142) by A(pid=1)
+RECLAIM C(pid=142) pages=5 free=31232
+SPAWN C(pid=143) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=143) by A(pid=1)
+RECLAIM C(pid=143) pages=5 free=31232
+SPAWN C(pid=144) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=144) by A(pid=1)
+RECLAIM C(pid=144) pages=5 free=31232
+SPAWN C(pid=145) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=145) by A(pid=1)
+RECLAIM C(pid=145) pages=5 free=31232
+SPAWN C(pid=146) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=146) by A(pid=1)
+RECLAIM C(pid=146) pages=5 free=31232
+SPAWN C(pid=147) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=147) by A(pid=1)
+RECLAIM C(pid=147) pages=5 free=31232
+SPAWN C(pid=148) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=148) by A(pid=1)
+RECLAIM C(pid=148) pages=5 free=31232
+SPAWN C(pid=149) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=149) by A(pid=1)
+RECLAIM C(pid=149) pages=5 free=31232
+SPAWN C(pid=150) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=150) by A(pid=1)
+RECLAIM C(pid=150) pages=5 free=31232
+SPAWN C(pid=151) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=151) by A(pid=1)
+RECLAIM C(pid=151) pages=5 free=31232
+SPAWN C(pid=152) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=152) by A(pid=1)
+RECLAIM C(pid=152) pages=5 free=31232
+SPAWN C(pid=153) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=153) by A(pid=1)
+RECLAIM C(pid=153) pages=5 free=31232
+SPAWN C(pid=154) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=154) by A(pid=1)
+RECLAIM C(pid=154) pages=5 free=31232
+SPAWN C(pid=155) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=155) by A(pid=1)
+RECLAIM C(pid=155) pages=5 free=31232
+SPAWN C(pid=156) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=156) by A(pid=1)
+RECLAIM C(pid=156) pages=5 free=31232
+SPAWN C(pid=157) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=157) by A(pid=1)
+RECLAIM C(pid=157) pages=5 free=31232
+SPAWN C(pid=158) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=158) by A(pid=1)
+RECLAIM C(pid=158) pages=5 free=31232
+SPAWN C(pid=159) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=159) by A(pid=1)
+RECLAIM C(pid=159) pages=5 free=31232
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=11
+SCHED B(pid=2) -> A(pid=1) reason=timer switches=12
+SPAWN C(pid=160) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=160) by A(pid=1)
+RECLAIM C(pid=160) pages=5 free=31232
+SPAWN C(pid=161) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=161) by A(pid=1)
+RECLAIM C(pid=161) pages=5 free=31232
+SPAWN C(pid=162) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=162) by A(pid=1)
+RECLAIM C(pid=162) pages=5 free=31232
+SPAWN C(pid=163) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=163) by A(pid=1)
+RECLAIM C(pid=163) pages=5 free=31232
+SPAWN C(pid=164) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=164) by A(pid=1)
+RECLAIM C(pid=164) pages=5 free=31232
+SPAWN C(pid=165) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=165) by A(pid=1)
+RECLAIM C(pid=165) pages=5 free=31232
+SPAWN C(pid=166) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=166) by A(pid=1)
+RECLAIM C(pid=166) pages=5 free=31232
+SPAWN C(pid=167) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=167) by A(pid=1)
+RECLAIM C(pid=167) pages=5 free=31232
+SPAWN C(pid=168) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=168) by A(pid=1)
+RECLAIM C(pid=168) pages=5 free=31232
+SPAWN C(pid=169) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=169) by A(pid=1)
+RECLAIM C(pid=169) pages=5 free=31232
+SPAWN C(pid=170) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=170) by A(pid=1)
+RECLAIM C(pid=170) pages=5 free=31232
+SPAWN C(pid=171) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=171) by A(pid=1)
+RECLAIM C(pid=171) pages=5 free=31232
+SPAWN C(pid=172) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=172) by A(pid=1)
+RECLAIM C(pid=172) pages=5 free=31232
+SPAWN C(pid=173) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=173) by A(pid=1)
+RECLAIM C(pid=173) pages=5 free=31232
+SPAWN C(pid=174) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=174) by A(pid=1)
+RECLAIM C(pid=174) pages=5 free=31232
+SPAWN C(pid=175) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=175) by A(pid=1)
+RECLAIM C(pid=175) pages=5 free=31232
+SPAWN C(pid=176) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=176) by A(pid=1)
+RECLAIM C(pid=176) pages=5 free=31232
+SPAWN C(pid=177) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=177) by A(pid=1)
+RECLAIM C(pid=177) pages=5 free=31232
+SPAWN C(pid=178) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=178) by A(pid=1)
+RECLAIM C(pid=178) pages=5 free=31232
+SPAWN C(pid=179) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=179) by A(pid=1)
+RECLAIM C(pid=179) pages=5 free=31232
+SPAWN C(pid=180) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=180) by A(pid=1)
+RECLAIM C(pid=180) pages=5 free=31232
+SPAWN C(pid=181) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=181) by A(pid=1)
+RECLAIM C(pid=181) pages=5 free=31232
+SPAWN C(pid=182) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=182) by A(pid=1)
+RECLAIM C(pid=182) pages=5 free=31232
+SPAWN C(pid=183) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=183) by A(pid=1)
+RECLAIM C(pid=183) pages=5 free=31232
+SPAWN C(pid=184) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=184) by A(pid=1)
+RECLAIM C(pid=184) pages=5 free=31232
+SPAWN C(pid=185) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=185) by A(pid=1)
+RECLAIM C(pid=185) pages=5 free=31232
+SPAWN C(pid=186) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=186) by A(pid=1)
+RECLAIM C(pid=186) pages=5 free=31232
+SPAWN C(pid=187) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=187) by A(pid=1)
+RECLAIM C(pid=187) pages=5 free=31232
+SPAWN C(pid=188) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=188) by A(pid=1)
+RECLAIM C(pid=188) pages=5 free=31232
+SPAWN C(pid=189) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=189) by A(pid=1)
+RECLAIM C(pid=189) pages=5 free=31232
+SPAWN C(pid=190) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=190) by A(pid=1)
+RECLAIM C(pid=190) pages=5 free=31232
+SPAWN C(pid=191) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=191) by A(pid=1)
+RECLAIM C(pid=191) pages=5 free=31232
+SPAWN C(pid=192) prog=1 satp=0x8000000000080400 free=31227
+SCHED A(pid=1) -> B(pid=2) reason=timer switches=13
+SCHED B(pid=2) -> C(pid=192) reason=timer switches=14
+SCHED C(pid=192) -> A(pid=1) reason=timer switches=15
+KILL C(pid=192) by A(pid=1)
+RECLAIM C(pid=192) pages=5 free=31232
+SPAWN C(pid=193) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=193) by A(pid=1)
+RECLAIM C(pid=193) pages=5 free=31232
+SPAWN C(pid=194) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=194) by A(pid=1)
+RECLAIM C(pid=194) pages=5 free=31232
+SPAWN C(pid=195) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=195) by A(pid=1)
+RECLAIM C(pid=195) pages=5 free=31232
+SPAWN C(pid=196) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=196) by A(pid=1)
+RECLAIM C(pid=196) pages=5 free=31232
+SPAWN C(pid=197) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=197) by A(pid=1)
+RECLAIM C(pid=197) pages=5 free=31232
+SPAWN C(pid=198) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=198) by A(pid=1)
+RECLAIM C(pid=198) pages=5 free=31232
+SPAWN C(pid=199) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=199) by A(pid=1)
+RECLAIM C(pid=199) pages=5 free=31232
+SPAWN C(pid=200) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=200) by A(pid=1)
+RECLAIM C(pid=200) pages=5 free=31232
+SPAWN C(pid=201) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=201) by A(pid=1)
+RECLAIM C(pid=201) pages=5 free=31232
+SPAWN C(pid=202) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=202) by A(pid=1)
+RECLAIM C(pid=202) pages=5 free=31232
+SPAWN C(pid=203) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=203) by A(pid=1)
+RECLAIM C(pid=203) pages=5 free=31232
+SPAWN C(pid=204) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=204) by A(pid=1)
+RECLAIM C(pid=204) pages=5 free=31232
+SPAWN C(pid=205) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=205) by A(pid=1)
+RECLAIM C(pid=205) pages=5 free=31232
+SPAWN C(pid=206) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=206) by A(pid=1)
+RECLAIM C(pid=206) pages=5 free=31232
+SPAWN C(pid=207) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=207) by A(pid=1)
+RECLAIM C(pid=207) pages=5 free=31232
+SPAWN C(pid=208) prog=1 satp=0x8000000000080400 free=31227
+KILL C(pid=208) by A(pid=1)
+RECLAIM C(pid=208) pages=5 free=31232

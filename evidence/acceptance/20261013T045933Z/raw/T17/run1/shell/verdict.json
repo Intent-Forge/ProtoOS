@@ -1,0 +1,97 @@
+{
+ "test": "T17",
+ "repetition": 1,
+ "scenario": "protoos.mode=shell",
+ "probe": "t17",
+ "program_archive": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 3.77,
+ "checks": [
+  {
+   "check": "every command finished with a new prompt",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "mem printed twice; all pages free at start and again at the end",
+   "ok": true,
+   "detail": "[(31232, 31232), (31232, 31232)]"
+  },
+  {
+   "check": "run worker -> started pid 3; run hello -> started pid 4; run crash -> started pid 5",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "hello printed its line and exited",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ps printed twice",
+   "ok": true,
+   "detail": "2"
+  },
+  {
+   "check": "ps #1: shell RUNNING, B READY, pid 3 worker alive",
+   "ok": true,
+   "detail": "[('1', 'A', 'RUNNING', '0', '68', None), ('2', 'B', 'READY', '45', '0', None), ('3', 'C', 'READY', '22', '0', 'worker'), ('4', 'D', 'EXITED', '0', '2', 'hello')]"
+  },
+  {
+   "check": "ps #2: pid 5 crash FAULTED, pid 3 gone or EXITED",
+   "ok": true,
+   "detail": "[('1', 'A', 'RUNNING', '0', '129', None), ('2', 'B', 'READY', '100', '0', None), ('5', 'C', 'FAULTED', '0', '1', 'crash'), ('4', 'D', 'EXITED', '0', '2', 'hello')]"
+  },
+  {
+   "check": "kill 3 returned the 5 pages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "crash announced itself and the kernel stopped only it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "at the end: shell BLOCKED at its prompt, B READY/RUNNING, no run-time process owns pages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "kernel received exactly the 52 typed bytes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: the only user exception is the crash store",
+   "ok": true,
+   "detail": "[{'async': 0, 'cause': 15, 'epc': 67109372, 'tval': 8392704, 'desc': 'store_page_fault'}]"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "63a1b65697f57eaed02b9c495d73a322dfb1a4abb08ad158584f321d2a014ad6",
+  "gdb.log": "2929f0a348b8bc27b38f5f45f72caa136465100975fa2b97e1ed319f2b6206a3",
+  "observations.json": "1f29533f4898ae84e535035a8228af9a783e4b0a6dfd44240220f816cda6af01",
+  "probe-config.json": "ba478b90420f942d17c63e8288dd19eb3e451ff3e556aaeeffceb9c92c375da3",
+  "qemu-int.log": "cc0b7599c476c4eeaebe2e0542e47243649027e700f14c92f621b5969a7cd2e3",
+  "uart.log": "f99f1394ee94d893dd95cd55034faddc0105dd1751d78f08a2e9c7b476fb5e86"
+ }
+}

@@ -1,0 +1,92 @@
+{
+ "test": "T16",
+ "repetition": 2,
+ "scenario": "protoos.test=multi",
+ "probe": "t16",
+ "program_archive": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 1.12,
+ "checks": [
+  {
+   "check": "the crash program faulted: store page fault at its store, target = B data VA",
+   "ok": true,
+   "detail": "('0xf', '0x801000')"
+  },
+  {
+   "check": "B's data page was not written (no 0x43 pattern)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "v1.3.1: after the fault Round Robin continues with the next READY slot after the crash",
+   "ok": true,
+   "detail": "(3, 4, [5, 1, 1, 4, 1, 1, 0, 0])"
+  },
+  {
+   "check": "crash slot FAULTED and its pages reclaimed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "three workers alive with their own pages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "every worker keeps counting after the crash",
+   "ok": true,
+   "detail": "[(108650757, 160879058), (106167624, 158530061), (107859339, 153699639)]"
+  },
+  {
+   "check": "B keeps running; A alive",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no other fault within 30 ticks",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "free pages = baseline - 15 (three workers)",
+   "ok": true,
+   "detail": "[31232, 3, 4, 5, 6, 31217]"
+  },
+  {
+   "check": "trace: exactly one user exception, the crash store",
+   "ok": true,
+   "detail": "[{'async': 0, 'cause': 15, 'epc': 67109372, 'tval': 8392704, 'desc': 'store_page_fault'}]"
+  },
+  {
+   "check": "UART: crash announcement and FAULT line",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "994016dc495a79a67621ab0dc55ed16d6f296084549ee44061c53a75e77edad7",
+  "gdb.log": "d1b6c370d12e318a4e1b25f7e56c7cd89a46593237f5f812a19b7a79206ee8af",
+  "observations.json": "692d7fe2e93381da8b4eb581a560bb82fc0a8afa39945306514780cc969014d0",
+  "probe-config.json": "a6ff4f9dd56686b17452506834ecdc4952f7e765eaac1693d5ef0252999ae77b",
+  "qemu-int.log": "13bb722da35374334c8b584b66c9b8e5a3957b99a9393498087ab15ffc9e3202",
+  "uart.log": "4abced74416f9d15ae48347bb9168a85510527fb47adefa08e05fa2300b03ac6"
+ }
+}

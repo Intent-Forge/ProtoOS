@@ -1,0 +1,39 @@
+{
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "firmware": "/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin",
+ "firmware_sha256": "b296d711ecb879489689109c0fd7e0698b5b9550725b4e50fac456bbd3ecbcdf",
+ "qemu": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)",
+ "gdb": "GNU gdb (Ubuntu 17.1-2ubuntu1) 17.1",
+ "zig": "0.13.0",
+ "host": "Linux 6.18.40.1-microsoft-standard-WSL2 x86_64",
+ "python": "3.14.4",
+ "git_head": "aef3860deca1e18df0e8e6867fb7d84dd8d1f707",
+ "struct_offsets": {
+  "sizeof_process": 1048,
+  "process.state": 296,
+  "process.preemptions": 320,
+  "process.syscalls": 336,
+  "sched.timer_ticks": 8,
+  "sched.switches": 16,
+  "sched.idle_entered": 24
+ },
+ "images": {
+  "badarc/a_big.img": "92c1d07abcc7f23bad881d8b608a10e45b434d4fa5041657f4a3f9243a978e1b",
+  "badarc/a_check.img": "050a33ec205a5b6ba946e07464d1f631651c6b4e981505acf4f1e1d1d69e5797",
+  "badarc/a_data.img": "bc8debdc68cbaa74465184f0f6784d6d27bfdec7704b19931ba25672e0f87423",
+  "badarc/a_dir.img": "1eca5e76fe4fba694f725ec790044f6dd07e41d80517229dee77f6ccca93f139",
+  "badarc/a_dup.img": "a4599e6c20a8a40160e2a64587e0ad1416dfdbb499a65ab37a74856cb493cfe2",
+  "badarc/a_hex.img": "b2179f24208bfd9e204041ba2f3e1afb627c80e7fe7593a4b4e4f5547a7c554a",
+  "badarc/a_longname.img": "4701a938ebd0687ced0850ae1a1be4f299463e2456f2a6f9ae4d67ab0dcdd399",
+  "badarc/a_magic.img": "69e5bdfc9ced2ac804be2fd673b722e63fde037cfc64cee493ecbb820a47e01f",
+  "badarc/a_many.img": "3b1a0c8f72cb6e69c4283e1929dcd601431a51ead7d378683a06798c40aba5c4",
+  "badarc/a_name.img": "399fdd3a13898907068446964e438d5ba0503955c2b0467c16b0dcde226e6165",
+  "badarc/a_notrailer.img": "560fdcecb407c9ec5c09e8a4ae172e855f791c8fbdae4196aa1a323c5c64f5e8",
+  "badarc/a_tail.img": "1bbaac8add7ee08f0890c6d9e05555a12c13fdafc4dbe1572a5fd9142fb0ad3f",
+  "badarc/a_trunc.img": "ec897ccd2473428ea6b57f4c5eab9adef6951ad4b0bcd672e3c82aae50c0282e",
+  "badelf.img": "effa0ec3cc2bac807f3bcc9fcdd89a9848441d21de35c36d0a6f018d37e989e9",
+  "programs.img": "2a96d0abd0ea06343bbd1788be9993d55969da784c901b4d2bafcaee0a8271e6",
+  "tests.img": "dd33b236077683cca1581f7915e8417a7bb2305f08e269db877c2e6caecaa852",
+  "images.json": "9f958b4ef712d8ec18b771acf274420621e4c14dc106915b7f539bf559d85a01"
+ }
+}

@@ -1,0 +1,67 @@
+{
+ "test": "N11",
+ "repetition": 3,
+ "scenario": "protoos.test=archive-bad",
+ "probe": "n11",
+ "program_archive": "badarc/a_dup.img",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 0.32,
+ "checks": [
+  {
+   "check": "a_dup: kernel rejected the archive with reason -8",
+   "ok": true,
+   "detail": "('28244', '0000000084200000', '7', '8')"
+  },
+  {
+   "check": "no programs: progs(0) = -2, run(\"ok\") = -2",
+   "ok": true,
+   "detail": "('0xfffffffffffffffe', '0xfffffffffffffffe')"
+  },
+  {
+   "check": "its pages stay reserved and out of the allocator",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "archive memory not user-accessible in A's root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "the system keeps running: B counts on",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "a4599e6c20a8a40160e2a64587e0ad1416dfdbb499a65ab37a74856cb493cfe2"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "c72d7d29dd4f775a1ca9263b8e6748baaa33daf588f5968e985e22ce754bcb18",
+  "gdb.log": "bc4ba96c3007312e37c1114391487725b6f7e1ba4e53a99592f12e2ccb86e120",
+  "observations.json": "3f732f1e2b7466ffc6bfa035fb678a4c01f44980ea13edc803aa31966f4751bc",
+  "probe-config.json": "7324db269fe089aca531be7839f2a6adb12524e0b7bb8418b593219b103ffd8f",
+  "qemu-int.log": "051b28a2e7e0c9ab7e15c876667b547dec6c21087f592275512239c649764303",
+  "uart.log": "0ba52c9510584f4a9611acfd4bdfd27e5512aa486e34cc6177e7886802cdf6bd"
+ }
+}

@@ -1,0 +1,157 @@
+{
+ "test": "T18",
+ "repetition": 1,
+ "scenario": "protoos.test=elf",
+ "probe": "t18",
+ "program_archive": "tests.img",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "t_elf stopped at its checkpoint in U-mode, under its own root",
+   "ok": true,
+   "detail": "0x4000054c"
+  },
+  {
+   "check": "run() returned pid 3 = its getpid() (a0 at the checkpoint); program id 16 = archive file 0",
+   "ok": true,
+   "detail": "(3, 3, 16)"
+  },
+  {
+   "check": "it owns 13 pages: 3 tables + 6 segment pages (ELF headers) + 4 stack",
+   "ok": true,
+   "detail": "13"
+  },
+  {
+   "check": "t_elf: 13 distinct page-aligned pool pages, outside the kernel image and the archive",
+   "ok": true,
+   "detail": "['0x80400000', '0x80401000', '0x80402000', '0x80403000']"
+  },
+  {
+   "check": "allocator: its pages are marked in use, free = baseline - its pages",
+   "ok": true,
+   "detail": "(31167, 31180)"
+  },
+  {
+   "check": "own Sv39 root (its first page), not the kernel, A or B root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "window tables: root -> its own level-1 table -> its own level-0 table (non-leaf, no U); the level-1 table holds nothing else",
+   "ok": true,
+   "detail": "0x20100401"
+  },
+  {
+   "check": "all 512 entries of the window: exactly the segment pages (with exactly their ELF permissions: code R X, constants R, data R W, never W+X) and the 4 stack pages R W U; nothing else (heap empty, guard 0x401fb000 unmapped)",
+   "ok": true,
+   "detail": "([], [])"
+  },
+  {
+   "check": "one to one: the window maps each of its own non-table pages exactly once, and never one of its page tables",
+   "ok": true,
+   "detail": "['0x80403000', '0x80404000', '0x80405000', '0x80406000']"
+  },
+  {
+   "check": "every segment page holds exactly the file bytes (then zeros): SHA-256 of the physical page = the page computed from the ELF file",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "PT walk: A's and B's data unmapped; kernel data, UART, archive and pool kernel-only",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "PT walk: shared program pages R X U, not W",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no part of the window's 1 GiB is mapped in A's, B's or the kernel's root (root entry 0)",
+   "ok": true,
+   "detail": "{'kernel': 0, 'A': 0, 'B': 0}"
+  },
+  {
+   "check": "archive: 52 pages reserved (bitmap), 15 programs",
+   "ok": true,
+   "detail": "(52, {'start': 2216689664, 'end': 2216901872, 'found': 3, 'pa': 2216689664, 'count': 15})"
+  },
+  {
+   "check": "t_elf passed all its own checks: wait() returned 0",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "all its pages came back (free = baseline)",
+   "ok": true,
+   "detail": "(31180, 31180)"
+  },
+  {
+   "check": "t_exit42 started as pid 4, wait() returned 42, pages back",
+   "ok": true,
+   "detail": "[4, 42, 31180]"
+  },
+  {
+   "check": "sbrk from A (no heap): -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "progs(0) = size and name of t_elf; progs(99) = -2; foreign buffer = -14",
+   "ok": true,
+   "detail": "(15064, '745f656c660000000000000000000000', '0xfffffffffffffffe', '0xfffffffffffffff2')"
+  },
+  {
+   "check": "allocations = frees at the end; slot owns nothing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "UART: t_elf reported success, exit code 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no user exception other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: ecalls from the ELF window (the C programs ran in U-mode)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "dd33b236077683cca1581f7915e8417a7bb2305f08e269db877c2e6caecaa852"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "69bee23921bc9748988e101ffb8d7f38546075476564d195cad0e13746d50c5c",
+  "gdb.log": "382777d19c5d59a989af9448774b1b335c5064350cc165fdd3e84ede5aebd90e",
+  "observations.json": "900adf8be2e5e8b327228238aa8739c874eaa1ea29b52f0dc6db8260bf1f129e",
+  "probe-config.json": "b45660c50785a5355b41a480c60e54e51c57ef77b45aeb9492b6cdc965ebc512",
+  "qemu-int.log": "f7e104443bf12d82cdabf8153514002464eb796e65fc960627d77423a9fed9d1",
+  "uart.log": "856c6be2d1aea2ec17f118683d4b63442913b87686aacc8c85d751bc76069476"
+ }
+}

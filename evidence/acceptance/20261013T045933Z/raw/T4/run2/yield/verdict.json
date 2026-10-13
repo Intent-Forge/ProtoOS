@@ -1,0 +1,87 @@
+{
+ "test": "T4",
+ "repetition": 2,
+ "scenario": "protoos.test=yield",
+ "probe": "t4_yield",
+ "program_archive": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 1.07,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=124 yield",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B runs right after A yielded",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "B: satp is the process root",
+   "ok": true,
+   "detail": "0x8000000000080231"
+  },
+  {
+   "check": "B: pc inside its user text",
+   "ok": true,
+   "detail": "0x800218"
+  },
+  {
+   "check": "switch caused by yield, not the timer (tick count unchanged)",
+   "ok": true,
+   "detail": "(0, 0)"
+  },
+  {
+   "check": "A resumes after its ecall with a0 == 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A resumes under its own satp",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "both processes kept yielding (yield counters > 1)",
+   "ok": true,
+   "detail": "(189, 188)"
+  },
+  {
+   "check": "no self-detected error",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "f701a12d8e701e028419e9781f508f60872d6d6120f526c90435d730c3f0b776",
+  "gdb.log": "8ef751ee367d70e5b238cd2402fc562df7c6cb18b3747ee605ee118c5db457e5",
+  "observations.json": "fec959919ce3a29337223d1ca59e36670006405e4028aee4526b9c4f6d928088",
+  "probe-config.json": "b236863c774c9a3cb5275afefdfad4ff0244c1bab7e786d6914195a25ee43680",
+  "qemu-int.log": "5b23a74f7ea21b4b21b39eb1b3ee2b50437279a317ec49583cb292d5d2317a5d",
+  "uart.log": "a8a969da6e4f9caaa973f73b2ade4079f9ff6db57b5872c5a28906c20a1fe984"
+ }
+}

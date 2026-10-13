@@ -1,0 +1,1868 @@
+{
+ "run_id": "20261013T045933Z",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "repetitions": 3,
+ "per_test": {
+  "T1": "PASS",
+  "T2": "PASS",
+  "T3": "PASS",
+  "T4": "PASS",
+  "T5": "PASS",
+  "T6": "PASS",
+  "T7": "PASS",
+  "N1": "PASS",
+  "N2": "PASS",
+  "N3": "PASS",
+  "N4": "PASS",
+  "N5": "PASS",
+  "T8": "PASS",
+  "T9": "PASS",
+  "N6": "PASS",
+  "T10": "PASS",
+  "T11": "PASS",
+  "T12": "PASS",
+  "N7": "PASS",
+  "N8": "PASS",
+  "T13": "PASS",
+  "T14": "PASS",
+  "T15": "PASS",
+  "T16": "PASS",
+  "T17": "PASS",
+  "N9": "PASS",
+  "T18": "PASS",
+  "T19": "PASS",
+  "T20": "PASS",
+  "T21": "PASS",
+  "T22": "PASS",
+  "N10": "PASS",
+  "N11": "PASS",
+  "N12": "PASS"
+ },
+ "all_pass": true,
+ "environment": {
+  "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+  "firmware": "/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin",
+  "firmware_sha256": "b296d711ecb879489689109c0fd7e0698b5b9550725b4e50fac456bbd3ecbcdf",
+  "qemu": "QEMU emulator version 10.2.1 (Debian 1:10.2.1+ds-1ubuntu3.2)",
+  "gdb": "GNU gdb (Ubuntu 17.1-2ubuntu1) 17.1",
+  "zig": "0.13.0",
+  "host": "Linux 6.18.40.1-microsoft-standard-WSL2 x86_64",
+  "python": "3.14.4",
+  "git_head": "aef3860deca1e18df0e8e6867fb7d84dd8d1f707",
+  "struct_offsets": {
+   "sizeof_process": 1048,
+   "process.state": 296,
+   "process.preemptions": 320,
+   "process.syscalls": 336,
+   "sched.timer_ticks": 8,
+   "sched.switches": 16,
+   "sched.idle_entered": 24
+  },
+  "images": {
+   "badarc/a_big.img": "92c1d07abcc7f23bad881d8b608a10e45b434d4fa5041657f4a3f9243a978e1b",
+   "badarc/a_check.img": "050a33ec205a5b6ba946e07464d1f631651c6b4e981505acf4f1e1d1d69e5797",
+   "badarc/a_data.img": "bc8debdc68cbaa74465184f0f6784d6d27bfdec7704b19931ba25672e0f87423",
+   "badarc/a_dir.img": "1eca5e76fe4fba694f725ec790044f6dd07e41d80517229dee77f6ccca93f139",
+   "badarc/a_dup.img": "a4599e6c20a8a40160e2a64587e0ad1416dfdbb499a65ab37a74856cb493cfe2",
+   "badarc/a_hex.img": "b2179f24208bfd9e204041ba2f3e1afb627c80e7fe7593a4b4e4f5547a7c554a",
+   "badarc/a_longname.img": "4701a938ebd0687ced0850ae1a1be4f299463e2456f2a6f9ae4d67ab0dcdd399",
+   "badarc/a_magic.img": "69e5bdfc9ced2ac804be2fd673b722e63fde037cfc64cee493ecbb820a47e01f",
+   "badarc/a_many.img": "3b1a0c8f72cb6e69c4283e1929dcd601431a51ead7d378683a06798c40aba5c4",
+   "badarc/a_name.img": "399fdd3a13898907068446964e438d5ba0503955c2b0467c16b0dcde226e6165",
+   "badarc/a_notrailer.img": "560fdcecb407c9ec5c09e8a4ae172e855f791c8fbdae4196aa1a323c5c64f5e8",
+   "badarc/a_tail.img": "1bbaac8add7ee08f0890c6d9e05555a12c13fdafc4dbe1572a5fd9142fb0ad3f",
+   "badarc/a_trunc.img": "ec897ccd2473428ea6b57f4c5eab9adef6951ad4b0bcd672e3c82aae50c0282e",
+   "badelf.img": "effa0ec3cc2bac807f3bcc9fcdd89a9848441d21de35c36d0a6f018d37e989e9",
+   "programs.img": "2a96d0abd0ea06343bbd1788be9993d55969da784c901b4d2bafcaee0a8271e6",
+   "tests.img": "dd33b236077683cca1581f7915e8417a7bb2305f08e269db877c2e6caecaa852",
+   "images.json": "9f958b4ef712d8ec18b771acf274420621e4c14dc106915b7f539bf559d85a01"
+  }
+ },
+ "results": [
+  {
+   "test": "T1",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    }
+   ]
+  },
+  {
+   "test": "T1",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.17
+    }
+   ]
+  },
+  {
+   "test": "T1",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.17
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.12
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.07
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.07
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.12
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.07
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.07
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.07
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.07
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.07
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.82
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.22
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.22
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.22
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.22
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.22
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.22
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.22
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.22
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.22
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.52
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.57
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.57
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.52
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.47
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.47
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.07
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.07
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.07
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.47
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.47
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.47
+    }
+   ]
+  },
+  {
+   "test": "T13",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=mem",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    }
+   ]
+  },
+  {
+   "test": "T13",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=mem",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    }
+   ]
+  },
+  {
+   "test": "T13",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=mem",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    }
+   ]
+  },
+  {
+   "test": "T14",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T14",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T14",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T15",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kill",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T15",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kill",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T15",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kill",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.97
+    }
+   ]
+  },
+  {
+   "test": "T16",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=multi",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.27
+    }
+   ]
+  },
+  {
+   "test": "T16",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=multi",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.27
+    }
+   ]
+  },
+  {
+   "test": "T16",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=multi",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.27
+    }
+   ]
+  },
+  {
+   "test": "T17",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.77
+    }
+   ]
+  },
+  {
+   "test": "T17",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.77
+    }
+   ]
+  },
+  {
+   "test": "T17",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.72
+    }
+   ]
+  },
+  {
+   "test": "N9",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "N9",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "N9",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T18",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T18",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T18",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T19",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sbrk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T19",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sbrk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    }
+   ]
+  },
+  {
+   "test": "T19",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sbrk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T20",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=wait",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.37
+    }
+   ]
+  },
+  {
+   "test": "T20",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=wait",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.37
+    }
+   ]
+  },
+  {
+   "test": "T20",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=wait",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.42
+    }
+   ]
+  },
+  {
+   "test": "T21",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=ctrlc",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.87
+    }
+   ]
+  },
+  {
+   "test": "T21",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=ctrlc",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.92
+    }
+   ]
+  },
+  {
+   "test": "T21",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=ctrlc",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.97
+    }
+   ]
+  },
+  {
+   "test": "T22",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 6.93
+    }
+   ]
+  },
+  {
+   "test": "T22",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 6.93
+    }
+   ]
+  },
+  {
+   "test": "T22",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 6.98
+    }
+   ]
+  },
+  {
+   "test": "N10",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf-bad",
+     "program_archive": "badelf.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "N10",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf-bad",
+     "program_archive": "badelf.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "N10",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf-bad",
+     "program_archive": "badelf.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "N11",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_magic.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_hex.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_trunc.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_name.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_longname.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dir.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_check.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_data.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_many.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dup.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_notrailer.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_tail.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_big.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N11",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_magic.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_hex.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_trunc.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_name.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_longname.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dir.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_check.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_data.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_many.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dup.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_notrailer.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_tail.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_big.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N11",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_magic.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_hex.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_trunc.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_name.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_longname.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dir.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_check.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_data.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_many.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dup.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_notrailer.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_tail.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_big.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N12",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=user-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.52
+    }
+   ]
+  },
+  {
+   "test": "N12",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=user-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.52
+    }
+   ]
+  },
+  {
+   "test": "N12",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=user-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.52
+    }
+   ]
+  }
+ ]
+}

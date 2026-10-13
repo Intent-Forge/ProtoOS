@@ -1,0 +1,174 @@
+
+OpenSBI v1.8
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 1
+Platform HART Protection    : pmp
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 321 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 65 KB
+Firmware Heap Offset        : 0x47000
+Firmware Heap Size          : 37 KB (total), 0 KB (reserved), 12 KB (used), 23 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1464 B (used), 2632 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : ipi,pmu,srst,sse,hsm,rfnc,fwft,time,base,legacy,dbcn,dbtr
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*
+Domain0 Region00            : 0x0000000080040000-0x000000008005ffff M: (F,R,W) S/U: ()
+Domain0 Region01            : 0x0000000080000000-0x000000008003ffff M: (F,R,X) S/U: ()
+Domain0 Region02            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region03            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region04            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x0000000087e00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sstc,zicntr,zihpm,zicboz,zicbom,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000001666
+Boot HART MEDELEG           : 0x0000000000f4b509
+ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes
+hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=ctrlc
+ARCHIVE 212208 bytes at 0x0000000084200000, 52 pages reserved: 15 programs
+MMU Sv39 active satp=0x8000000000080211
+SCENARIO protoos.test=ctrlc
+PROC A(pid=1) entry=0x0000000004000fdc sp=0x0000000000404000 satp=0x8000000000080227
+PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x8000000000080231
+SCHED - -> A(pid=1) reason=start switches=1
+RUN C(pid=3) name=t_spin pages=10 entry=0x0000000040000000 free=31170
+RUN D(pid=4) name=t_spin pages=10 entry=0x0000000040000000 free=31160
+RUN E(pid=5) name=t_fgbusy pages=10 entry=0x0000000040000000 free=31150
+SCHED A(pid=1) -> B(pid=2) reason=wait switches=2
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=3
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=4
+SCHED D(pid=4) -> E(pid=5) reason=timer switches=5
+SCHED E(pid=5) -> B(pid=2) reason=sleep switches=6
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=7
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=8
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=9
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=10
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=11
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=12
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=13
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=14
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=15
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=16
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=17
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=18
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=19
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=20
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=21
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=22
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=23
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=24
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=25
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=26
+SCHED D(pid=4) -> E(pid=5) reason=timer switches=27
+RUN F(pid=6) name=t_spin pages=10 entry=0x0000000040000000 free=31140
+KILL F(pid=6) by E(pid=5)
+RECLAIM F(pid=6) pages=10 free=31150
+EXIT E(pid=5) code=16
+RECLAIM E(pid=5) pages=10 free=31160
+SCHED - -> B(pid=2) reason=exit switches=28
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=29
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=30
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=31
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=32
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=33
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=34
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=35
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=36
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=37
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=38
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=39
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=40
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=41
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=42
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=43
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=44
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=45
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=46
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=47
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=48
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=49
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=50
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=51
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=52
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=53
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=54
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=55
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=56
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=57
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=58
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=59
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=60
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=61
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=62
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=63
+SCHED D(pid=4) -> B(pid=2) reason=timer switches=64
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=65
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=66
+INTR D(pid=4) ended by Ctrl-C
+RECLAIM D(pid=4) pages=10 free=31170
+SCHED - -> A(pid=1) reason=intr switches=67
+RUN D(pid=7) name=t_reader pages=10 entry=0x0000000040000000 free=31160
+SCHED A(pid=1) -> B(pid=2) reason=wait switches=68
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=69
+SCHED C(pid=3) -> D(pid=7) reason=timer switches=70
+t_reader> SCHED D(pid=7) -> B(pid=2) reason=read switches=71
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=72
+SCHED C(pid=3) -> D(pid=7) reason=timer switches=73
+abc
+got: abc
+t_reader> SCHED D(pid=7) -> B(pid=2) reason=read switches=74
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=75
+SCHED C(pid=3) -> B(pid=2) reason=timer switches=76
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=77
+SCHED C(pid=3) -> B(pid=2) reason=timer switches=78
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=79
+SCHED C(pid=3) -> B(pid=2) reason=timer switches=80
+INTR D(pid=7) ended by Ctrl-C
+RECLAIM D(pid=7) pages=10 free=31170
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=81
+SCHED C(pid=3) -> A(pid=1) reason=timer switches=82
+SCHED A(pid=1) -> B(pid=2) reason=read switches=83
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=84
+SCHED C(pid=3) -> A(pid=1) reason=timer switches=85
+KILL C(pid=3) by A(pid=1)
+RECLAIM C(pid=3) pages=10 free=31180
+SCHED A(pid=1) -> B(pid=2) reason=sleep switches=86

@@ -1,0 +1,68 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 1, trap_from_user (f=0x8023b0b8 <procs>) at src/proc.c:701
+701	{
+Breakpoint 2 at 0x80205dfc: file src/proc.c, line 701.
+Breakpoint 3 at 0x802039a0: file src/proc.c, line 172.
+
+Breakpoint 2, trap_from_user (f=0x8023b4d0 <procs+1048>) at src/proc.c:701
+701	{
+Breakpoint 4 at 0x40000014
+
+Breakpoint 4, 0x0000000040000014 in ?? ()
+Breakpoint 5 at 0x802036b4: file src/proc.c, line 135.
+
+Breakpoint 5, console_intr () at src/proc.c:135
+135	{
+Breakpoint 6 at 0x4001048
+
+Breakpoint 6, 0x0000000004001048 in ?? ()
+Breakpoint 7 at 0x4001074
+
+Breakpoint 7, 0x0000000004001074 in ?? ()
+Breakpoint 8 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 8, trap_from_user (f=0x8023b0b8 <procs>) at src/proc.c:701
+701	{
+Breakpoint 9 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 9, trap_from_user (f=0x8023bd00 <procs+3144>) at src/proc.c:701
+701	{
+Breakpoint 10 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 10, trap_from_user (f=0x8023bd00 <procs+3144>) at src/proc.c:701
+701	{
+Breakpoint 11 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 11, trap_from_user (f=0x8023bd00 <procs+3144>) at src/proc.c:701
+701	{
+Breakpoint 12 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 12, trap_from_user (f=0x8023bd00 <procs+3144>) at src/proc.c:701
+701	{
+Breakpoint 13 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 13, trap_from_user (f=0x8023bd00 <procs+3144>) at src/proc.c:701
+701	{
+Breakpoint 14 at 0x80205dfc: file src/proc.c, line 701.
+Breakpoint 15 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 14, trap_from_user (f=0x8023b8e8 <procs+2096>) at src/proc.c:701
+701	{
+Breakpoint 16 at 0x4001088
+
+Breakpoint 16, 0x0000000004001088 in ?? ()
+Breakpoint 17 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 17, trap_from_user (f=0x8023b0b8 <procs>) at src/proc.c:701
+701	{
+Breakpoint 18 at 0x40010d0
+
+Breakpoint 18, 0x00000000040010d0 in ?? ()
+Breakpoint 19 at 0x80205dfc: file src/proc.c, line 701.
+
+Breakpoint 19, trap_from_user (f=0x8023b4d0 <procs+1048>) at src/proc.c:701
+701	{
+[Inferior 1 (process 1) killed]

@@ -1,0 +1,77 @@
+{
+ "test": "T4",
+ "repetition": 3,
+ "scenario": "protoos.test=exit",
+ "probe": "t4_exit",
+ "program_archive": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 0.97,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=93 exit, a0=42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A did its 1000 iterations before exit",
+   "ok": true,
+   "detail": "1000"
+  },
+  {
+   "check": "wait1: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "wait2: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "A state EXITED, exit_code 42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A counter frozen at 1000",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps running (counter advances)",
+   "ok": true,
+   "detail": "(17899699, 35496201)"
+  },
+  {
+   "check": "trace: exactly one user ecall from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "57e711db1d241b8d658134e254ca85d87da9229a92d8642f073a4324b76bfa72",
+  "gdb.log": "d68319c62c126c1b12b51db267e788787e6990cb617fd901b3040bd634f1eb2e",
+  "observations.json": "b50e1b89d676d28435bbb59e24f8375be8be03b7c516422883f94eded6a42737",
+  "probe-config.json": "0a38f772949c320dbdd73a816d5f72cb0e61a875e211fef97201bc831eeb8855",
+  "qemu-int.log": "b553b33e2eedc1ec5121f4963d2bdb4a5ffbd5773f022460bc0a25f54d7be457",
+  "uart.log": "1b8de10f696d408aed67ca42776dc558a6d93b3f641d512e1a1ca896a7323108"
+ }
+}

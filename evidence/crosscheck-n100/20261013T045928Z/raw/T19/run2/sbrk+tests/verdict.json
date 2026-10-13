@@ -1,0 +1,107 @@
+{
+ "test": "T19",
+ "repetition": 2,
+ "scenario": "protoos.test=sbrk",
+ "probe": "t19",
+ "program_archive": "tests.img",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "checkpoint 1: heap starts at the page after the image (= _end); break = base + 10000",
+   "ok": true,
+   "detail": "('0x40003000', '0x40005710')"
+  },
+  {
+   "check": "3 heap pages mapped R W U (not X), its own pages; the next two unmapped",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "heap pages hold what it wrote (10000 bytes) and zeros after",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "pages owned: 10 + 3 heap; free = baseline - that",
+   "ok": true,
+   "detail": "(13, 31167, 31180)"
+  },
+  {
+   "check": "checkpoint 2: heap grew until refused at exactly 64 pages owned",
+   "ok": true,
+   "detail": "(64, 51)"
+  },
+  {
+   "check": "every heap page up to the break mapped R W U, the page after it unmapped",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "guard page below the stack unmapped; stack mapped",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "t_sbrk at the limit: 64 distinct page-aligned pool pages, outside the kernel image and the archive",
+   "ok": true,
+   "detail": "['0x80400000', '0x80401000', '0x80402000', '0x80403000']"
+  },
+  {
+   "check": "allocator: all its pages marked, free = baseline - 64",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "t_sbrk passed all its own checks (zeroed pages, -22, -12, break unchanged on refusal)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "all 64 pages came back: free = baseline, allocations = frees",
+   "ok": true,
+   "detail": "([31180, 3, 0, 31180], {'base': 2151677952, 'pages': 31232, 'free': 31180, 'allocs': 64, 'frees': 64, 'reserved': 52})"
+  },
+  {
+   "check": "UART: t_sbrk reported success",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no user exception other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "dd33b236077683cca1581f7915e8417a7bb2305f08e269db877c2e6caecaa852"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "bc236406df65669aef0b3ca484b81eb2d8f2372955e612ab7065d1673d1a8e20",
+  "gdb.log": "155854886d82058cadea85c166e1abc000a3a9ce89657f158a8bb4e5795e5b22",
+  "observations.json": "aa5e502018472690b14d4f0a2bcb4c2bb8c433e2814033a8c50514a77b68bf81",
+  "probe-config.json": "a5b73a55b497ae3ea49728ae5d4e981854b41fb8c777a5522aed4654f5c75785",
+  "qemu-int.log": "7df3749574cde0705480faf76613bd5c8d08fa1363dbac96910f1b0ebf945e2a",
+  "uart.log": "a418233939b70eccfd84327d6f167dad05265eb42a076034280e6bff0fb4fb79"
+ }
+}

@@ -1,0 +1,9 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x4000054c
+
+Breakpoint 1, 0x000000004000054c in ?? ()
+Breakpoint 2 at 0x4000ddc
+
+Breakpoint 2, 0x0000000004000ddc in ?? ()
+[Inferior 1 (process 1) killed]

@@ -1,0 +1,112 @@
+{
+ "test": "N12",
+ "repetition": 2,
+ "scenario": "protoos.test=user-bad",
+ "probe": "n12",
+ "program_archive": "tests.img",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 0.52,
+ "checks": [
+  {
+   "check": "A ran all 8 programs",
+   "ok": true,
+   "detail": "8"
+  },
+  {
+   "check": "each started (pids 3..10) and wait() reported 139 (faulted) for each",
+   "ok": true,
+   "detail": "[3, 139, 4, 139, 5, 139, 6, 139, 7, 139, 8, 139, 9, 139, 10, 139]"
+  },
+  {
+   "check": "trace: exactly 8 user exceptions",
+   "ok": true,
+   "detail": "8"
+  },
+  {
+   "check": "b_text: store into its own code",
+   "ok": true,
+   "detail": "{'async': 0, 'cause': 15, 'epc': 1073743208, 'tval': 1073741824, 'desc': 'store_page_fault'}"
+  },
+  {
+   "check": "b_rodata: store into its constants",
+   "ok": true,
+   "detail": "{'async': 0, 'cause': 15, 'epc': 1073743212, 'tval': 1073745987, 'desc': 'store_page_fault'}"
+  },
+  {
+   "check": "b_kernel: load from the kernel",
+   "ok": true,
+   "detail": "{'async': 0, 'cause': 13, 'epc': 1073743212, 'tval': 2149580800, 'desc': 'load_page_fault'}"
+  },
+  {
+   "check": "b_exec: jump into its data",
+   "ok": true,
+   "detail": "{'async': 0, 'cause': 12, 'epc': 1073750028, 'tval': 1073750028, 'desc': 'exec_page_fault'}"
+  },
+  {
+   "check": "b_stack: stack overflow into the guard page",
+   "ok": true,
+   "detail": "{'async': 0, 'cause': 15, 'epc': 1073743236, 'tval': 1075822584, 'desc': 'store_page_fault'}"
+  },
+  {
+   "check": "b_heap: store past its heap",
+   "ok": true,
+   "detail": "{'async': 0, 'cause': 15, 'epc': 1073743244, 'tval': 1073758208, 'desc': 'store_page_fault'}"
+  },
+  {
+   "check": "b_fpu: floating-point instruction (FP off)",
+   "ok": true,
+   "detail": "{'async': 0, 'cause': 2, 'epc': 1073743204, 'tval': 83, 'desc': 'illegal_instruction'}"
+  },
+  {
+   "check": "b_csr: write to satp",
+   "ok": true,
+   "detail": "{'async': 0, 'cause': 2, 'epc': 1073743204, 'tval': 402657395, 'desc': 'illegal_instruction'}"
+  },
+  {
+   "check": "UART: 8 FAULT lines, one per program",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "every page came back: free = baseline, allocations = frees",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A and B unaffected: B keeps counting",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "dd33b236077683cca1581f7915e8417a7bb2305f08e269db877c2e6caecaa852"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "2abccbfcf38ac28d01020ddc6bd89165a923ff2b0781d772bdb96d2ea131e800",
+  "gdb.log": "6d11a8c7b2606e9acee0a6b9357b00677162d5c74c42cd3114ba919d88932f90",
+  "observations.json": "ad7810b735e59ff3ef517fb2facb7702f525befbb16102fc73d134657298c9ed",
+  "probe-config.json": "5a51722acf922e5e4dddd9b6aeaa42b5234ec91590c30c1418716307bdfc261d",
+  "qemu-int.log": "5d944a9b114607eccd432284434573969e96c6cd84bc4900892629a3099b943b",
+  "uart.log": "37fea3f4544ed9f95695571b0860a749b34690e457b128ddc5add5bc4b45f5d6"
+ }
+}

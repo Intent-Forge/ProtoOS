@@ -1,0 +1,77 @@
+{
+ "test": "T4",
+ "repetition": 1,
+ "scenario": "protoos.test=exit",
+ "probe": "t4_exit",
+ "program_archive": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 1.07,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=93 exit, a0=42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A did its 1000 iterations before exit",
+   "ok": true,
+   "detail": "1000"
+  },
+  {
+   "check": "wait1: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "wait2: A never dispatched again / post-exit code never ran",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "A state EXITED, exit_code 42",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A counter frozen at 1000",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps running (counter advances)",
+   "ok": true,
+   "detail": "(35220759, 69625747)"
+  },
+  {
+   "check": "trace: exactly one user ecall from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "aae29078f9c03e4e79a20d4b44beba1ea8f7660479f617ed5b2f835365b29ec4",
+  "gdb.log": "d68319c62c126c1b12b51db267e788787e6990cb617fd901b3040bd634f1eb2e",
+  "observations.json": "c2858c7041093ea532dda87c490e99d4a3321a622eb400e8c3816258b2504763",
+  "probe-config.json": "17c6fb1f767af53f1ab4768970325e242bda1f6894cd9cad0fd0b0f2f8f56479",
+  "qemu-int.log": "8ee5be3c7b15dd9cf6b184a14e6a17eda820fffe511d9293199515e2ff555b3e",
+  "uart.log": "cecc5f23b11ae6a7680226ea391112b55ac22079e541250ee2a41a4855358f02"
+ }
+}

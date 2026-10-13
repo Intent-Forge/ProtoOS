@@ -1,0 +1,77 @@
+{
+ "test": "T15",
+ "repetition": 3,
+ "scenario": "protoos.test=kill",
+ "probe": "t15",
+ "program_archive": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 1.02,
+ "checks": [
+  {
+   "check": "kill returned 0; the process is EXITED with code 137 and marked killed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "all 5 of its pages are back (bits clear, free = baseline)",
+   "ok": true,
+   "detail": "([0, 0, 0, 0, 0], [31232, 3, 0, 31232])"
+  },
+  {
+   "check": "never dispatched again (15 timer ticks)",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "respawn reused slot C with a new pid and the same physical pages",
+   "ok": true,
+   "detail": "(4, ['0x80400000', '0x80401000', '0x80402000', '0x80403000', '0x80404000'])"
+  },
+  {
+   "check": "second kill returned 0",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "hello ran, printed and exited by itself (code 0, not killed), pages reclaimed",
+   "ok": true,
+   "detail": "(5, 3)"
+  },
+  {
+   "check": "at the end free = baseline and allocations = frees (15)",
+   "ok": true,
+   "detail": "([31232, 3, 0, 31232, 4, 0, 5, 31232], {'base': 2151677952, 'pages': 31232, 'free': 31232, 'allocs': 15, 'frees': 15})"
+  },
+  {
+   "check": "trace: no exception from user code",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "1a28a7d3e145ad2864af444fe63fe2fd8110d7887f34a22e1c3cdda01033f0d4",
+  "gdb.log": "3bae58fbbfa5e0eddc22d006f2f0669af8a242edcae7e7fd5dfa1709758cc6e2",
+  "observations.json": "d5b5141035f982de89e3ca007e1221ba07123a6a103c707b29d213da43028567",
+  "probe-config.json": "02e95981b02044bfb057511891b4b8e70fd27c51152ec0135c38cb11eeb0bff7",
+  "qemu-int.log": "1f598dcd5edced3832f9937fb2330ead99f9ab7e85772a824ac57f2850a52aeb",
+  "uart.log": "ba04c655050b9b35fdaf785b91159c5f8776ad79b97f35fb84befdb11f0821ee"
+ }
+}

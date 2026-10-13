@@ -1,0 +1,132 @@
+{
+ "test": "T20",
+ "repetition": 1,
+ "scenario": "protoos.test=wait",
+ "probe": "t20",
+ "program_archive": "tests.img",
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 1.37,
+ "checks": [
+  {
+   "check": "wait for t_exit42: 42",
+   "ok": true,
+   "detail": "0x2a"
+  },
+  {
+   "check": "wait for b_text (faulted): 139",
+   "ok": true,
+   "detail": "0x8b"
+  },
+  {
+   "check": "kill of t_spin: 0",
+   "ok": true,
+   "detail": "0x0"
+  },
+  {
+   "check": "wait for the killed t_spin (already ended): 137",
+   "ok": true,
+   "detail": "0x89"
+  },
+  {
+   "check": "wait for t_exit42 that ended before: 42",
+   "ok": true,
+   "detail": "0x2a"
+  },
+  {
+   "check": "wait for a pid that never existed: -3",
+   "ok": true,
+   "detail": "0xfffffffffffffffd"
+  },
+  {
+   "check": "wait for itself: -1",
+   "ok": true,
+   "detail": "0xffffffffffffffff"
+  },
+  {
+   "check": "wait with an unknown flag: -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "foreground wait for boot process B: -1",
+   "ok": true,
+   "detail": "0xffffffffffffffff"
+  },
+  {
+   "check": "wait for t_sleepy: 7",
+   "ok": true,
+   "detail": "0x7"
+  },
+  {
+   "check": "run() returned pids 3, 4, 5, 6, 7",
+   "ok": true,
+   "detail": "[3, 4, 5, 6, 7]"
+  },
+  {
+   "check": "A called wait(pid of t_sleepy, 0)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A BLOCKED waiting for it (wait_pid), not dispatched for 10 timer ticks",
+   "ok": true,
+   "detail": "(6, 7)"
+  },
+  {
+   "check": "meanwhile t_sleepy is alive (SLEEPING)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A resumed after t_sleepy ended, with 7; one more completed wait",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "UART: t_sleepy exited with 7",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "every page came back: free = baseline, allocations = frees",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: the only user exception is b_text's store into its code",
+   "ok": true,
+   "detail": "[{'async': 0, 'cause': 15, 'epc': 1073743208, 'tval': 1073741824, 'desc': 'store_page_fault'}]"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "dd33b236077683cca1581f7915e8417a7bb2305f08e269db877c2e6caecaa852"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "7dfed4c75cf19f139b3931dfd48d4d47369fc6c00dfe8b1311fec4aa4dc1d55e",
+  "gdb.log": "f40b046b150e596f4583b671377be4d364b8fd0171f9983695ce29e5864e1f59",
+  "observations.json": "a376a89390995a723852236326b18e00c7f27137cd3295b260b70f318fff7eb8",
+  "probe-config.json": "4857d2b5b7064b5745a85ee14068be2fbaf52b56bfb53b98dd4490ca7ada4b7b",
+  "qemu-int.log": "8e43db351a747e6a08c993bbe3e6a5bd2b19a6b8795f1c6b98f1c9b75581bd43",
+  "uart.log": "0b84eedf6d26f9252362c49f32e7328a0a31e54c1c74a35fbc75fd124e7cc97b"
+ }
+}

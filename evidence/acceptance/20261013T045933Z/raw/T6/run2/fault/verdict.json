@@ -1,0 +1,117 @@
+{
+ "test": "T6",
+ "repetition": 2,
+ "scenario": "protoos.test=fault",
+ "probe": "t6",
+ "program_archive": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 0.82,
+ "checks": [
+  {
+   "check": "A in U-mode at the faulting store",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "PT walk: target is A text, R+X+U, no W",
+   "ok": true,
+   "detail": "VRXUA"
+  },
+  {
+   "check": "real user page fault (scause=15) at the store",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: store_page_fault from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "fault attributed to A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B resumes after the fault",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B resumed: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "B resumed: satp is the process root",
+   "ok": true,
+   "detail": "0x8000000000080231"
+  },
+  {
+   "check": "B resumed: pc inside its user text",
+   "ok": true,
+   "detail": "0x800140"
+  },
+  {
+   "check": "B context restored bit-exactly",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "wait1: A never dispatched again",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "wait2: A never dispatched again",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A FAULTED; B READY/RUNNING",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B keeps executing (counter advances)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B memory intact except its own counter",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B self-check found no corruption",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "83021687c1b0a658ec70b5f53e3519cd8057998bc964843713def8eff2f020c1",
+  "gdb.log": "af510eff9822c043b0e607e9a546074bd0edec33cbd61ff428baae4309b71f74",
+  "observations.json": "e7663460971f96543ae90d365fb79298ed8c9f068c15f6e410033f43e1ad8534",
+  "probe-config.json": "d1ac525a348b7fa2bf8904691b305382c508e4b2d746fd86a26a14df05789748",
+  "qemu-int.log": "31e83ba1b306e8bd044782af9c081e0e3330385c512a3dcb2a6f4ded43eebe87",
+  "uart.log": "11cf402f666f110fe5223b9aae88c33a076050f09ea4b7ffd3152d753947aa04"
+ }
+}

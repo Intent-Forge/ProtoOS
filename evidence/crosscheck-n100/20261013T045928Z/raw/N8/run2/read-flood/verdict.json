@@ -1,0 +1,82 @@
+{
+ "test": "N8",
+ "repetition": 2,
+ "scenario": "protoos.test=read-flood",
+ "probe": "n8",
+ "program_archive": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71",
+ "seconds": 1.37,
+ "checks": [
+  {
+   "check": "all 300 flooded bytes were taken from the UART by interrupts",
+   "ok": true,
+   "detail": "{'count': 0, 'head': 0, 'irqs': 298, 'received': 300, 'dropped': 172, 'spurious': 0}"
+  },
+  {
+   "check": "buffer kept 128 (its capacity), dropped the other 172",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "first read returned 128",
+   "ok": true,
+   "detail": "128"
+  },
+  {
+   "check": "A got exactly the first 128 bytes, in order",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "buffer empty after the read",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "next read blocks (BLOCKED, not dispatched)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "a byte typed after the flood is delivered (returns 1, \"Z\")",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no process faulted; B keeps running",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no exception from user code other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "fe21d834e4dcdb8b83e7e108d617e53c5ff013abd8c9410c3055ee3a0697ad71"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "453f507abef806832aef1c1deb900ff58836e6ea4c6eb5e9d238d577544c2259",
+  "gdb.log": "3ca61171279a79e100c1752f31547c3e54cada41e9206313dc90a71f988948b7",
+  "observations.json": "40783909cac0fdb68bff89610678006613cb1a22296f4c2ac22757135a88feaf",
+  "probe-config.json": "2eee84c55fb0882586ee662ad92d1e4dc4d6fbe09d8cdcb6d5dbafead0187985",
+  "qemu-int.log": "feee523e8869638e5e532a01a8c1f73f594921779d9c3e0496cb2c3ffce5bb14",
+  "uart.log": "5ad600598f915cf7af90287b3f45043a38d9d8a4d588c04df040433a3d7063de"
+ }
+}
