@@ -892,7 +892,7 @@ struct trap_frame *trap_from_user(struct trap_frame *f)
 }
 
 _Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int heartbeat_on,
-                          const char *autorun)
+                          const char *autorun, const char *arg, uint64_t arglen)
 {
     static const uint64_t bases[PROC_STATIC] = { USER_A_BASE, USER_B_BASE };
     const uint64_t entries[PROC_STATIC] = { entry_a, entry_b };
@@ -923,7 +923,7 @@ _Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int h
     if (autorun) {
         uint64_t len = 0;
         while (autorun[len]) ++len;
-        sched.autorun_pid = start_program(autorun, len, "", 0);
+        sched.autorun_pid = start_program(autorun, len, arg, arglen);
         uart_puts("AUTORUN "); uart_puts(autorun); uart_puts(" pid=");
         if (sched.autorun_pid >> 63) {
             uart_puts("-");

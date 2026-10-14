@@ -130,9 +130,10 @@ extern struct sched_stats sched;
 extern struct archive prog_archive;
 extern uint64_t prog_archive_pa;
 
-/* autorun (v1.5 test scenarios): an archive program started at boot, or 0. */
+/* autorun (v1.6 protoos.run): a program started at boot with argument
+ * arg[0..arglen), or 0. */
 _Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int heartbeat,
-                          const char *autorun);
+                          const char *autorun, const char *arg, uint64_t arglen);
 struct trap_frame *trap_from_user(struct trap_frame *f);
 _Noreturn void user_return(struct trap_frame *f);
 #endif

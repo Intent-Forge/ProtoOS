@@ -119,7 +119,7 @@ Round Robin по 8 слотам процессов (v1.3; A и B в слотах
 | `protoos.mode=normal` | worker | worker | обычный режим, T7 |
 | `protoos.mode=demo` | печатает каждые 400 мс | печатает каждые 700 мс, затем пишет в память A | демонстрация v1.1 |
 | `protoos.mode=shell` | оболочка `proto>`: `help`, `ps`, `uptime`, `echo`, `attack`, с v1.3 — `run`, `kill`, `mem`, с v1.4 — `ls`, `run <программа> [&]`, с v1.5 — `run <программа> <аргумент>` | worker | интерактивный режим, T12, T17; с `programs.img` — T22; с диском — T23, T26, N13 |
-| `protoos.test=fs` / `fs-ro` / `persist-w` / `persist-r` / `crash` / `fs-bad` / `no-disk` (с `tests.img` и диском) | оболочка в ожидании; ядро при загрузке запускает ещё `t_fs` / `t_fsro` / `t_pw` / `t_pr` / `t_crash` / `t_fsbad` / `t_nodisk` | worker | T24 / T24 / T25 / T25 / T27 / N14 / N15 (v1.5) |
+| `protoos.run=<программа> [аргумент]` (v1.6; с `tests.img` и обычно с диском) | оболочка в ожидании; ядро при загрузке запускает ещё `<программу>` путём `run_arg` (архив, затем диск) с аргументом | worker | T24 (`t_fs`, `t_fsro`), T25 (`t_pw`, `t_pr`), T27 (`t_crash`), N14 (`t_fsbad`), N15 (`t_nodisk`) — имён v1.5 `protoos.test=fs` … `no-disk` больше нет |
 | `protoos.test=elf` / `sbrk` / `wait` / `ctrlc` / `user-bad` (с `tests.img`) | загрузка программ / куча / wait / Ctrl-C / 8 программ-нарушителей | worker | T18 / T19 / T20 / T21 / N12 |
 | `protoos.test=elf-bad` (`badelf.img`) / `archive-bad` (образ из `badarc/`) | 30 испорченных файлов программ / испорченный архив | worker | N10 / N11 |
 | `protoos.test=mem` / `spawn` / `kill` / `multi` / `spawn-bad` | `memcheck` дважды / один worker / kill и повторный запуск / три worker и crash / отклонённые вызовы и 200 циклов | worker | T13 / T14 / T15 / T16 / N9 |

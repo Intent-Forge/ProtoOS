@@ -114,8 +114,9 @@ extern char p_t_elf[], p_t_sbrk[], p_t_wait[], p_t_ctrlc[], p_t_elfbad[], p_t_ar
     p_t_userbad[];
 enum scenario_kind { SCENARIO_NORMAL, SCENARIO_TEST, SCENARIO_BOOT, SCENARIO_BOOT_TRAP,
     SCENARIO_DEMO, SCENARIO_SHELL, SCENARIO_AUTORUN };
-/* v1.5: an AUTORUN scenario also starts archive program `autorun` at boot
- * (a C test driver from tests.img); A is the shell, idle in read(). */
+/* v1.6: protoos.run=<program> [argument] is the one AUTORUN scenario: it also
+ * starts that program at boot through the path of run_arg (archive, then
+ * disk); A is the shell, idle in read(). */
 struct scenario { const char *args; enum scenario_kind kind; char *a, *b; const char *autorun; };
 static const struct scenario scenarios[]={
     {"protoos.mode=normal",       SCENARIO_NORMAL,    a_worker, b_worker, 0},
@@ -159,19 +160,33 @@ static const struct scenario scenarios[]={
     {"protoos.test=elf-bad",      SCENARIO_TEST, p_t_elfbad, b_worker, 0},
     {"protoos.test=archive-bad",  SCENARIO_TEST, p_t_arcbad, b_worker, 0},
     {"protoos.test=user-bad",     SCENARIO_TEST, p_t_userbad, b_worker, 0},
-    /* v1.5: booted with tests.img and (most) a disk */
-    {"protoos.test=fs",           SCENARIO_AUTORUN, p_shell, b_worker, "t_fs"},
-    {"protoos.test=fs-ro",        SCENARIO_AUTORUN, p_shell, b_worker, "t_fsro"},
-    {"protoos.test=persist-w",    SCENARIO_AUTORUN, p_shell, b_worker, "t_pw"},
-    {"protoos.test=persist-r",    SCENARIO_AUTORUN, p_shell, b_worker, "t_pr"},
-    {"protoos.test=crash",        SCENARIO_AUTORUN, p_shell, b_worker, "t_crash"},
-    {"protoos.test=fs-bad",       SCENARIO_AUTORUN, p_shell, b_worker, "t_fsbad"},
-    {"protoos.test=no-disk",      SCENARIO_AUTORUN, p_shell, b_worker, "t_nodisk"},
 };
+/* v1.6: "protoos.run=<name>" or "protoos.run=<name> <argument>": a name of
+ * 1-15 characters without spaces, an argument of at most ARG_MAX bytes (the
+ * rest of bootargs). Anything else is unknown bootargs. */
+static char run_name[16];
+static struct scenario run_scenario={"protoos.run", SCENARIO_AUTORUN, p_shell, b_worker, run_name};
+static const char *run_arg_text; static uint64_t run_arg_len;
+static const struct scenario *parse_run(const char *args) {
+    static const char key[]="protoos.run=";
+    for(size_t i=0;i<sizeof(key)-1;++i) if(args[i]!=key[i]) return 0;
+    const char *p=args+sizeof(key)-1;
+    uint64_t n=0;
+    while(p[n] && p[n]!=' ') ++n;
+    if(n==0 || n>15) return 0;
+    for(uint64_t i=0;i<n;++i) run_name[i]=p[i];
+    run_name[n]=0;
+    run_arg_text=p[n] ? p+n+1 : p+n;
+    run_arg_len=0;
+    while(run_arg_text[run_arg_len]) ++run_arg_len;
+    if(p[n] && run_arg_len==0) return 0;            /* "name " with nothing after it */
+    if(run_arg_len>ARG_MAX) return 0;
+    return &run_scenario;
+}
 static const struct scenario *find_scenario(const char *args) {
     for(size_t i=0;i<sizeof(scenarios)/sizeof(scenarios[0]);++i)
         if(str_equal(args,scenarios[i].args)) return &scenarios[i];
-    return 0;
+    return parse_run(args);
 }
 /* User code runs at base + its offset inside the one-page user text image,
  * or (v1.3) in the shared program pages at PROG_VA. */
@@ -248,8 +263,8 @@ void kernel_main(uint64_t hart, uintptr_t dtb) {
     /* v1.5: the disk, if there is one (nothing printed without one) */
     disk_init();
     boot_phase=5;
-    uart_puts("SCENARIO "); uart_puts(s->args); uart_puts("\n");
+    uart_puts("SCENARIO "); uart_puts(s->kind==SCENARIO_AUTORUN ? bc->bootargs : s->args); uart_puts("\n");
     proc_start(user_va(USER_A_BASE,__user_a_text,s->a), user_va(USER_B_BASE,__user_b_text,s->b),
                s->kind==SCENARIO_TEST, s->kind==SCENARIO_NORMAL,
-               s->kind==SCENARIO_AUTORUN ? s->autorun : 0);
+               s->kind==SCENARIO_AUTORUN ? s->autorun : 0, run_arg_text, run_arg_len);
 }
