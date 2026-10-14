@@ -7,7 +7,7 @@
 # on first use and kept between sessions (the built disk.img itself, like
 # release/disk.img, is never written). "none" runs without a disk.
 set -u
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 ELF=${1:-build/protoos.elf}
 IMG=${2:-build/programs.img}
 DISK=${3:-build/disk-session.img}
