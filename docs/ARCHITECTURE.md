@@ -1,4 +1,4 @@
-# ProtoOS v1.5 — architecture
+# ProtoOS v1.6 — architecture
 
 Normative basis: the frozen specification v1.0 ([`TECHNICAL_SPECIFICATION_RU.md`](../TECHNICAL_SPECIFICATION_RU.md)) and decisions 01–19 ([`DECISION_REGISTER_RU.md`](../DECISION_REGISTER_RU.md)). v1.1 extensions (`write`, `sleep`, demo mode) are specified in [`SPEC_V1_1.md`](SPEC_V1_1.md), v1.2 extensions (console input through the PLIC, `read`, `uptime`, `procinfo`, the shell) in [`SPEC_V1_2.md`](SPEC_V1_2.md), v1.3 extensions (page allocator, 8 process slots, `spawn`/`kill`/`meminfo`/`slotinfo`, built-in programs) and the v1.3.1 corrections in [`SPEC_V1_3.md`](SPEC_V1_3.md), v1.4 extensions (programs in C loaded from a program archive, `run`/`wait`/`sbrk`/`progs`, Ctrl-C) in [`SPEC_V1_4.md`](SPEC_V1_4.md), v1.5 extensions (virtio-blk disk, the PFS file system, `fs_*`, `args`, `run_arg`, programs from the disk) in [`SPEC_V1_5.md`](SPEC_V1_5.md). This document records the technical choices the specifications leave to the implementer. Russian version: [`ARCHITECTURE_V1_RU.md`](ARCHITECTURE_V1_RU.md).
 
@@ -54,6 +54,9 @@ Three layers. `virtio_blk.c` drives one virtio-mmio version 2 block device: full
 
 `run` and `run_arg` share one path (`start_program`): the archive first, then the disk; a disk program is read whole and its CRC checked, then `elf_check` and the loader treat it exactly like an archive file. The argument line (≤ 55 bytes) is kept in the process slot for `args`.
 
+## Files through descriptors (v1.6)
+A process has four descriptors 3–6 for files, in `struct fd files[4]` at the end of its slot (0 and 1 stay the console). `open` for reading reads the whole file once, checks its CRC and keeps a **snapshot** in pool pages; `read` and `lseek` work on it, so a later change of the file does not reach the reader. `open` for writing starts an empty buffer that `write` appends to; `close` saves it whole through the `fs_write` path and returns 0 once the new directory is durable. The pages of snapshots and buffers are kernel-only (U=0) and count in the process's 64-page limit together with its own pages (`sbrk` checks both). `reclaim` gives every descriptor back when the process ends in any way, and discards an unsaved buffer, so the disk keeps the old file. The arithmetic of positions, bounds and pages is in `src/fdmath.h`, host-tested on its own.
+
 ## Virtual memory
 Sv39 roots (`vm.c`): kernel, a template (kernel + program pages, never installed), A, B, and one per run-time process; 4 KiB user leaves; A/D bits preset in software (no reliance on Svadu). ASID 0 everywhere: every `satp` change is bracketed by `sfence.vma zero, zero`. Every root also maps the page pool with 2 MiB leaves, U=0, so the kernel can build and clear pages of any process whatever root is installed.
 
@@ -104,6 +107,10 @@ A `wait` with the foreground flag makes the awaited process the console foregrou
 | `fs_delete(name, namelen)` | 1015 | v1.5: remove a file. Errors: −22, −19, −30, −28, −2, −5 |
 | `args(buf, len)` | 1016 | v1.5: the caller's argument line; returns its length. Errors: −14 |
 | `run_arg(name, namelen, arg, arglen)` | 1017 | v1.5: `run` with an argument line (≤ 55 bytes), the archive first, then the disk. Errors: as `run`, and −5 |
+| `open(name, namelen, flags)` | 1018 | v1.6: flags 0 read (a snapshot now), 1 write (saved at `close`); a descriptor 3–6; programs from the archive or the disk only. Errors: −22, −14, −19, −24, −30, −2, −5, −12 |
+| `close(fd)` | 1019 | v1.6: read mode frees the snapshot; write mode saves the file whole (0 once durable). Errors: −9, −28, −5 |
+| `lseek(fd, off, whence)` | 1020 | v1.6: read mode only; whence 0/1/2; the new position must be in 0 … size. Errors: −22, −9 |
+| `read` / `write` on descriptors 3–6 | 63 / 64 | v1.6: `read` from a snapshot at its position (`len` ≤ 128 KiB), `write` appends (the file stays ≤ 128 KiB, −27; −12 is all or nothing). Errors: −22, −14, −9, −27, −12 |
 | `exit(code)` | 93 | process becomes EXITED and never runs again; a run-time process's pages return at once |
 | `yield()` | 124 | process becomes READY, the scheduler switches; returns 0 |
 | `getpid()` | 172 | returns the pid: 1 for A, 2 for B, 3 and up for run-time processes (built-in or archive programs) |
