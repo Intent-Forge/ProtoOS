@@ -26,8 +26,14 @@ int main(void)
     r[11] = proto_call(1016, KERNEL, 10, 0);                           /* args ptr: -14 */
     r[12] = fs_read("good", 0, buf, FILE_MAX);                         /* 3000 */
     r[13] = same(buf, 3000, 7, 0);
+    memset(buf, 0x5a, 200);
     r[14] = fs_read("dmg", 0, buf, 100);        /* -5: the whole file is checked */
     r[15] = fs_read("dmg", 8900, buf, 100);     /* -5 */
+    r[24] = 1;                                  /* 1: not one byte was copied */
+    for (int i = 0; i < 200; ++i)
+        if (buf[i] != 0x5a) r[24] = 0;
+    r[25] = fs_read("dmg", 9000, buf, 10);      /* -5: at the end, still checked */
+    r[26] = fs_read("dmg", 50000, buf, 10);     /* -5: past the end, still checked */
     r[16] = fs_read("good", 0, buf, FILE_MAX);  /* 3000: the system goes on */
     r[17] = sys_run("badelf");                  /* -8 */
     r[18] = sys_run("dmgprog");                 /* -5 */

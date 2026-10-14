@@ -23,6 +23,7 @@ enum vblk_reason {
     VBLK_R_TIMEOUT = 6,     /* a request did not complete in time */
     VBLK_R_STATUS = 7,      /* the device reported an error for a request */
     VBLK_R_NEEDS_RESET = 8, /* the device set NEEDS_RESET or FAILED */
+    VBLK_R_LENGTH = 9,      /* a used element for another chain, or fewer bytes than needed */
 };
 
 #define VBLK_QSIZE 8u
@@ -38,6 +39,7 @@ struct vblk {
     uint64_t qsize, avail_idx, used_seen;
     uint64_t reads, writes, flushes;      /* completed requests */
     uint64_t legacy_base;   /* a refused legacy block device */
+    uint64_t last_len;      /* length in the last used element */
 };
 extern struct vblk vblk;
 

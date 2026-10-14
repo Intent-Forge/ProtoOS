@@ -1105,10 +1105,11 @@ def user_read(satp, va, n):
 def vblk_state():
     v = {k: ev(f'vblk.{k}') for k in ('base', 'state', 'reason', 'device_features', 'features',
                                        'capacity', 'qsize', 'avail_idx', 'used_seen', 'reads',
-                                       'writes', 'flushes', 'legacy_base')}
+                                       'writes', 'flushes', 'legacy_base', 'last_len')}
     v['vq_avail_idx'] = ev("'virtio_blk.c'::vq.avail.idx")
     v['vq_used_idx'] = ev("'virtio_blk.c'::vq.used.idx")
     v['desc'] = [{'addr': ev(f"'virtio_blk.c'::vq.desc[{i}].addr"), 'len': ev(f"'virtio_blk.c'::vq.desc[{i}].len"),
+                  'next': ev(f"'virtio_blk.c'::vq.desc[{i}].next"),
                   'flags': ev(f"'virtio_blk.c'::vq.desc[{i}].flags")} for i in range(3)]
     v['buffers'] = {k: ev(f"(unsigned long)&'virtio_blk.c'::{s}") for k, s in (
         ('req', 'req'), ('bounce', 'bounce'), ('status', 'req_status'), ('vq', 'vq'))}

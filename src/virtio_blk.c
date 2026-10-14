@@ -88,10 +88,17 @@ static uint64_t deadline(void)
     return csr_read(time) + 2u * (uint64_t)boot_configuration.timebase_hz;
 }
 
+static uint32_t rd(uint64_t off);
+static void wr(uint64_t off, uint32_t v);
+
+/* The driver gives up on the device until reboot, and tells it so: FAILED
+ * in the status register (virtio 1.2 2.2.1, 3.1.1). Buffers and descriptors
+ * are never written again. */
 static uint64_t fail(uint64_t reason)
 {
     vblk.state = VBLK_FAILED;
     vblk.reason = reason;
+    if (vblk.base) wr(MMIO_STATUS, rd(MMIO_STATUS) | ST_FAILED);
     return vblk.state;
 }
 
@@ -167,8 +174,10 @@ uint64_t vblk_probe(const uint64_t *bases, unsigned n)
     return vblk.state;      /* VBLK_NONE */
 }
 
-/* Submit the chain that starts at descriptor 0 and wait for it. */
-static int submit(void)
+/* Submit the chain that starts at descriptor 0 and wait for it. The used
+ * element must name that chain and report at least min_len bytes written
+ * into the device-writable buffers (virtio 1.2 2.7.8.3, 5.2.6.3). */
+static int submit(uint32_t min_len)
 {
     if (vblk.state != VBLK_READY) return -5;
     req_status = 0xff;
@@ -186,8 +195,15 @@ static int submit(void)
         }
     }
     iofence();
+    const volatile struct vq_used_elem *e = &vq.used.ring[vblk.used_seen % vblk.qsize];
+    uint32_t id = e->id, len = e->len;
     vblk.used_seen = (uint16_t)(vblk.used_seen + 1);
+    vblk.last_len = len;
     wr(MMIO_INT_ACK, rd(MMIO_INT_STATUS));
+    if (id != 0 || len < min_len) {
+        fail(VBLK_R_LENGTH);
+        return -5;
+    }
     if (rd(MMIO_STATUS) & (ST_NEEDS_RESET | ST_FAILED)) {
         fail(VBLK_R_NEEDS_RESET);
         return -5;
@@ -215,7 +231,8 @@ static int data_request(uint32_t type, uint32_t block)
     vq.desc[1] = (struct vq_desc){ (uintptr_t)bounce, sizeof(bounce),
                                    (uint16_t)(DESC_F_NEXT | (type == REQ_IN ? DESC_F_WRITE : 0)), 2 };
     vq.desc[2] = (struct vq_desc){ (uintptr_t)&req_status, 1, DESC_F_WRITE, 0 };
-    return submit();
+    /* a read fills the bounce buffer and the status byte, a write only the status */
+    return submit(type == REQ_IN ? (uint32_t)sizeof(bounce) + 1u : 1u);
 }
 
 int vblk_read(uint32_t block, uint8_t *buf)
@@ -240,7 +257,7 @@ int vblk_flush(void)
     if (vblk.state != VBLK_READY || !(vblk.features & VIRTIO_BLK_F_FLUSH)) return -5;
     header(REQ_FLUSH, 0);
     vq.desc[1] = (struct vq_desc){ (uintptr_t)&req_status, 1, DESC_F_WRITE, 0 };
-    if (submit()) return -5;
+    if (submit(1u)) return -5;
     vblk.flushes++;
     return 0;
 }
