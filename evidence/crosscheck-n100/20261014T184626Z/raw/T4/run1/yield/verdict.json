@@ -1,0 +1,88 @@
+{
+ "test": "T4",
+ "repetition": 1,
+ "scenario": "protoos.test=yield",
+ "probe": "t4_yield",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.47,
+ "checks": [
+  {
+   "check": "A ecall trap, a7=124 yield",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B runs right after A yielded",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "B: satp is the process root",
+   "ok": true,
+   "detail": "0x8000000000080236"
+  },
+  {
+   "check": "B: pc inside its user text",
+   "ok": true,
+   "detail": "0x800218"
+  },
+  {
+   "check": "switch caused by yield, not the timer (tick count unchanged)",
+   "ok": true,
+   "detail": "(0, 0)"
+  },
+  {
+   "check": "A resumes after its ecall with a0 == 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A resumes under its own satp",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "both processes kept yielding (yield counters > 1)",
+   "ok": true,
+   "detail": "(44, 38)"
+  },
+  {
+   "check": "no self-detected error",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "c986485fbce9859ff5f36304173bfd919a93cef8f376a5abdfe426eb12ff5e4b",
+  "gdb.log": "26ae6e8e9a29506f92b7d435db563e3035bffdcd76cff1fca1057c81c19e7189",
+  "observations.json": "bb9fe18a3893a000155c9e49a9e7df13425a369e2ba3ad885a0e1deb2155c489",
+  "probe-config.json": "bddad92b6e453fc3dd7fefbe26e9c728a858f086445dd235f74f06359870d726",
+  "qemu-int.log": "baff108e3ec12d60fe9dc0fec4c57d9c11fdcb0266840aa58755b0fd80828e7a",
+  "uart.log": "32fabecec5d02d64d5282e96bdd1d4013f5cb38065166a6592e2724344a54e67"
+ }
+}

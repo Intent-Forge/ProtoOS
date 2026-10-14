@@ -1,0 +1,162 @@
+
+OpenSBI v1.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 1
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 317 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 61 KB
+Firmware Heap Offset        : 0x46000
+Firmware Heap Size          : 37 KB (total), 2 KB (reserved), 11 KB (used), 23 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : ipi,pmu,srst,sse,hsm,rfnc,fwft,time,base,legacy,dbcn,dbtr
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*
+Domain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region03            : 0x0000000080040000-0x000000008004ffff M: (R,W) S/U: ()
+Domain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x0000000087e00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sstc,zicntr,zihpm,zicboz,zicbom,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000001666
+Boot HART MEDELEG           : 0x0000000000f0b509
+ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes
+hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=multi
+MMU Sv39 active satp=0x8000000000080216
+SCENARIO protoos.test=multi
+PROC A(pid=1) entry=0x00000000004009e4 sp=0x0000000000404000 satp=0x800000000008022c
+PROC B(pid=2) entry=0x0000000000800000 sp=0x0000000000804000 satp=0x8000000000080236
+SCHED - -> A(pid=1) reason=start switches=1
+SPAWN C(pid=3) prog=1 satp=0x8000000000080400 free=31227
+SPAWN D(pid=4) prog=4 satp=0x8000000000080405 free=31222
+SPAWN E(pid=5) prog=1 satp=0x800000000008040a free=31217
+SPAWN F(pid=6) prog=1 satp=0x800000000008040f free=31212
+SCHED A(pid=1) -> B(pid=2) reason=sleep switches=2
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=3
+SCHED C(pid=3) -> D(pid=4) reason=timer switches=4
+crash: pid 4 writes into pid 2's memory...
+FAULT D(pid=4) scause=0x000000000000000f sepc=0x00000000040001fc stval=0x0000000000801000 -> FAULTED
+RECLAIM D(pid=4) pages=5 free=31217
+SCHED - -> E(pid=5) reason=fault switches=5
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=6
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=7
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=8
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=9
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=10
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=11
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=12
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=13
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=14
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=15
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=16
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=17
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=18
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=19
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=20
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=21
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=22
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=23
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=24
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=25
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=26
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=27
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=28
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=29
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=30
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=31
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=32
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=33
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=34
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=35
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=36
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=37
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=38
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=39
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=40
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=41
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=42
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=43
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=44
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=45
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=46
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=47
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=48
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=49
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=50
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=51
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=52
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=53
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=54
+SCHED F(pid=6) -> A(pid=1) reason=timer switches=55
+SCHED A(pid=1) -> B(pid=2) reason=sleep switches=56
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=57
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=58
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=59
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=60
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=61
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=62
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=63
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=64
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=65
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=66
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=67
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=68
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=69
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=70
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=71
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=72
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=73
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=74
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=75
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=76
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=77
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=78
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=79
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=80
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=81
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=82
+SCHED E(pid=5) -> F(pid=6) reason=timer switches=83
+SCHED F(pid=6) -> B(pid=2) reason=timer switches=84
+SCHED B(pid=2) -> C(pid=3) reason=timer switches=85
+SCHED C(pid=3) -> E(pid=5) reason=timer switches=86

@@ -1,0 +1,40 @@
+{
+ "mounts": true,
+ "reject": null,
+ "slot": 1,
+ "seq": 2957,
+ "files": [
+  {
+   "slot": 0,
+   "name": "g",
+   "size": 46000,
+   "first": 3,
+   "count": 12,
+   "crc": 2672344184,
+   "crc_ok": true,
+   "sha256": "84c87d6a9e46b1115d8015a943b77deb5faf96ec4347d0c1f1e1c01214ca3f42"
+  },
+  {
+   "slot": 1,
+   "name": "h",
+   "size": 37000,
+   "first": 33,
+   "count": 10,
+   "crc": 3649433657,
+   "crc_ok": true,
+   "sha256": "6ad17cd1fce4ec6069bdf6f02813e2d3e897fac06fcf5e73d784db88fe366421"
+  }
+ ],
+ "copies": {
+  "A": {
+   "code": 0,
+   "seq": 2957
+  },
+  "B": {
+   "code": 0,
+   "seq": 2956
+  }
+ },
+ "data_ok": true,
+ "blocks": 256
+}

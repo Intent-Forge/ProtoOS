@@ -1,0 +1,2785 @@
+{
+ "run_id": "20261014T184626Z",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "repetitions": 3,
+ "per_test": {
+  "T1": "PASS",
+  "T2": "PASS",
+  "T3": "PASS",
+  "T4": "PASS",
+  "T5": "PASS",
+  "T6": "PASS",
+  "T7": "PASS",
+  "N1": "PASS",
+  "N2": "PASS",
+  "N3": "PASS",
+  "N4": "PASS",
+  "N5": "PASS",
+  "T8": "PASS",
+  "T9": "PASS",
+  "N6": "PASS",
+  "T10": "PASS",
+  "T11": "PASS",
+  "T12": "PASS",
+  "N7": "PASS",
+  "N8": "PASS",
+  "T13": "PASS",
+  "T14": "PASS",
+  "T15": "PASS",
+  "T16": "PASS",
+  "T17": "PASS",
+  "N9": "PASS",
+  "T18": "PASS",
+  "T19": "PASS",
+  "T20": "PASS",
+  "T21": "PASS",
+  "T22": "PASS",
+  "N10": "PASS",
+  "N11": "PASS",
+  "N12": "PASS",
+  "T23": "PASS",
+  "T24": "PASS",
+  "T25": "PASS",
+  "T26": "PASS",
+  "T27": "PASS",
+  "N13": "PASS",
+  "N14": "PASS",
+  "N15": "PASS"
+ },
+ "all_pass": true,
+ "environment": {
+  "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+  "firmware": "/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin",
+  "firmware_sha256": "c9550c7dedc56fbc186c080d3005747260b24335b5f285ba359ce85540b79606",
+  "qemu": "QEMU emulator version 8.2.2 (Debian 1:8.2.2+ds-0ubuntu1.18)",
+  "gdb": "GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1",
+  "zig": "0.13.0",
+  "host": "Linux 6.8.0-147-generic x86_64",
+  "python": "3.12.3",
+  "git_head": "c871f85cabb1041b80b9477d1452837483a2bbce",
+  "struct_offsets": {
+   "sizeof_process": 1112,
+   "process.state": 296,
+   "process.preemptions": 320,
+   "process.syscalls": 336,
+   "sched.timer_ticks": 8,
+   "sched.switches": 16,
+   "sched.idle_entered": 24
+  },
+  "images": {
+   "badarc/a_big.img": "ba782e9c473c19423de8a907f9e663dadedcd1b1bc8fdb5d1059ed44400f3cd1",
+   "badarc/a_check.img": "54933a738378ff046ce8c0e63192bf7056e3436cc223d068134b310d2a44413d",
+   "badarc/a_data.img": "59911c43bb17e31266ff08ba435c58018495e7ead2c55cf40e16cd16b2c6dbd7",
+   "badarc/a_dir.img": "1eca5e76fe4fba694f725ec790044f6dd07e41d80517229dee77f6ccca93f139",
+   "badarc/a_dup.img": "6f6bf94dd51596025239c65adcf93eacf8931c5d9063a8596c01c7c0d7b8e279",
+   "badarc/a_hex.img": "eef9f652d1faf101c15b6082f3253592f5d57fd3c11725d12eebfc8e11aabe2f",
+   "badarc/a_longname.img": "089d0e7a8f35c42865b61efa913c5f4f59755ae3fec2b7711e77a9a12dea7ca5",
+   "badarc/a_magic.img": "8c0c066af62f9f3b831f3ae89b6b11ba49035f7285c4f0deb8e842b09290ade4",
+   "badarc/a_many.img": "3b1a0c8f72cb6e69c4283e1929dcd601431a51ead7d378683a06798c40aba5c4",
+   "badarc/a_name.img": "9a5d00857236d49fd1afa7f2b86c052ef10090e50df2e031f6298f079fd219b1",
+   "badarc/a_notrailer.img": "74c60c213296c31ff4b8c37d9a9179f424add538b16bbe720d069c60bdd0ce59",
+   "badarc/a_tail.img": "60d326979ebfb1e848abfda655bce8c7161ba7db6e6a6df8193d3267fda85d07",
+   "badarc/a_trunc.img": "96b5e5cda966058575eeb24eefb11d344bbfb4e49d64eab802fc35606db623bd",
+   "badelf.img": "e2f56c4d7b79a0975ad41d55bb4f0b4ab91f435318648896071fc82edc6e948f",
+   "disk.img": "e925a45da056e7d5df65bbd0e2845b091a71e88ecfc4d4cb33de6f99c92a8154",
+   "disks/bad/dir_crc.img": "5003567e598286f531c7c9dde33fbcd7e147d6bcf8f881668a7d427939193720",
+   "disks/bad/dir_magic.img": "c35c6eaad29b00b533438ae4676343d05179626dd5c4295209cc0bd1074527e7",
+   "disks/bad/dir_reserved.img": "4d57f560466652efcaf14e49b598b2b70e17e3ca870da28330d7ad1d2388f77b",
+   "disks/bad/dup.img": "e566bf15acfa22f7c96d608b9e6c23dba2479e5d50aa9902507aa238051b06d7",
+   "disks/bad/empty_garbage.img": "1771498abad5be3f68c05ae410d046ffae724d37503a47897b59e8658a634198",
+   "disks/bad/entry_reserved.img": "85a2e94dc2ae0c1adfdf0f8fc7935d331a40ce945bb3c78fdd7603d10c9c4c1c",
+   "disks/bad/name_long.img": "06551f1f80a19627ef6507b287edfa977ed5ea472f966c366ef1b542b5515f22",
+   "disks/bad/name_pad.img": "487ad10435743b4e90ddf245ef86966d09085581dc1a569471a6d9600f9e7a9c",
+   "disks/bad/name_upper.img": "aa4f891559b1ca062a38303f9b015117397159d9769cdc7633de9a23f5a37a77",
+   "disks/bad/overlap.img": "afdf72befdefe36d127f68ff98af543492f6c834076a61b2f245fa6545c96e7d",
+   "disks/bad/range_empty.img": "2a297ac010be4da7ca13562a3b17673130ec8516a81a179cc338ee25a40a33c8",
+   "disks/bad/range_high.img": "5bb36805323d9ad6c2905b4998ba4a124879550e2a3b9d92458bb864dc76965a",
+   "disks/bad/range_low.img": "1ebcf6c35e98079696fc35a527bcf362eda534cd168ef16af716df79c67d24d8",
+   "disks/bad/sb_crc.img": "e5998b18cb943a2e0369691d546253085b58ab84485ef886f1a4dee7623496a5",
+   "disks/bad/sb_device.img": "dc2c75dcfccb531335c32d389b1a1dcd968080d56342b0ed107059053531475f",
+   "disks/bad/sb_huge.img": "3c037a08d5abf934960735880ac4592b4f778a99a1b034091599adc0487d0e28",
+   "disks/bad/sb_magic.img": "9d678cca032920b0fd2b126cc1b3b8035bf6d866c49157d13c64f23485cba96b",
+   "disks/bad/sb_reserved.img": "4feaf6e89cfdb590c5e7e70c4cba0fb07308350b3ae5a69b94512f1a6ad67616",
+   "disks/bad/sb_small.img": "ab2ed2c0774178b3053de471d14a062328170d0aee74b9154cb7d656be7218b5",
+   "disks/bad/sb_version.img": "741fd3730a441d0f5ab4e342ca109f10d18c98ad58d3da74722bf1ca690fa414",
+   "disks/bad/size_big.img": "2a01af41397809c10d87e15a79bf1f25adde3aadcafc3492315928931f37cf36",
+   "disks/bad/size_count.img": "a135ba4af47e9b1e17bb0dd79d526b09e81f4cb03df748c1ab351573d74c31cc",
+   "disks/blank.img": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+   "disks/crcbad.img": "fa71453bb571c984afcccdce8735e8b4cd17b3870ba6fe9b1ed840e320ef63cb",
+   "disks/fallback.img": "19e394830737ab7d7447413659fbda55f4908746ce0d1b0da16c3188bf59ee94",
+   "disks/ro.img": "dc3576421e8196042d5f0127fb04bb802e0bfc2d27eff97b54a40bd255728771",
+   "programs.img": "d9b176082c8b4f72d484b9813674d662cef1dc00c6f3994d8f5d7322c2d5efe4",
+   "tests.img": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1",
+   "images.json": "1e2a8008fa43a059b7ed0c11120e1962d5f8f3f88787d1202b790fed18eaf5a9"
+  }
+ },
+ "results": [
+  {
+   "test": "T1",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T1",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T1",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=boot",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T2",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=umode",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T3",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=preempt",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T4",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=getpid",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=yield",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=exit",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T5",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    },
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "T6",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.08
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.08
+    }
+   ]
+  },
+  {
+   "test": "T7",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=normal",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 31.08
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "N1",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=isolation",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.77
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N2",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kernel-read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N3",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=csr",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N4",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=bad-syscall",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    }
+   ]
+  },
+  {
+   "test": "N5",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=idle",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    },
+    {
+     "scenario": "protoos.test=idle-fault",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.24
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T8",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.23
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.23
+    }
+   ]
+  },
+  {
+   "test": "T9",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sleep",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    },
+    {
+     "scenario": "protoos.test=sleep-all",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.23
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "N6",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=write-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.72
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T10",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.67
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.57
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.57
+    }
+   ]
+  },
+  {
+   "test": "T11",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=uptime",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.57
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.23
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.22
+    }
+   ]
+  },
+  {
+   "test": "T12",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.23
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "N7",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.42
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.42
+    }
+   ]
+  },
+  {
+   "test": "N8",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=read-flood",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.37
+    }
+   ]
+  },
+  {
+   "test": "T13",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=mem",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    }
+   ]
+  },
+  {
+   "test": "T13",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=mem",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    }
+   ]
+  },
+  {
+   "test": "T13",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=mem",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    }
+   ]
+  },
+  {
+   "test": "T14",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T14",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T14",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.62
+    }
+   ]
+  },
+  {
+   "test": "T15",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kill",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T15",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kill",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T15",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=kill",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.02
+    }
+   ]
+  },
+  {
+   "test": "T16",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=multi",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.17
+    }
+   ]
+  },
+  {
+   "test": "T16",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=multi",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.22
+    }
+   ]
+  },
+  {
+   "test": "T16",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=multi",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.17
+    }
+   ]
+  },
+  {
+   "test": "T17",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.07
+    }
+   ]
+  },
+  {
+   "test": "T17",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.13
+    }
+   ]
+  },
+  {
+   "test": "T17",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 3.13
+    }
+   ]
+  },
+  {
+   "test": "N9",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    }
+   ]
+  },
+  {
+   "test": "N9",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    }
+   ]
+  },
+  {
+   "test": "N9",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=spawn-bad",
+     "program_archive": null,
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.42
+    }
+   ]
+  },
+  {
+   "test": "T18",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T18",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T18",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T19",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sbrk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T19",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sbrk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T19",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=sbrk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    }
+   ]
+  },
+  {
+   "test": "T20",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=wait",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.12
+    }
+   ]
+  },
+  {
+   "test": "T20",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=wait",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.12
+    }
+   ]
+  },
+  {
+   "test": "T20",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=wait",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.12
+    }
+   ]
+  },
+  {
+   "test": "T21",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=ctrlc",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.38
+    }
+   ]
+  },
+  {
+   "test": "T21",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=ctrlc",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.38
+    }
+   ]
+  },
+  {
+   "test": "T21",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=ctrlc",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 2.38
+    }
+   ]
+  },
+  {
+   "test": "T22",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 5.68
+    }
+   ]
+  },
+  {
+   "test": "T22",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 5.68
+    }
+   ]
+  },
+  {
+   "test": "T22",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 5.63
+    }
+   ]
+  },
+  {
+   "test": "N10",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf-bad",
+     "program_archive": "badelf.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "N10",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf-bad",
+     "program_archive": "badelf.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "N10",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=elf-bad",
+     "program_archive": "badelf.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "N11",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_magic.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_hex.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_trunc.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_name.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_longname.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dir.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_check.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_data.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_many.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dup.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_notrailer.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_tail.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_big.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.53
+    }
+   ]
+  },
+  {
+   "test": "N11",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_magic.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_hex.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_trunc.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_name.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_longname.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dir.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_check.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_data.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_many.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dup.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_notrailer.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_tail.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_big.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    }
+   ]
+  },
+  {
+   "test": "N11",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_magic.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_hex.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_trunc.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_name.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_longname.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dir.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_check.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_data.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_many.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.32
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_dup.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_notrailer.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_tail.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    },
+    {
+     "scenario": "protoos.test=archive-bad",
+     "program_archive": "badarc/a_big.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.53
+    }
+   ]
+  },
+  {
+   "test": "N12",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=user-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    }
+   ]
+  },
+  {
+   "test": "N12",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=user-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    }
+   ]
+  },
+  {
+   "test": "N12",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=user-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.47
+    }
+   ]
+  },
+  {
+   "test": "T23",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T23",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T23",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T24",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fs",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.34
+    },
+    {
+     "scenario": "protoos.test=fs-ro",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.test=fs-ro",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T24",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fs",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.39
+    },
+    {
+     "scenario": "protoos.test=fs-ro",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.test=fs-ro",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "T24",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fs",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 1.34
+    },
+    {
+     "scenario": "protoos.test=fs-ro",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.test=fs-ro",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.28
+    }
+   ]
+  },
+  {
+   "test": "T25",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=persist-w",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.34
+    },
+    {
+     "scenario": "protoos.test=persist-r",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.29
+    }
+   ]
+  },
+  {
+   "test": "T25",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=persist-w",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.33
+    },
+    {
+     "scenario": "protoos.test=persist-r",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.29
+    }
+   ]
+  },
+  {
+   "test": "T25",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=persist-w",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.33
+    },
+    {
+     "scenario": "protoos.test=persist-r",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.29
+    }
+   ]
+  },
+  {
+   "test": "T26",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 4.39
+    }
+   ]
+  },
+  {
+   "test": "T26",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 4.34
+    }
+   ]
+  },
+  {
+   "test": "T26",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 4.39
+    }
+   ]
+  },
+  {
+   "test": "T27",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=crash",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 30.1
+    }
+   ]
+  },
+  {
+   "test": "T27",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=crash",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 29.14
+    }
+   ]
+  },
+  {
+   "test": "T27",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=crash",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 29.1
+    }
+   ]
+  },
+  {
+   "test": "N13",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "N13",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "N13",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    },
+    {
+     "scenario": "protoos.mode=shell",
+     "program_archive": "programs.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.22
+    }
+   ]
+  },
+  {
+   "test": "N14",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fs-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    }
+   ]
+  },
+  {
+   "test": "N14",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fs-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    }
+   ]
+  },
+  {
+   "test": "N14",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=fs-bad",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.37
+    }
+   ]
+  },
+  {
+   "test": "N15",
+   "repetition": 1,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=no-disk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.test=no-disk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "N15",
+   "repetition": 2,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=no-disk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.test=no-disk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  },
+  {
+   "test": "N15",
+   "repetition": 3,
+   "status": "PASS",
+   "boots": [
+    {
+     "scenario": "protoos.test=no-disk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    },
+    {
+     "scenario": "protoos.test=no-disk",
+     "program_archive": "tests.img",
+     "status": "PASS",
+     "note": "",
+     "seconds": 0.27
+    }
+   ]
+  }
+ ]
+}

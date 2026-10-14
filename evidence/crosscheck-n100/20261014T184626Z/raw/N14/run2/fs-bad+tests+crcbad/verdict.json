@@ -1,0 +1,164 @@
+{
+ "test": "N14",
+ "repetition": 2,
+ "scenario": "protoos.test=fs-bad",
+ "probe": "autorun",
+ "program_archive": "tests.img",
+ "disk": {
+  "spec": {
+   "disk": "disks/crcbad.img",
+   "autorun": "t_fsbad",
+   "mem_check": true
+  },
+  "sha_source": "fa71453bb571c984afcccdce8735e8b4cd17b3870ba6fe9b1ed840e320ef63cb",
+  "sha_before": "fa71453bb571c984afcccdce8735e8b4cd17b3870ba6fe9b1ed840e320ef63cb",
+  "sha_after": "b10ef1ed5d20a2c4f951575425f39f2201e1648af8def362261cbb91b28f4440",
+  "pfsck": {
+   "mounts": true,
+   "reject": null,
+   "slot": 2,
+   "seq": 2,
+   "files": [
+    {
+     "slot": 0,
+     "name": "good",
+     "size": 3000,
+     "first": 3,
+     "count": 1,
+     "crc": 2971966666,
+     "crc_ok": true,
+     "sha256": "6aa9006170212d44f7b6adf17257f2f561d294797893ee655593674a7d198847"
+    },
+    {
+     "slot": 1,
+     "name": "dmg",
+     "size": 9000,
+     "first": 4,
+     "count": 3,
+     "crc": 1270602441,
+     "crc_ok": false,
+     "sha256": "52a85866612410254de8c563cbb96301f7ee2eb5535c16c259553945a9d5aa0d"
+    },
+    {
+     "slot": 2,
+     "name": "badelf",
+     "size": 15120,
+     "first": 7,
+     "count": 4,
+     "crc": 1848297135,
+     "crc_ok": true,
+     "sha256": "22f57b8c2e11c32dc566e712969ffed39f4a61d5d3aed48219acfa3b1bfa93c2"
+    },
+    {
+     "slot": 3,
+     "name": "dmgprog",
+     "size": 15120,
+     "first": 11,
+     "count": 4,
+     "crc": 3492760475,
+     "crc_ok": false,
+     "sha256": "d29fb780de159599031e654fcbb509264d2d1f7d3b69d5f386ce6e772c2a6690"
+    },
+    {
+     "slot": 4,
+     "name": "ok",
+     "size": 3,
+     "first": 15,
+     "count": 1,
+     "crc": 891568578,
+     "crc_ok": true,
+     "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    }
+   ],
+   "copies": {
+    "A": {
+     "code": 0,
+     "seq": 1
+    },
+    "B": {
+     "code": 0,
+     "seq": 2
+    }
+   },
+   "data_ok": false,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.37,
+ "checks": [
+  {
+   "check": "the test driver exited and its results were read through its own page table",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "check": "t_fsbad: every result as specified (26 values)",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "t_fsbad: the driver ran to the end (r[63] = 0x600d)",
+   "ok": true,
+   "detail": "0x600d"
+  },
+  {
+   "check": "no page leaked (free pages before = after the bad calls)",
+   "ok": true,
+   "detail": "(31107, 31107)"
+  },
+  {
+   "check": "GDB: allocator free-page counter at the first meminfo of the driver = at its exit",
+   "ok": true,
+   "detail": "(31107, 31107, 31107)"
+  },
+  {
+   "check": "the file system did not stop: CRC damage is EIO for that file only",
+   "ok": true,
+   "detail": "{'blocks': 256, 'slot': 2, 'seq': 2, 'files': 5, 'failed': 0, 'reject_a': 0, 'reject_b': 0, 'entries': [{'slot': 0, 'name': 'good', 'size': 3000, 'first': 3, 'count': 1, 'crc': 2971966666}, {'slot': 1, 'name': 'dmg', 'size': 9000, 'first': 4, 'count': 3, 'crc': 1270602441}, {'slot': 2, 'name': 'badelf', 'size': 15120, 'first': 7, 'count': 4, 'crc': 1848297135}, {'slot': 3, 'name': 'dmgprog', 'size': 15120, 'first': 11, 'count': 4, 'crc': 3492760475}, {'slot': 4, 'name': 'ok', 'size': 3, 'first': 15, 'count': 1, 'crc': 891568578}]}"
+  },
+  {
+   "check": "the broken ELF from the disk was refused by elf_check",
+   "ok": true,
+   "detail": "18446744073709551615"
+  },
+  {
+   "check": "pfsck: the same two files damaged (dmg, dmgprog), the rest intact, \"ok\" added",
+   "ok": true,
+   "detail": "(['dmg', 'dmgprog'], ['badelf', 'dmg', 'dmgprog', 'good', 'ok'])"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "b34e74ee2c0d6cdef92e4f19da5b04c3fb4ec2548a5913b69ce1741b8d3f0b09",
+  "gdb.log": "b9cf51bfa2f417c39c86aa8ea45697feefb8f00846bde98480eb3c88fdb9e089",
+  "observations.json": "77d35e0096a9a62ed90d75826698d024b09c0aae395814f311db2c7095421a1c",
+  "pfsck.json": "86885004cf60af0b8e1821a7b1c03000169dba612203ab067877e5512530afcd",
+  "probe-config.json": "ec07548836d011b4a716bcfc5b26d10575d7bfb29260ff8f0a2092d485cc126a",
+  "qemu-int.log": "4311c1ddf2c6ea5017d3772e717f96e519cdb2d9a28afb2c9c8a60b7f61f52db",
+  "uart.log": "84fdeebfa766138745f69ebb4e4004d8129aed1dced10b49bedb727cbe1a0cb1"
+ }
+}

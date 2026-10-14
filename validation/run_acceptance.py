@@ -1772,10 +1772,19 @@ def queue_ok(c, label, v, kernel):
       v['avail_idx'] == v['used_seen'] == v['vq_avail_idx'] == v['vq_used_idx'] == n,
       {k: v[k] for k in ('avail_idx', 'used_seen', 'vq_avail_idx', 'vq_used_idx', 'reads',
                          'writes', 'flushes')})
-    bufs = set(v['buffers'][k] for k in ('req', 'bounce', 'status'))
-    c(f'{label}: descriptors point only at the request header, the bounce buffer and the status byte',
-      all(d['addr'] in bufs or (d['addr'] == 0 and d['len'] == 0) for d in v['desc'])
-      and all(kernel[0] <= b < kernel[1] for b in bufs), v['desc'])
+    b = v['buffers']
+    bufs = set(b[k] for k in ('req', 'bounce', 'status'))
+    # each descriptor: exactly one of the three kernel buffers, with its own length,
+    # flags (NEXT 1, WRITE 2) and link; or unused (all zero)
+    shapes = {b['req']: [(16, 1, 1)], b['bounce']: [(4096, 1, 2), (4096, 3, 2)],
+              b['status']: [(1, 2, 0)]}
+    bad = [d for d in v['desc'] if not (
+        (d['addr'] == 0 and d['len'] == 0) or
+        (d['len'], d['flags'], d['next']) in shapes.get(d['addr'], []))]
+    c(f'{label}: descriptors are exactly the request header (16 B), the bounce buffer (4096 B) and '
+      f'the status byte (1 B, device-writable), linked header -> data -> status',
+      not bad and v['desc'][0]['addr'] == b['req'] and all(kernel[0] <= x < kernel[1] for x in bufs),
+      bad or v['desc'])
 
 
 def pfsck_files(c, label, ctx, want, seq=None):
@@ -1889,6 +1898,8 @@ def oracle_t23(c, obs, ctx):
     c('driver ready, queue of 8', v['state'] == 1 and v['qsize'] == 8, v)
     c('mount read exactly the superblock and both directory copies, wrote nothing',
       v['reads'] == 3 and v['writes'] == 0 and v['flushes'] == 0)
+    c('the device reported 4097 bytes written for the last read (4096 data + status; checked by '
+      'the driver)', v['last_len'] == 4097, v['last_len'])
     queue_ok(c, 'driver', v, s['kernel_range'])
     fs = d['fs']
     c('kernel mounted copy A, seq 1, 256 blocks', d['mounted'] == 1 and fs['slot'] == 1
@@ -1953,15 +1964,16 @@ def oracle_t27(c, obs, ctx):
       incon)
     lost = []
     prev = 0
+    acked = {'g': 0, 'h': 0}        # highest generation reported saved in any boot so far
     for k in ks:
         g = k['files'].get('g', {}).get('gen') or 0
         h = k['files'].get('h', {}).get('gen') or 0
-        last = k['saved_last']['g']
-        if last is not None and not last <= g <= last + 1:
-            lost.append((k['name'], 'g', g, last))
-        lh = k['saved_last']['h']
-        if lh is not None and not lh <= h <= lh + 1:
-            lost.append((k['name'], 'h', h, lh))
+        for f, gen in (('g', g), ('h', h)):
+            if k['saved_last'][f] is not None:
+                acked[f] = max(acked[f], k['saved_last'][f])
+            # never below what any boot acknowledged; at most one unacknowledged write ahead
+            if not acked[f] <= gen <= acked[f] + 1:
+                lost.append((k['name'], f, gen, acked[f]))
         if not (h == g or h == g - 1 or (g == 0 and h == 0)):
             lost.append((k['name'], 'h vs g', h, g))
         if k['start_gen'][:1] != [prev]:
@@ -1997,7 +2009,7 @@ def oracle_t_fsbad(c, obs, ctx):
     r = s['results']
     want = dict(zip(range(1, 12), [-22, -22, -22, -14, -14, -14, -14, -27, -22, -14, -14]))
     want.update({12: 3000, 13: 1, 14: -5, 15: -5, 16: 3000, 17: -8, 18: -5, 19: -2, 20: 4,
-                 21: 0, 22: 3, 23: r[0]})
+                 21: 0, 22: 3, 23: r[0], 24: 1, 25: -5, 26: -5})
     expect_results(c, 't_fsbad', r, want)
     c('no page leaked (free pages before = after the bad calls)', r[23] == r[0], (r[0], r[23]))
     first = steps(obs).get('first_meminfo', {})

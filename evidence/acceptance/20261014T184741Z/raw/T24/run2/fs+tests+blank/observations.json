@@ -1,0 +1,235 @@
+{
+ "probe": "autorun",
+ "steps": [
+  {
+   "hit": true,
+   "autorun_pid": 3,
+   "results": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    4095,
+    4096,
+    4097,
+    131072,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    18446744073709551589,
+    97,
+    1,
+    0,
+    100,
+    1,
+    6,
+    143361,
+    0,
+    3000,
+    1,
+    0,
+    0,
+    18446744073709551614,
+    18446744073709551614,
+    6,
+    18446744073709551588,
+    6,
+    57,
+    18446744073709551588,
+    18446744073709551614,
+    0,
+    57,
+    6,
+    142264,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    24589
+   ],
+   "exit_code": 0,
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31106,
+    "allocs": 43,
+    "frees": 0,
+    "reserved": 83
+   },
+   "sched": {
+    "quantum_ticks": 100000,
+    "timer_ticks": 85,
+    "switches": 87,
+    "idle_entered": 0,
+    "verbose": 0,
+    "waits": 0,
+    "ext_irqs": 0,
+    "next_pid": 4,
+    "spawned": 0,
+    "killed": 0,
+    "reclaimed": 0,
+    "loaded": 1,
+    "load_errors": 0,
+    "last_load_error": 0,
+    "fg_pid": 0,
+    "fg_waiter": 0,
+    "interrupted": 0
+   },
+   "disk": {
+    "mounted": 1,
+    "reject": 0,
+    "ops": 148,
+    "errors": 3,
+    "fs": {
+     "blocks": 256,
+     "slot": 2,
+     "seq": 136,
+     "files": 6,
+     "failed": 0,
+     "reject_a": 0,
+     "reject_b": 0,
+     "entries": [
+      {
+       "slot": 0,
+       "name": "s0",
+       "size": 0,
+       "first": 0,
+       "count": 0,
+       "crc": 0
+      },
+      {
+       "slot": 1,
+       "name": "s1",
+       "size": 1,
+       "first": 3,
+       "count": 1,
+       "crc": 2427484129
+      },
+      {
+       "slot": 2,
+       "name": "s2",
+       "size": 4095,
+       "first": 4,
+       "count": 1,
+       "crc": 3561301741
+      },
+      {
+       "slot": 3,
+       "name": "s3",
+       "size": 4096,
+       "first": 5,
+       "count": 1,
+       "crc": 2762157692
+      },
+      {
+       "slot": 4,
+       "name": "s4",
+       "size": 3000,
+       "first": 40,
+       "count": 1,
+       "crc": 1373256048
+      },
+      {
+       "slot": 5,
+       "name": "s5",
+       "size": 131072,
+       "first": 8,
+       "count": 32,
+       "crc": 1838258273
+      }
+     ]
+    },
+    "boot": {
+     "virtio_count": 8,
+     "virtio": [
+      268468224,
+      268464128,
+      268460032,
+      268455936,
+      268451840,
+      268447744,
+      268443648,
+      268439552
+     ]
+    }
+   },
+   "vblk": {
+    "base": 268468224,
+    "state": 1,
+    "reason": 0,
+    "device_features": 1104611929684,
+    "features": 4294967808,
+    "capacity": 2048,
+    "qsize": 8,
+    "avail_idx": 560,
+    "used_seen": 560,
+    "reads": 46,
+    "writes": 366,
+    "flushes": 148,
+    "legacy_base": 0,
+    "last_len": 1,
+    "vq_avail_idx": 560,
+    "vq_used_idx": 560,
+    "desc": [
+     {
+      "addr": 2149875728,
+      "len": 16,
+      "next": 1,
+      "flags": 1
+     },
+     {
+      "addr": 2149875712,
+      "len": 1,
+      "next": 0,
+      "flags": 2
+     },
+     {
+      "addr": 2149875712,
+      "len": 1,
+      "next": 0,
+      "flags": 2
+     }
+    ],
+    "buffers": {
+     "req": 2149875728,
+     "bounce": 2149867520,
+     "status": 2149875712,
+     "vq": 2149871616
+    },
+    "mmio": {
+     "magic": 1953655158,
+     "version": 2,
+     "device_id": 2,
+     "status": 15
+    }
+   },
+   "name": "exit",
+   "host_time": 1792003932.3455746
+  }
+ ],
+ "complete": true,
+ "error": null
+}

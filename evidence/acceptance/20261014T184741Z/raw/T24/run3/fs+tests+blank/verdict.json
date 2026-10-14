@@ -1,0 +1,193 @@
+{
+ "test": "T24",
+ "repetition": 3,
+ "scenario": "protoos.test=fs",
+ "probe": "autorun",
+ "program_archive": "tests.img",
+ "disk": {
+  "spec": {
+   "disk": "disks/blank.img",
+   "autorun": "t_fs"
+  },
+  "sha_source": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+  "sha_before": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+  "sha_after": "82d9ff87e8cebecb1fa3b530cca19e3c281f61b54ac803cd48c1c2c85800db45",
+  "pfsck": {
+   "mounts": true,
+   "reject": null,
+   "slot": 2,
+   "seq": 136,
+   "files": [
+    {
+     "slot": 0,
+     "name": "s0",
+     "size": 0,
+     "first": 0,
+     "count": 0,
+     "crc": 0,
+     "crc_ok": true,
+     "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+     "slot": 1,
+     "name": "s1",
+     "size": 1,
+     "first": 3,
+     "count": 1,
+     "crc": 2427484129,
+     "crc_ok": true,
+     "sha256": "ba5ec51d07a4ac0e951608704431d59a02b21a4e951acc10505a8dc407c501ee"
+    },
+    {
+     "slot": 2,
+     "name": "s2",
+     "size": 4095,
+     "first": 4,
+     "count": 1,
+     "crc": 3561301741,
+     "crc_ok": true,
+     "sha256": "0f5e156cfda8cbbb053b5dcf9a76993011ff8df08ffac174239c31ad2a48d9a4"
+    },
+    {
+     "slot": 3,
+     "name": "s3",
+     "size": 4096,
+     "first": 5,
+     "count": 1,
+     "crc": 2762157692,
+     "crc_ok": true,
+     "sha256": "be66e6d75b984b25d33367f51fd2c3c4ca4da607a22bf61096497a0eecf6876e"
+    },
+    {
+     "slot": 4,
+     "name": "s4",
+     "size": 3000,
+     "first": 40,
+     "count": 1,
+     "crc": 1373256048,
+     "crc_ok": true,
+     "sha256": "4e30eebd1a12a2ba03ac00c8a077a7b8297ce0ab354e495281bf8ec05ab27468"
+    },
+    {
+     "slot": 5,
+     "name": "s5",
+     "size": 131072,
+     "first": 8,
+     "count": 32,
+     "crc": 1838258273,
+     "crc_ok": true,
+     "sha256": "3e00335cce533ab786576c76cc0011b858bd85d49f7561017c6024ec364d0f5a"
+    }
+   ],
+   "copies": {
+    "A": {
+     "code": 0,
+     "seq": 135
+    },
+    "B": {
+     "code": 0,
+     "seq": 136
+    }
+   },
+   "data_ok": true,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 1.59,
+ "checks": [
+  {
+   "check": "the test driver exited and its results were read through its own page table",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "check": "t_fs: every result as specified (43 values)",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "t_fs: the driver ran to the end (r[63] = 0x600d)",
+   "ok": true,
+   "detail": "0x600d"
+  },
+  {
+   "check": "t_fs exit code 0",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "kernel: 135 directory updates (seq 136, now copy B), no failure",
+   "ok": true,
+   "detail": "{'blocks': 256, 'slot': 2, 'seq': 136, 'files': 6, 'failed': 0, 'reject_a': 0, 'reject_b': 0, 'entries': [{'slot': 0, 'name': 's0', 'size': 0, 'first': 0, 'count': 0, 'crc': 0}, {'slot': 1, 'name': 's1', 'size': 1, 'first': 3, 'count': 1, 'crc': 2427484129}, {'slot': 2, 'name': 's2', 'size': 4095, 'first': 4, 'count': 1, 'crc': 3561301741}, {'slot': 3, 'name': 's3', 'size': 4096, 'first': 5, 'count': 1, 'crc': 2762157692}, {'slot': 4, 'name': 's4', 'size': 3000, 'first': 40, 'count': 1, 'crc': 1373256048}, {'slot': 5, 'name': 's5', 'size': 131072, 'first': 8, 'count': 32, 'crc': 1838258273}]}"
+  },
+  {
+   "check": "T24: pfsck: the image mounts and every file is intact",
+   "ok": true,
+   "detail": "{'reject': None, 'slot': 2, 'seq': 136, 'data_ok': True}"
+  },
+  {
+   "check": "T24: pfsck: exactly the expected files with the expected content",
+   "ok": true,
+   "detail": "{'got': ['s0', 's1', 's2', 's3', 's4', 's5'], 'want': ['s0', 's1', 's2', 's3', 's4', 's5']}"
+  },
+  {
+   "check": "T24: pfsck: directory seq 136",
+   "ok": true,
+   "detail": "136"
+  },
+  {
+   "check": "UART: the empty disk was found",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "driver: writes and flushes went to the device",
+   "ok": true,
+   "detail": "{'reads': 46, 'writes': 366, 'flushes': 148}"
+  },
+  {
+   "check": "driver: every request completed (avail = used = requests)",
+   "ok": true,
+   "detail": "{'avail_idx': 560, 'used_seen': 560, 'vq_avail_idx': 560, 'vq_used_idx': 560, 'reads': 46, 'writes': 366, 'flushes': 148}"
+  },
+  {
+   "check": "driver: descriptors are exactly the request header (16 B), the bounce buffer (4096 B) and the status byte (1 B, device-writable), linked header -> data -> status",
+   "ok": true,
+   "detail": "[{'addr': 2149875728, 'len': 16, 'next': 1, 'flags': 1}, {'addr': 2149875712, 'len': 1, 'next': 0, 'flags': 2}, {'addr': 2149875712, 'len': 1, 'next': 0, 'flags': 2}]"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "c7665d74cdb7c42747cd76606c04cb5a96f20f68a334e864b9a982af37ef3a47",
+  "gdb.log": "0eef8a8f585f50872d87789d915b3aa14e5ebf3a74f77154bbace9d4a0469f9b",
+  "observations.json": "a32e9dec37a467f696f817aa8dc19c312b3787c8eedbd70dcab4acb713d6f65f",
+  "pfsck.json": "a0a22de6b098ba372c0839476eb7bca35b0d4e8c81943b5d22fbbc3be460b85c",
+  "probe-config.json": "1958fc160aa26f021cc3bf6fc8eabfddf0f8534a984af823b1115a1e07f32b38",
+  "qemu-int.log": "00faab9ad105385d263f6a17490481f660ec313fce2bcbf7e2b91ff56ba63834",
+  "uart.log": "81b844341ce51dd1c68c59f44dc2c2007faacfc075eecb60020eaaf47bf5f885"
+ }
+}

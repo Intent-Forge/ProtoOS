@@ -1,0 +1,233 @@
+{
+ "probe": "t13",
+ "steps": [
+  {
+   "hit": true,
+   "proc": {
+    "pid": 3,
+    "state": 5,
+    "satp": 9223372036855301120,
+    "dispatches": 1,
+    "preemptions": 0,
+    "yields": 0,
+    "syscalls": 1,
+    "rejected_syscalls": 0,
+    "exit_code": 0,
+    "fault_cause": 0,
+    "fault_epc": 0,
+    "fault_tval": 0,
+    "writes": 0,
+    "bytes_written": 0,
+    "sleeps": 1,
+    "sleep_start": 480106,
+    "wake_time": 10480106,
+    "last_dispatch_time": 479263,
+    "reads": 0,
+    "bytes_read": 0,
+    "read_pending": 0,
+    "read_va": 0,
+    "read_len": 0,
+    "block_start": 0,
+    "prog": 5,
+    "killed": 0,
+    "npages": 5,
+    "pages": [
+     2151677952,
+     2151682048,
+     2151686144,
+     2151690240,
+     2151694336
+    ],
+    "addr": 2149845360
+   },
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31227,
+    "allocs": 5,
+    "frees": 0
+   },
+   "bits": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "data": {
+    "zero": 6,
+    "a5": 504,
+    "w0": 0,
+    "w2": 1,
+    "w3": 1
+   },
+   "stack": {
+    "zero": 0,
+    "a5": 512,
+    "w0": 11936128518282651045,
+    "w2": 11936128518282651045,
+    "w3": 11936128518282651045
+   },
+   "results": [
+    31232,
+    3,
+    0,
+    0,
+    0,
+    0
+   ],
+   "name": "after1",
+   "host_time": 1792003844.4323483
+  },
+  {
+   "hit": true,
+   "proc": {
+    "pid": 4,
+    "state": 5,
+    "satp": 9223372036855301120,
+    "dispatches": 1,
+    "preemptions": 0,
+    "yields": 0,
+    "syscalls": 1,
+    "rejected_syscalls": 0,
+    "exit_code": 0,
+    "fault_cause": 0,
+    "fault_epc": 0,
+    "fault_tval": 0,
+    "writes": 0,
+    "bytes_written": 0,
+    "sleeps": 1,
+    "sleep_start": 1502959,
+    "wake_time": 11502959,
+    "last_dispatch_time": 1502171,
+    "reads": 0,
+    "bytes_read": 0,
+    "read_pending": 0,
+    "read_va": 0,
+    "read_len": 0,
+    "block_start": 0,
+    "prog": 5,
+    "killed": 0,
+    "npages": 5,
+    "pages": [
+     2151677952,
+     2151682048,
+     2151686144,
+     2151690240,
+     2151694336
+    ],
+    "addr": 2149845360
+   },
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31227,
+    "allocs": 10,
+    "frees": 5
+   },
+   "bits": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "data": {
+    "zero": 6,
+    "a5": 504,
+    "w0": 0,
+    "w2": 1,
+    "w3": 1
+   },
+   "stack": {
+    "zero": 0,
+    "a5": 512,
+    "w0": 11936128518282651045,
+    "w2": 11936128518282651045,
+    "w3": 11936128518282651045
+   },
+   "results": [
+    31232,
+    3,
+    0,
+    4,
+    0,
+    0
+   ],
+   "name": "after2",
+   "host_time": 1792003844.5552773
+  },
+  {
+   "hit": true,
+   "proc": {
+    "pid": 4,
+    "state": 3,
+    "satp": 9223372036855301120,
+    "dispatches": 1,
+    "preemptions": 0,
+    "yields": 0,
+    "syscalls": 1,
+    "rejected_syscalls": 0,
+    "exit_code": 137,
+    "fault_cause": 0,
+    "fault_epc": 0,
+    "fault_tval": 0,
+    "writes": 0,
+    "bytes_written": 0,
+    "sleeps": 1,
+    "sleep_start": 1502959,
+    "wake_time": 11502959,
+    "last_dispatch_time": 1502171,
+    "reads": 0,
+    "bytes_read": 0,
+    "read_pending": 0,
+    "read_va": 0,
+    "read_len": 0,
+    "block_start": 0,
+    "prog": 5,
+    "killed": 1,
+    "npages": 0,
+    "pages": [
+     2151677952,
+     2151682048,
+     2151686144,
+     2151690240,
+     2151694336
+    ],
+    "addr": 2149845360
+   },
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31232,
+    "allocs": 10,
+    "frees": 10
+   },
+   "results": [
+    31232,
+    3,
+    0,
+    4,
+    0,
+    31232
+   ],
+   "sched": {
+    "quantum_ticks": 100000,
+    "timer_ticks": 20,
+    "switches": 9,
+    "idle_entered": 0,
+    "verbose": 1,
+    "waits": 0,
+    "ext_irqs": 0,
+    "next_pid": 5,
+    "spawned": 2,
+    "killed": 2,
+    "reclaimed": 2
+   },
+   "name": "done",
+   "host_time": 1792003844.575617
+  }
+ ],
+ "complete": true,
+ "error": null
+}

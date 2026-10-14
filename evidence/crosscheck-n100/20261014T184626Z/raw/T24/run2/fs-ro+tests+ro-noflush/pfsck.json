@@ -1,0 +1,30 @@
+{
+ "mounts": true,
+ "reject": null,
+ "slot": 1,
+ "seq": 1,
+ "files": [
+  {
+   "slot": 0,
+   "name": "ro.txt",
+   "size": 5000,
+   "first": 3,
+   "count": 2,
+   "crc": 425168808,
+   "crc_ok": true,
+   "sha256": "ebd41ed1b5f4c8dc0e86ded6ea9e71c60864c600c573b0ceed216c2b1e470d1d"
+  }
+ ],
+ "copies": {
+  "A": {
+   "code": 0,
+   "seq": 1
+  },
+  "B": {
+   "code": 0,
+   "seq": 0
+  }
+ },
+ "data_ok": true,
+ "blocks": 256
+}

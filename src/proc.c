@@ -510,6 +510,7 @@ static uint64_t start_program(const char *name, uint64_t len, const char *arg, u
         size = file->size;
         prog = PROG_FILE + (uint64_t)idx;
     } else {
+        if (disk.mounted && disk_fs.failed) return SYS_EIO;   /* stopped disk */
         int d = disk.mounted ? pfs_find(&disk_fs, name, len) : PFS_ENOENT;
         if (d < 0) return SYS_ENOENT;
         /* The file is read whole and its CRC checked before elf_check
@@ -627,6 +628,7 @@ static uint64_t sys_fs_list(struct process *p, uint64_t index, uint64_t va)
 {
     if (!vm_user_range_ok(p->satp, va, FS_NAME_BYTES, SV39_PTE_R | SV39_PTE_W)) return SYS_EFAULT;
     if (!disk.mounted) return SYS_ENODEV;
+    if (disk_fs.failed) return fs_error(PFS_EIO);      /* stopped: EIO until reboot */
     const struct pfs_entry *e = index < PFS_FILES ? pfs_nth(&disk_fs, (uint32_t)index) : 0;
     if (!e) return SYS_ENOENT;
     copy_to_user(va, (const uint8_t *)e->name, FS_NAME_BYTES);
@@ -644,6 +646,7 @@ static uint64_t sys_fs_read(struct process *p, const struct trap_frame *f)
     if (!pfs_name_ok(name, f->x[11]) || len > PFS_FILE_MAX) return SYS_EINVAL;
     if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R | SV39_PTE_W)) return SYS_EFAULT;
     if (!disk.mounted) return SYS_ENODEV;
+    if (disk_fs.failed) return fs_error(PFS_EIO);      /* stopped: EIO until reboot */
     int idx = pfs_find(&disk_fs, name, f->x[11]);
     if (idx < 0) return SYS_ENOENT;
     disk.ops++;
@@ -740,6 +743,7 @@ static uint64_t sys_open(struct process *p, const struct trap_frame *f)
     if (e) return e;
     if (!pfs_name_ok(name, len) || flags > 1) return SYS_EINVAL;
     if (!disk.mounted) return SYS_ENODEV;
+    if (disk_fs.failed) return fs_error(PFS_EIO);      /* stopped: EIO until reboot */
     unsigned slot = 0;
     while (slot < FD_FILES && p->files[slot].mode) ++slot;
     if (slot == FD_FILES) return SYS_EMFILE;

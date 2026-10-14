@@ -1,0 +1,771 @@
+{
+ "probe": "t23",
+ "steps": [
+  {
+   "ok": true,
+   "text": "\r\nOpenSBI v1.7\r\n   ____                    _____ ____ _____\r\n  / __ \\                  / ____|  _ \\_   _|\r\n | |  | |_ __   ___ _ __ | (___ | |_) || |\r\n | |  | | '_ \\ / _ \\ '_ \\ \\___ \\|  _ < | |\r\n | |__| | |_) |  __/ | | |____) | |_) || |_\r\n  \\____/| .__/ \\___|_| |_|_____/|____/_____|\r\n        | |\r\n        |_|\r\n\r\nPlatform Name               : riscv-virtio,qemu\r\nPlatform Features           : medeleg\r\nPlatform HART Count         : 1\r\nPlatform IPI Device         : aclint-mswi\r\nPlatform Timer Device       : aclint-mtimer @ 10000000Hz\r\nPlatform Console Device     : uart8250\r\nPlatform HSM Device         : ---\r\nPlatform PMU Device         : ---\r\nPlatform Reboot Device      : syscon-reboot\r\nPlatform Shutdown Device    : syscon-poweroff\r\nPlatform Suspend Device     : ---\r\nPlatform CPPC Device        : ---\r\nFirmware Base               : 0x80000000\r\nFirmware Size               : 317 KB\r\nFirmware RW Offset          : 0x40000\r\nFirmware RW Size            : 61 KB\r\nFirmware Heap Offset        : 0x46000\r\nFirmware Heap Size          : 37 KB (total), 2 KB (reserved), 11 KB (used), 23 KB (free)\r\nFirmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)\r\nRuntime SBI Version         : 3.0\r\nStandard SBI Extensions     : ipi,pmu,srst,sse,hsm,rfnc,fwft,time,base,legacy,dbcn,dbtr\r\nExperimental SBI Extensions : none\r\n\r\nDomain0 Name                : root\r\nDomain0 Boot HART           : 0\r\nDomain0 HARTs               : 0*\r\nDomain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)\r\nDomain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)\r\nDomain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()\r\nDomain0 Region03            : 0x0000000080040000-0x000000008004ffff M: (R,W) S/U: ()\r\nDomain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()\r\nDomain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)\r\nDomain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)\r\nDomain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)\r\nDomain0 Next Address        : 0x0000000080200000\r\nDomain0 Next Arg1           : 0x0000000087e00000\r\nDomain0 Next Mode           : S-mode\r\nDomain0 SysReset            : yes\r\nDomain0 SysSuspend          : yes\r\n\r\nBoot HART ID                : 0\r\nBoot HART Domain            : root\r\nBoot HART Priv Version      : v1.12\r\nBoot HART Base ISA          : rv64imafdch\r\nBoot HART ISA Extensions    : sstc,zicntr,zihpm,zicboz,zicbom,sdtrig,svadu\r\nBoot HART PMP Count         : 16\r\nBoot HART PMP Granularity   : 2 bits\r\nBoot HART PMP Address Bits  : 54\r\nBoot HART MHPM Info         : 16 (0x0007fff8)\r\nBoot HART Debug Triggers    : 2 triggers\r\nBoot HART MIDELEG           : 0x0000000000001666\r\nBoot HART MEDELEG           : 0x0000000000f0b509\r\nProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes\r\nhart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=shell\r\nARCHIVE 108132 bytes at 0x0000000084200000, 27 pages reserved: 7 programs\r\nMMU Sv39 active satp=0x8000000000080216\r\nDISK virtio-blk at 0x0000000010008000: 2048 sectors, flush, read-write\r\nDISK 256 blocks, 1 files\r\nSCENARIO protoos.mode=shell\r\nProtoOS shell: process A in U-mode, B works in the background. Type help.\r\nproto> ",
+   "vblk": {
+    "base": 268468224,
+    "state": 1,
+    "reason": 0,
+    "device_features": 1104611929684,
+    "features": 4294967808,
+    "capacity": 2048,
+    "qsize": 8,
+    "avail_idx": 3,
+    "used_seen": 3,
+    "reads": 3,
+    "writes": 0,
+    "flushes": 0,
+    "legacy_base": 0,
+    "last_len": 4097,
+    "vq_avail_idx": 3,
+    "vq_used_idx": 3,
+    "desc": [
+     {
+      "addr": 2149875728,
+      "len": 16,
+      "next": 1,
+      "flags": 1
+     },
+     {
+      "addr": 2149867520,
+      "len": 4096,
+      "next": 2,
+      "flags": 3
+     },
+     {
+      "addr": 2149875712,
+      "len": 1,
+      "next": 0,
+      "flags": 2
+     }
+    ],
+    "buffers": {
+     "req": 2149875728,
+     "bounce": 2149867520,
+     "status": 2149875712,
+     "vq": 2149871616
+    },
+    "mmio": {
+     "magic": 1953655158,
+     "version": 2,
+     "device_id": 2,
+     "status": 15
+    }
+   },
+   "disk": {
+    "mounted": 1,
+    "reject": 0,
+    "ops": 0,
+    "errors": 0,
+    "fs": {
+     "blocks": 256,
+     "slot": 1,
+     "seq": 1,
+     "files": 1,
+     "failed": 0,
+     "reject_a": 0,
+     "reject_b": 0,
+     "entries": [
+      {
+       "slot": 0,
+       "name": "hello",
+       "size": 15192,
+       "first": 3,
+       "count": 4,
+       "crc": 2348286995
+      }
+     ]
+    },
+    "boot": {
+     "virtio_count": 8,
+     "virtio": [
+      268468224,
+      268464128,
+      268460032,
+      268455936,
+      268451840,
+      268447744,
+      268443648,
+      268439552
+     ]
+    }
+   },
+   "walks": {
+    "0x10008000": {
+     "kernel": {
+      "satp": 9223372036855300630,
+      "va": 268468224,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149670912,
+        "pte": 537420801
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149684224,
+        "pte": 537421825
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149687360,
+        "pte": 67117255
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67117255,
+      "flags": "VRWAD",
+      "pa": 268468224
+     },
+     "A": {
+      "satp": 9223372036855300652,
+      "va": 268468224,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149761024,
+        "pte": 537443329
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149774336,
+        "pte": 537444353
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149777472,
+        "pte": 67117255
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67117255,
+      "flags": "VRWAD",
+      "pa": 268468224
+     },
+     "B": {
+      "satp": 9223372036855300662,
+      "va": 268468224,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149801984,
+        "pte": 537453569
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149815296,
+        "pte": 537454593
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149818432,
+        "pte": 67117255
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67117255,
+      "flags": "VRWAD",
+      "pa": 268468224
+     }
+    },
+    "0x10007000": {
+     "kernel": {
+      "satp": 9223372036855300630,
+      "va": 268464128,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149670912,
+        "pte": 537420801
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149684224,
+        "pte": 537421825
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149687352,
+        "pte": 67116231
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67116231,
+      "flags": "VRWAD",
+      "pa": 268464128
+     },
+     "A": {
+      "satp": 9223372036855300652,
+      "va": 268464128,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149761024,
+        "pte": 537443329
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149774336,
+        "pte": 537444353
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149777464,
+        "pte": 67116231
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67116231,
+      "flags": "VRWAD",
+      "pa": 268464128
+     },
+     "B": {
+      "satp": 9223372036855300662,
+      "va": 268464128,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149801984,
+        "pte": 537453569
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149815296,
+        "pte": 537454593
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149818424,
+        "pte": 67116231
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67116231,
+      "flags": "VRWAD",
+      "pa": 268464128
+     }
+    },
+    "0x10006000": {
+     "kernel": {
+      "satp": 9223372036855300630,
+      "va": 268460032,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149670912,
+        "pte": 537420801
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149684224,
+        "pte": 537421825
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149687344,
+        "pte": 67115207
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67115207,
+      "flags": "VRWAD",
+      "pa": 268460032
+     },
+     "A": {
+      "satp": 9223372036855300652,
+      "va": 268460032,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149761024,
+        "pte": 537443329
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149774336,
+        "pte": 537444353
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149777456,
+        "pte": 67115207
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67115207,
+      "flags": "VRWAD",
+      "pa": 268460032
+     },
+     "B": {
+      "satp": 9223372036855300662,
+      "va": 268460032,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149801984,
+        "pte": 537453569
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149815296,
+        "pte": 537454593
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149818416,
+        "pte": 67115207
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67115207,
+      "flags": "VRWAD",
+      "pa": 268460032
+     }
+    },
+    "0x10005000": {
+     "kernel": {
+      "satp": 9223372036855300630,
+      "va": 268455936,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149670912,
+        "pte": 537420801
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149684224,
+        "pte": 537421825
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149687336,
+        "pte": 67114183
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67114183,
+      "flags": "VRWAD",
+      "pa": 268455936
+     },
+     "A": {
+      "satp": 9223372036855300652,
+      "va": 268455936,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149761024,
+        "pte": 537443329
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149774336,
+        "pte": 537444353
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149777448,
+        "pte": 67114183
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67114183,
+      "flags": "VRWAD",
+      "pa": 268455936
+     },
+     "B": {
+      "satp": 9223372036855300662,
+      "va": 268455936,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149801984,
+        "pte": 537453569
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149815296,
+        "pte": 537454593
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149818408,
+        "pte": 67114183
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67114183,
+      "flags": "VRWAD",
+      "pa": 268455936
+     }
+    },
+    "0x10004000": {
+     "kernel": {
+      "satp": 9223372036855300630,
+      "va": 268451840,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149670912,
+        "pte": 537420801
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149684224,
+        "pte": 537421825
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149687328,
+        "pte": 67113159
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67113159,
+      "flags": "VRWAD",
+      "pa": 268451840
+     },
+     "A": {
+      "satp": 9223372036855300652,
+      "va": 268451840,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149761024,
+        "pte": 537443329
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149774336,
+        "pte": 537444353
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149777440,
+        "pte": 67113159
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67113159,
+      "flags": "VRWAD",
+      "pa": 268451840
+     },
+     "B": {
+      "satp": 9223372036855300662,
+      "va": 268451840,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149801984,
+        "pte": 537453569
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149815296,
+        "pte": 537454593
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149818400,
+        "pte": 67113159
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67113159,
+      "flags": "VRWAD",
+      "pa": 268451840
+     }
+    },
+    "0x10003000": {
+     "kernel": {
+      "satp": 9223372036855300630,
+      "va": 268447744,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149670912,
+        "pte": 537420801
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149684224,
+        "pte": 537421825
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149687320,
+        "pte": 67112135
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67112135,
+      "flags": "VRWAD",
+      "pa": 268447744
+     },
+     "A": {
+      "satp": 9223372036855300652,
+      "va": 268447744,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149761024,
+        "pte": 537443329
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149774336,
+        "pte": 537444353
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149777432,
+        "pte": 67112135
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67112135,
+      "flags": "VRWAD",
+      "pa": 268447744
+     },
+     "B": {
+      "satp": 9223372036855300662,
+      "va": 268447744,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149801984,
+        "pte": 537453569
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149815296,
+        "pte": 537454593
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149818392,
+        "pte": 67112135
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67112135,
+      "flags": "VRWAD",
+      "pa": 268447744
+     }
+    },
+    "0x10002000": {
+     "kernel": {
+      "satp": 9223372036855300630,
+      "va": 268443648,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149670912,
+        "pte": 537420801
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149684224,
+        "pte": 537421825
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149687312,
+        "pte": 67111111
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67111111,
+      "flags": "VRWAD",
+      "pa": 268443648
+     },
+     "A": {
+      "satp": 9223372036855300652,
+      "va": 268443648,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149761024,
+        "pte": 537443329
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149774336,
+        "pte": 537444353
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149777424,
+        "pte": 67111111
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67111111,
+      "flags": "VRWAD",
+      "pa": 268443648
+     },
+     "B": {
+      "satp": 9223372036855300662,
+      "va": 268443648,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149801984,
+        "pte": 537453569
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149815296,
+        "pte": 537454593
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149818384,
+        "pte": 67111111
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67111111,
+      "flags": "VRWAD",
+      "pa": 268443648
+     }
+    },
+    "0x10001000": {
+     "kernel": {
+      "satp": 9223372036855300630,
+      "va": 268439552,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149670912,
+        "pte": 537420801
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149684224,
+        "pte": 537421825
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149687304,
+        "pte": 67110087
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67110087,
+      "flags": "VRWAD",
+      "pa": 268439552
+     },
+     "A": {
+      "satp": 9223372036855300652,
+      "va": 268439552,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149761024,
+        "pte": 537443329
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149774336,
+        "pte": 537444353
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149777416,
+        "pte": 67110087
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67110087,
+      "flags": "VRWAD",
+      "pa": 268439552
+     },
+     "B": {
+      "satp": 9223372036855300662,
+      "va": 268439552,
+      "mode": 8,
+      "levels": [
+       {
+        "level": 2,
+        "pte_addr": 2149801984,
+        "pte": 537453569
+       },
+       {
+        "level": 1,
+        "pte_addr": 2149815296,
+        "pte": 537454593
+       },
+       {
+        "level": 0,
+        "pte_addr": 2149818376,
+        "pte": 67110087
+       }
+      ],
+      "mapped": true,
+      "leaf_level": 0,
+      "pte": 67110087,
+      "flags": "VRWAD",
+      "pa": 268439552
+     }
+    }
+   },
+   "kernel_range": [
+    2149580800,
+    2150019072
+   ],
+   "name": "first_prompt",
+   "host_time": 1792003821.3087292
+  }
+ ],
+ "complete": true,
+ "error": null
+}

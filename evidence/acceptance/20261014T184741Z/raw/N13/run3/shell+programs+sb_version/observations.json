@@ -1,0 +1,92 @@
+{
+ "probe": "n13",
+ "steps": [
+  {
+   "ok": true,
+   "text": "\r\nOpenSBI v1.7\r\n   ____                    _____ ____ _____\r\n  / __ \\                  / ____|  _ \\_   _|\r\n | |  | |_ __   ___ _ __ | (___ | |_) || |\r\n | |  | | '_ \\ / _ \\ '_ \\ \\___ \\|  _ < | |\r\n | |__| | |_) |  __/ | | |____) | |_) || |_\r\n  \\____/| .__/ \\___|_| |_|_____/|____/_____|\r\n        | |\r\n        |_|\r\n\r\nPlatform Name               : riscv-virtio,qemu\r\nPlatform Features           : medeleg\r\nPlatform HART Count         : 1\r\nPlatform IPI Device         : aclint-mswi\r\nPlatform Timer Device       : aclint-mtimer @ 10000000Hz\r\nPlatform Console Device     : uart8250\r\nPlatform HSM Device         : ---\r\nPlatform PMU Device         : ---\r\nPlatform Reboot Device      : syscon-reboot\r\nPlatform Shutdown Device    : syscon-poweroff\r\nPlatform Suspend Device     : ---\r\nPlatform CPPC Device        : ---\r\nFirmware Base               : 0x80000000\r\nFirmware Size               : 317 KB\r\nFirmware RW Offset          : 0x40000\r\nFirmware RW Size            : 61 KB\r\nFirmware Heap Offset        : 0x46000\r\nFirmware Heap Size          : 37 KB (total), 2 KB (reserved), 11 KB (used), 23 KB (free)\r\nFirmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)\r\nRuntime SBI Version         : 3.0\r\nStandard SBI Extensions     : ipi,pmu,srst,sse,hsm,rfnc,fwft,time,base,legacy,dbcn,dbtr\r\nExperimental SBI Extensions : none\r\n\r\nDomain0 Name                : root\r\nDomain0 Boot HART           : 0\r\nDomain0 HARTs               : 0*\r\nDomain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)\r\nDomain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)\r\nDomain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()\r\nDomain0 Region03            : 0x0000000080040000-0x000000008004ffff M: (R,W) S/U: ()\r\nDomain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()\r\nDomain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)\r\nDomain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)\r\nDomain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)\r\nDomain0 Next Address        : 0x0000000080200000\r\nDomain0 Next Arg1           : 0x0000000087e00000\r\nDomain0 Next Mode           : S-mode\r\nDomain0 SysReset            : yes\r\nDomain0 SysSuspend          : yes\r\n\r\nBoot HART ID                : 0\r\nBoot HART Domain            : root\r\nBoot HART Priv Version      : v1.12\r\nBoot HART Base ISA          : rv64imafdch\r\nBoot HART ISA Extensions    : sstc,zicntr,zihpm,zicboz,zicbom,sdtrig,svadu\r\nBoot HART PMP Count         : 16\r\nBoot HART PMP Granularity   : 2 bits\r\nBoot HART PMP Address Bits  : 54\r\nBoot HART MHPM Info         : 16 (0x0007fff8)\r\nBoot HART Debug Triggers    : 2 triggers\r\nBoot HART MIDELEG           : 0x0000000000001666\r\nBoot HART MEDELEG           : 0x0000000000f0b509\r\nProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes\r\nhart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.mode=shell\r\nARCHIVE 108132 bytes at 0x0000000084200000, 27 pages reserved: 7 programs\r\nMMU Sv39 active satp=0x8000000000080216\r\nDISK virtio-blk at 0x0000000010008000: 2048 sectors, flush, read-write\r\nDISK rejected code=-3\r\nSCENARIO protoos.mode=shell\r\nProtoOS shell: process A in U-mode, B works in the background. Type help.\r\nproto> ",
+   "vblk": {
+    "base": 268468224,
+    "state": 1,
+    "reason": 0,
+    "device_features": 1104611929684,
+    "features": 4294967808,
+    "capacity": 2048,
+    "qsize": 8,
+    "avail_idx": 1,
+    "used_seen": 1,
+    "reads": 1,
+    "writes": 0,
+    "flushes": 0,
+    "legacy_base": 0,
+    "last_len": 4097,
+    "vq_avail_idx": 1,
+    "vq_used_idx": 1,
+    "desc": [
+     {
+      "addr": 2149875728,
+      "len": 16,
+      "next": 1,
+      "flags": 1
+     },
+     {
+      "addr": 2149867520,
+      "len": 4096,
+      "next": 2,
+      "flags": 3
+     },
+     {
+      "addr": 2149875712,
+      "len": 1,
+      "next": 0,
+      "flags": 2
+     }
+    ],
+    "buffers": {
+     "req": 2149875728,
+     "bounce": 2149867520,
+     "status": 2149875712,
+     "vq": 2149871616
+    },
+    "mmio": {
+     "magic": 1953655158,
+     "version": 2,
+     "device_id": 2,
+     "status": 15
+    }
+   },
+   "disk": {
+    "mounted": 0,
+    "reject": 3,
+    "ops": 0,
+    "errors": 0,
+    "fs": {
+     "blocks": 0,
+     "slot": 0,
+     "seq": 0,
+     "files": 0,
+     "failed": 0,
+     "reject_a": 0,
+     "reject_b": 0,
+     "entries": []
+    },
+    "boot": {
+     "virtio_count": 8,
+     "virtio": [
+      268468224,
+      268464128,
+      268460032,
+      268455936,
+      268451840,
+      268447744,
+      268443648,
+      268439552
+     ]
+    }
+   },
+   "name": "first_prompt",
+   "host_time": 1792004061.0592031
+  }
+ ],
+ "complete": true,
+ "error": null
+}

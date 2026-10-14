@@ -1,0 +1,181 @@
+{
+ "probe": "n11",
+ "steps": [
+  {
+   "hit": true,
+   "results": [
+    31231,
+    31231,
+    18446744073709551614,
+    18446744073709551614
+   ],
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31231,
+    "allocs": 0,
+    "frees": 0,
+    "reserved": 1
+   },
+   "sched": {
+    "quantum_ticks": 100000,
+    "timer_ticks": 0,
+    "switches": 1,
+    "idle_entered": 0,
+    "verbose": 1,
+    "waits": 0,
+    "ext_irqs": 0,
+    "next_pid": 3,
+    "spawned": 0,
+    "killed": 0,
+    "reclaimed": 0,
+    "loaded": 0,
+    "load_errors": 0,
+    "last_load_error": 0,
+    "fg_pid": 0,
+    "fg_waiter": 0,
+    "interrupted": 0
+   },
+   "archive": {
+    "start": 2216689664,
+    "end": 2216693748,
+    "found": 3,
+    "pa": 0,
+    "count": 0
+   },
+   "archive_bits": [
+    1
+   ],
+   "walk_a_archive": {
+    "satp": 9223372036855300652,
+    "va": 2216689664,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149761040,
+      "pte": 537441281
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149765384,
+      "pte": 554172615
+     }
+    ],
+    "mapped": true,
+    "leaf_level": 1,
+    "pte": 554172615,
+    "flags": "VRWAD",
+    "pa": 2216689664
+   },
+   "words_b": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "name": "done",
+   "host_time": 1792003916.9529471
+  },
+  {
+   "wait": {
+    "reached": true,
+    "watch_hit": null
+   },
+   "words_b": [
+    11964840,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "procs": [
+    {
+     "pid": 1,
+     "state": 5,
+     "satp": 9223372036855300652,
+     "dispatches": 1,
+     "preemptions": 0,
+     "yields": 0,
+     "syscalls": 4,
+     "rejected_syscalls": 0,
+     "exit_code": 0,
+     "fault_cause": 0,
+     "fault_epc": 0,
+     "fault_tval": 0,
+     "writes": 0,
+     "bytes_written": 0,
+     "sleeps": 1,
+     "sleep_start": 408602,
+     "wake_time": 10408602,
+     "last_dispatch_time": 396104,
+     "reads": 0,
+     "bytes_read": 0,
+     "read_pending": 0,
+     "read_va": 0,
+     "read_len": 0,
+     "block_start": 0,
+     "prog": 0,
+     "killed": 0,
+     "npages": 0,
+     "pages": [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "addr": 2149843136
+    },
+    {
+     "pid": 2,
+     "state": 2,
+     "satp": 9223372036855300662,
+     "dispatches": 11,
+     "preemptions": 10,
+     "yields": 0,
+     "syscalls": 0,
+     "rejected_syscalls": 0,
+     "exit_code": 0,
+     "fault_cause": 0,
+     "fault_epc": 0,
+     "fault_tval": 0,
+     "writes": 0,
+     "bytes_written": 0,
+     "sleeps": 0,
+     "sleep_start": 0,
+     "wake_time": 0,
+     "last_dispatch_time": 1459053,
+     "reads": 0,
+     "bytes_read": 0,
+     "read_pending": 0,
+     "read_va": 0,
+     "read_len": 0,
+     "block_start": 0,
+     "prog": 0,
+     "killed": 0,
+     "npages": 0,
+     "pages": [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "addr": 2149844248
+    }
+   ],
+   "name": "after",
+   "host_time": 1792003917.1281397
+  }
+ ],
+ "complete": true,
+ "error": null
+}

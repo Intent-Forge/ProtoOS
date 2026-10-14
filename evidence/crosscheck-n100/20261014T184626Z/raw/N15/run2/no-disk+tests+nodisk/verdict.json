@@ -1,0 +1,68 @@
+{
+ "test": "N15",
+ "repetition": 2,
+ "scenario": "protoos.test=no-disk",
+ "probe": "autorun",
+ "program_archive": "tests.img",
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "the test driver exited and its results were read through its own page table",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "check": "t_nodisk: every result as specified (8 values)",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "t_nodisk: the driver ran to the end (r[63] = 0x600d)",
+   "ok": true,
+   "detail": "0x600d"
+  },
+  {
+   "check": "kernel: no disk mounted",
+   "ok": true,
+   "detail": "{'mounted': 0, 'reject': 0, 'ops': 0, 'errors': 0, 'fs': {'blocks': 0, 'slot': 0, 'seq': 0, 'files': 0, 'failed': 0, 'reject_a': 0, 'reject_b': 0, 'entries': []}, 'boot': {'virtio_count': 8, 'virtio': [268468224, 268464128, 268460032, 268455936, 268451840, 268447744, 268443648, 268439552]}}"
+  },
+  {
+   "check": "no disk: no driver state, no DISK line (as v1.4)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "4a091da66d5b3d61d1a4c9b3536b0033eacab2f289acd9df10f8a4fef62926f9",
+  "gdb.log": "0eef8a8f585f50872d87789d915b3aa14e5ebf3a74f77154bbace9d4a0469f9b",
+  "observations.json": "6cebb3d2ad7c50debc28a1d6f7596124e27b65aa52c143ac5530af5396fe2b45",
+  "probe-config.json": "84039aecc45845aa8f3088b97efb0f9a000dd774ab087adeaa84f23ada2f0c31",
+  "qemu-int.log": "9de488ce7e35543111788c59756453888dca4d2b540afb22aeae998120d5d59e",
+  "uart.log": "d8f516f03514e3e6798abd28d0c7a4a8c2098624ca205d5a9072a10e3f321c51"
+ }
+}

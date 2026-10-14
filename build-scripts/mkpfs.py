@@ -79,11 +79,37 @@ def assemble(blocks, sb, dir_a, dir_b, data):
     return bytes(img)
 
 
+NAME_CHARS = set(b'abcdefghijklmnopqrstuvwxyz0123456789_.')
+
+
+def check_input(blocks, files):
+    """Refuse (ValueError) what would not be a valid image. The deliberately
+    malformed test images are built from the lower-level functions instead."""
+    if not 256 <= blocks <= 16384:
+        raise ValueError(f'block count {blocks} outside 256..16384')
+    if len(files) > 63:
+        raise ValueError(f'{len(files)} files: at most 63')
+    seen = set()
+    for name, content in files:
+        nb = name.encode() if isinstance(name, str) else bytes(name)
+        if not 1 <= len(nb) <= 15 or not set(nb) <= NAME_CHARS:
+            raise ValueError(f'bad file name {name!r}: 1-15 of a-z 0-9 _ .')
+        if nb in seen:
+            raise ValueError(f'duplicate file name {name!r}')
+        seen.add(nb)
+        if len(content) > FILE_MAX:
+            raise ValueError(f'{name!r}: {len(content)} bytes, at most {FILE_MAX}')
+    need = DATA_START + sum(-(-len(c) // BLOCK) for _, c in files)
+    if need > blocks:
+        raise ValueError(f'the files need {need} blocks, the disk has {blocks}')
+
+
 def image(blocks, files=()):
     """A valid image: both directory copies list the same files; A has
     seq 1 and B seq 0, so a fresh disk mounts copy A."""
-    entries, data = layout(list(files))
-    assert DATA_START + len(data) <= blocks
+    files = list(files)
+    check_input(blocks, files)
+    entries, data = layout(files)
     return assemble(blocks, superblock(blocks), directory(entries, 1), directory(entries, 0), data)
 
 
@@ -95,8 +121,12 @@ def main():
         name, path = arg.split('=', 1)
         with open(path, 'rb') as f:
             files.append((name, f.read()))
+    try:
+        img = image(int(sys.argv[2]), files)        # checked before the output is opened
+    except ValueError as e:
+        sys.exit(f'mkpfs: {e}')
     with open(sys.argv[1], 'wb') as f:
-        f.write(image(int(sys.argv[2]), files))
+        f.write(img)
 
 
 if __name__ == '__main__':

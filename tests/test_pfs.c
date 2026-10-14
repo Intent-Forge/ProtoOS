@@ -131,8 +131,16 @@ static void empty_image(uint8_t *img)
 }
 
 /* ------------------------------------------------------------- the model */
-#define NAMES 6
-static const char *const names[NAMES] = { "a", "b", "c", "dd", "e.txt", "f_9" };
+/* The script's 6 names, then 60 empty filler files written before it
+ * (audit: the directory's later sectors must take part too). After the
+ * fillers in slots 9, 18, 27, 36, 45 and 57 are deleted, the script's files
+ * land in directory sectors 1-5 and 7, and fillers fill every sector. */
+#define SCRIPT_NAMES 6
+#define FILLERS 60
+#define NAMES (SCRIPT_NAMES + FILLERS)
+static const char *names[NAMES] = { "a", "b", "c", "dd", "e.txt", "f_9" };
+static char filler_name[FILLERS][4];
+static const int freed_slot[6] = { 9, 18, 27, 36, 45, 57 };
 struct model { int exists[NAMES]; uint32_t size[NAMES], seed[NAMES]; };
 struct op { int kind; int name; uint32_t size, seed; };     /* kind 0 write, 1 delete */
 
@@ -167,7 +175,7 @@ static void make_script(void)
 {
     for (int i = 0; i < OPS; ++i) {
         script[i].kind = rnd() % 5 == 0;
-        script[i].name = (int)(rnd() % NAMES);
+        script[i].name = (int)(rnd() % SCRIPT_NAMES);
         script[i].size = pick_size();
         script[i].seed = (uint32_t)rnd();
     }
@@ -272,21 +280,29 @@ static void reset_disk(void)
     calls = 0;
 }
 
-/* Before the script: 3 files written and the disk mounted again, so the
- * mounted copy is B (seq 4) and copy A (seq 3) differs from it. Device
- * calls are counted from here. */
+/* Before the script: 60 empty fillers, 6 of them deleted again, then 3
+ * files, and the disk mounted again: 69 changes, so the mounted copy is B
+ * (seq 70) and copy A (seq 69) differs from it. Device calls are counted
+ * from here. */
 static void prepare(struct pfs *fs, struct model *m)
 {
-    static const struct op prefix[3] = { { 0, 0, 5000, 11 }, { 0, 1, 100, 12 }, { 0, 2, 0, 13 } };
+    static const struct op files[3] = { { 0, 0, 5000, 11 }, { 0, 1, 100, 12 }, { 0, 2, 0, 13 } };
+    struct op prefix[FILLERS + 6 + 3];
+    int n = 0;
+    for (int i = 0; i < FILLERS; ++i) prefix[n++] = (struct op){ 0, SCRIPT_NAMES + i, 0, 0 };
+    for (int i = 0; i < 6; ++i) prefix[n++] = (struct op){ 1, SCRIPT_NAMES + freed_slot[i], 0, 0 };
+    for (int i = 0; i < 3; ++i) prefix[n++] = files[i];
     reset_disk();
     stop_at = fail_at = -1;
     memset(m, 0, sizeof(*m));
     CHECK(pfs_mount(fs, &sim) == 0);
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < n; ++i) {
         CHECK(run_op(fs, &prefix[i]) == 0);
         apply(m, &prefix[i]);
     }
-    CHECK(pfs_mount(fs, &sim) == 0 && fs->slot == 2 && fs->seq == 4 && matches(fs, m));
+    CHECK(pfs_mount(fs, &sim) == 0 && fs->slot == 2 && fs->seq == 70 && matches(fs, m));
+    /* the script's first files took freed slots spread over the sectors */
+    CHECK(pfs_find(fs, "a", 1) == 9 && pfs_find(fs, "b", 1) == 18 && pfs_find(fs, "c", 1) == 27);
     calls = 0;
 }
 
@@ -458,6 +474,12 @@ static void fuzz(const char *dump)
 
 int main(int argc, char **argv)
 {
+    for (int i = 0; i < FILLERS; ++i) {
+        filler_name[i][0] = 'p';
+        filler_name[i][1] = (char)('0' + i / 10);
+        filler_name[i][2] = (char)('0' + i % 10);
+        names[SCRIPT_NAMES + i] = filler_name[i];
+    }
     api_tests();
     make_script();
     long total = reference();

@@ -1,0 +1,128 @@
+{
+ "test": "T21",
+ "repetition": 3,
+ "scenario": "protoos.test=ctrlc",
+ "probe": "t21",
+ "program_archive": "tests.img",
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 2.83,
+ "checks": [
+  {
+   "check": "A: wait(t_spin, WAIT_FOREGROUND)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "foreground armed: fg_pid = that t_spin, fg_waiter = A, Ctrl-C armed in the input path",
+   "ok": true,
+   "detail": "(4, {'count': 0, 'head': 0, 'irqs': 0, 'received': 0, 'dropped': 0, 'spurious': 0, 'intr_armed': 1, 'intr_pending': 0, 'intrs': 0})"
+  },
+  {
+   "check": "A BLOCKED, not dispatched for 60 ticks",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "meanwhile a second foreground wait (t_fgbusy) was refused (-16): it exited with 16",
+   "ok": true,
+   "detail": "16"
+  },
+  {
+   "check": "Ctrl-C typed while the foreground t_spin itself was executing: U-mode, its root installed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "the kernel handled it on the interrupt from that process: at console_intr() the current process is the foreground one, RUNNING, its root installed, trapped by the external interrupt (cause 9) inside its code",
+   "ok": true,
+   "detail": "('0x80240dc8', '0x80240dc8', 2, '0x8000000000000009')"
+  },
+  {
+   "check": "Ctrl-C: wait returned 130; t_spin EXITED by Ctrl-C (code 130, killed), pages back",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "Ctrl-C was not input: consumed by the kernel, foreground disarmed",
+   "ok": true,
+   "detail": "{'count': 0, 'head': 0, 'irqs': 1, 'received': 1, 'dropped': 0, 'spurious': 0, 'intr_armed': 0, 'intr_pending': 0, 'intrs': 1}"
+  },
+  {
+   "check": "the background t_spin was not touched",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "second foreground program t_reader answered the typed line and is BLOCKED in read()",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "Ctrl-C while it was blocked: wait returned 130, reader EXITED (130), read cancelled, pages back",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "without a foreground wait Ctrl-C is an ordinary byte: A read 1 byte = 0x03",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "background t_spin then killed (0), wait 137",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "kernel received exactly the 7 typed bytes, none dropped, none left",
+   "ok": true,
+   "detail": "{'count': 0, 'head': 5, 'irqs': 6, 'received': 7, 'dropped': 0, 'spurious': 0, 'intr_armed': 0, 'intr_pending': 0, 'intrs': 2}"
+  },
+  {
+   "check": "every page came back: free = baseline, allocations = frees",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "UART: the reader echoed the line",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no user exception other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "f84e0627dcb14612bf81a57017a92508136a418d6dd922e85869981edf04ac71",
+  "gdb.log": "06c50749b15b5acd03963dd3df0f2fe42c0a6acae67dd547bc4680e44e8b72e4",
+  "observations.json": "82e25e65327196afebb23d78a95fb3a32243ac2c865c46178ac4db62fa527ad3",
+  "probe-config.json": "02e79064380f2d2003e93948d73b3efde4eda00c529baaac1928a2fd4e6de04b",
+  "qemu-int.log": "00dda5e8da4831434649f949a7b5f770623f078c402dc5756078921e811fe250",
+  "uart.log": "f2a97a0514156edfd431c2a4e8e2bc7e8e954552f7c14bcd373f619334b54656"
+ }
+}
