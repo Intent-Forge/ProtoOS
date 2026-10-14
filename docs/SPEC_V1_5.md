@@ -115,12 +115,18 @@ v1.5 is accepted when T1–T27 and N1–N15 all PASS in 3 clean boots each.
 - Without a disk, v1.5 differs from v1.4 only in its page tables: the virtio-mmio transport pages of the device tree are mapped kernel-only.
 
 ## Review and audit before release
-A second read of the v1.5 code by its author before the independent audit found three defects; each is fixed (commit 1226cd0) and covered:
+A second read of the v1.5 code and of its checks by their author before the independent audit found seven defects (R1–R3 in commit 1226cd0, R4–R7 in 1f682db); each is fixed and covered:
 
 | # | Finding | Change |
 |---|---|---|
 | R1 | a crafted disk whose mounted directory has seq 2^64−1: the next change was written with seq 0, reported saved, and lost to the old copy at the next mount | no change once seq is 2^64−1 (−28); host test |
 | R2 | after a device failure, a later request still rewrote the request header and descriptors before it was refused, although the device may still own them | the device state is checked before anything is written |
 | R3 | the queue size was min(8, QueueNumMax), not always a power of two as split virtqueues require | 8, or 4 if QueueNumMax < 8; below 4 the device is refused |
+| R4 | `note <file>` with an empty first line saved an empty file over an existing one | nothing typed, nothing saved (commit 1f682db); T26 checks it |
+| R5 | `print_error` printed only "error" for an unknown code | it prints the code |
+| R6 | T23 compared the driver's capacity with the superblock's block count, not the image file size | compared with the image file size |
+| R7 | N14 judged "no page leaked" only from the driver's own `meminfo` results | also through GDB on the allocator's own counter at the driver's first `meminfo` and at its exit |
+
+Besides, before the audit: 3.5 million fuzzed system calls (a prototype of the v1.6 fuzzer, outside this repository) and 40 extra random crash scripts of the host test found no defect.
 
 @CODEX_AUDIT@
