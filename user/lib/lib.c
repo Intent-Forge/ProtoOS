@@ -158,7 +158,7 @@ long read_line(char *buf, size_t max)
     size_t n = 0;
     if (max == 0) return -1;
     for (;;) {
-        char c;
+        char c = 0;         /* set by read(); 0 only keeps the analyzer quiet */
         if (sys_read(&c, 1) != 1) continue;
         int lf_of_crlf = (c == '\n' && after_cr);
         after_cr = (c == '\r');
