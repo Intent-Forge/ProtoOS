@@ -1,0 +1,195 @@
+{
+ "probe": "autorun",
+ "steps": [
+  {
+   "hit": true,
+   "autorun_pid": 3,
+   "results": [
+    5000,
+    1,
+    18446744073709551586,
+    18446744073709551586,
+    18446744073709551586,
+    5000,
+    5000,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    24589
+   ],
+   "exit_code": 0,
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31107,
+    "allocs": 42,
+    "frees": 0,
+    "reserved": 83
+   },
+   "sched": {
+    "quantum_ticks": 100000,
+    "timer_ticks": 1,
+    "switches": 3,
+    "idle_entered": 0,
+    "verbose": 0,
+    "waits": 0,
+    "ext_irqs": 0,
+    "next_pid": 4,
+    "spawned": 0,
+    "killed": 0,
+    "reclaimed": 0,
+    "loaded": 1,
+    "load_errors": 0,
+    "last_load_error": 0,
+    "fg_pid": 0,
+    "fg_waiter": 0,
+    "interrupted": 0
+   },
+   "disk": {
+    "mounted": 1,
+    "reject": 0,
+    "ops": 5,
+    "errors": 3,
+    "fs": {
+     "blocks": 256,
+     "slot": 1,
+     "seq": 1,
+     "files": 1,
+     "failed": 0,
+     "reject_a": 0,
+     "reject_b": 0,
+     "entries": [
+      {
+       "slot": 0,
+       "name": "ro.txt",
+       "size": 5000,
+       "first": 3,
+       "count": 2,
+       "crc": 425168808
+      }
+     ]
+    },
+    "boot": {
+     "virtio_count": 8,
+     "virtio": [
+      268468224,
+      268464128,
+      268460032,
+      268455936,
+      268451840,
+      268447744,
+      268443648,
+      268439552
+     ]
+    }
+   },
+   "vblk": {
+    "base": 268468224,
+    "state": 1,
+    "reason": 0,
+    "device_features": 1104611927124,
+    "features": 4294967296,
+    "capacity": 2048,
+    "qsize": 8,
+    "avail_idx": 7,
+    "used_seen": 7,
+    "reads": 7,
+    "writes": 0,
+    "flushes": 0,
+    "legacy_base": 0,
+    "last_len": 4097,
+    "vq_avail_idx": 7,
+    "vq_used_idx": 7,
+    "desc": [
+     {
+      "addr": 2149875728,
+      "len": 16,
+      "next": 1,
+      "flags": 1
+     },
+     {
+      "addr": 2149867520,
+      "len": 4096,
+      "next": 2,
+      "flags": 3
+     },
+     {
+      "addr": 2149875712,
+      "len": 1,
+      "next": 0,
+      "flags": 2
+     }
+    ],
+    "buffers": {
+     "req": 2149875728,
+     "bounce": 2149867520,
+     "status": 2149875712,
+     "vq": 2149871616
+    },
+    "mmio": {
+     "magic": 1953655158,
+     "version": 2,
+     "device_id": 2,
+     "status": 15
+    }
+   },
+   "name": "exit",
+   "host_time": 1792003930.291529
+  }
+ ],
+ "complete": true,
+ "error": null
+}

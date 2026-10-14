@@ -2,7 +2,7 @@
 # Run one bootargs scenario for a bounded time and print the UART output.
 # Usage: run-scenario.sh <bootargs> [seconds] [elf] [program archive]
 set -u
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 ARGS=${1:?bootargs, e.g. protoos.mode=normal}
 SECS=${2:-3}
 ELF=${3:-build/protoos.elf}

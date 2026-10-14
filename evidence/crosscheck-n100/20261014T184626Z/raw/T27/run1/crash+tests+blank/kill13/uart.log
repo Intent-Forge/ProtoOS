@@ -1,0 +1,285 @@
+
+OpenSBI v1.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 1
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 317 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 61 KB
+Firmware Heap Offset        : 0x46000
+Firmware Heap Size          : 37 KB (total), 2 KB (reserved), 11 KB (used), 23 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : ipi,pmu,srst,sse,hsm,rfnc,fwft,time,base,legacy,dbcn,dbtr
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*
+Domain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region03            : 0x0000000080040000-0x000000008004ffff M: (R,W) S/U: ()
+Domain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x0000000087e00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sstc,zicntr,zihpm,zicboz,zicbom,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000001666
+Boot HART MEDELEG           : 0x0000000000f0b509
+ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes
+hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=crash
+ARCHIVE 337844 bytes at 0x0000000084200000, 83 pages reserved: 22 programs
+MMU Sv39 active satp=0x8000000000080216
+DISK virtio-blk at 0x0000000010008000: 2048 sectors, flush, read-write
+DISK 256 blocks, 2 files
+SCENARIO protoos.test=crash
+AUTORUN t_crash pid=3
+ProtoOS shell: process A in U-mode, B works in the background. Type help.
+proto> t_crash: starting after generation 1857
+saved g 1858
+saved h 1858
+saved g 1859
+saved h 1859
+saved g 1860
+saved h 1860
+saved g 1861
+saved h 1861
+saved g 1862
+saved h 1862
+saved g 1863
+saved h 1863
+saved g 1864
+saved h 1864
+saved g 1865
+saved h 1865
+saved g 1866
+saved h 1866
+saved g 1867
+saved h 1867
+saved g 1868
+saved h 1868
+saved g 1869
+saved h 1869
+saved g 1870
+saved h 1870
+saved g 1871
+saved h 1871
+saved g 1872
+saved h 1872
+saved g 1873
+saved h 1873
+saved g 1874
+saved h 1874
+saved g 1875
+saved h 1875
+saved g 1876
+saved h 1876
+saved g 1877
+saved h 1877
+saved g 1878
+saved h 1878
+saved g 1879
+saved h 1879
+saved g 1880
+saved h 1880
+saved g 1881
+saved h 1881
+saved g 1882
+saved h 1882
+saved g 1883
+saved h 1883
+saved g 1884
+saved h 1884
+saved g 1885
+saved h 1885
+saved g 1886
+saved h 1886
+saved g 1887
+saved h 1887
+saved g 1888
+saved h 1888
+saved g 1889
+saved h 1889
+saved g 1890
+saved h 1890
+saved g 1891
+saved h 1891
+saved g 1892
+saved h 1892
+saved g 1893
+saved h 1893
+saved g 1894
+saved h 1894
+saved g 1895
+saved h 1895
+saved g 1896
+saved h 1896
+saved g 1897
+saved h 1897
+saved g 1898
+saved h 1898
+saved g 1899
+saved h 1899
+saved g 1900
+saved h 1900
+saved g 1901
+saved h 1901
+saved g 1902
+saved h 1902
+saved g 1903
+saved h 1903
+saved g 1904
+saved h 1904
+saved g 1905
+saved h 1905
+saved g 1906
+saved h 1906
+saved g 1907
+saved h 1907
+saved g 1908
+saved h 1908
+saved g 1909
+saved h 1909
+saved g 1910
+saved h 1910
+saved g 1911
+saved h 1911
+saved g 1912
+saved h 1912
+saved g 1913
+saved h 1913
+saved g 1914
+saved h 1914
+saved g 1915
+saved h 1915
+saved g 1916
+saved h 1916
+saved g 1917
+saved h 1917
+saved g 1918
+saved h 1918
+saved g 1919
+saved h 1919
+saved g 1920
+saved h 1920
+saved g 1921
+saved h 1921
+saved g 1922
+saved h 1922
+saved g 1923
+saved h 1923
+saved g 1924
+saved h 1924
+saved g 1925
+saved h 1925
+saved g 1926
+saved h 1926
+saved g 1927
+saved h 1927
+saved g 1928
+saved h 1928
+saved g 1929
+saved h 1929
+saved g 1930
+saved h 1930
+saved g 1931
+saved h 1931
+saved g 1932
+saved h 1932
+saved g 1933
+saved h 1933
+saved g 1934
+saved h 1934
+saved g 1935
+saved h 1935
+saved g 1936
+saved h 1936
+saved g 1937
+saved h 1937
+saved g 1938
+saved h 1938
+saved g 1939
+saved h 1939
+saved g 1940
+saved h 1940
+saved g 1941
+saved h 1941
+saved g 1942
+saved h 1942
+saved g 1943
+saved h 1943
+saved g 1944
+saved h 1944
+saved g 1945
+saved h 1945
+saved g 1946
+saved h 1946
+saved g 1947
+saved h 1947
+saved g 1948
+saved h 1948
+saved g 1949
+saved h 1949
+saved g 1950
+saved h 1950
+saved g 1951
+saved h 1951
+saved g 1952
+saved h 1952
+saved g 1953
+saved h 1953
+saved g 1954
+saved h 1954
+saved g 1955
+saved h 1955
+saved g 1956
+saved h 1956
+saved g 1957
+saved h 1957
+saved g 1958
+saved h 1958
+saved g 1959
+saved h 1959
+saved g 1960
+saved h 1960
+saved g 1961
+saved h 1961
+saved g 1962
+saved h 1962
+saved g 1963
+saved h 1963

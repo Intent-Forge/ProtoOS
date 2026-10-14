@@ -1,0 +1,269 @@
+{
+ "probe": "t15",
+ "steps": [
+  {
+   "hit": true,
+   "proc": {
+    "pid": 3,
+    "state": 3,
+    "satp": 9223372036855301120,
+    "dispatches": 6,
+    "preemptions": 6,
+    "yields": 0,
+    "syscalls": 0,
+    "rejected_syscalls": 0,
+    "exit_code": 137,
+    "fault_cause": 0,
+    "fault_epc": 0,
+    "fault_tval": 0,
+    "writes": 0,
+    "bytes_written": 0,
+    "sleeps": 0,
+    "sleep_start": 0,
+    "wake_time": 0,
+    "last_dispatch_time": 1594220,
+    "reads": 0,
+    "bytes_read": 0,
+    "read_pending": 0,
+    "read_va": 0,
+    "read_len": 0,
+    "block_start": 0,
+    "prog": 1,
+    "killed": 1,
+    "npages": 0,
+    "pages": [
+     2151677952,
+     2151682048,
+     2151686144,
+     2151690240,
+     2151694336
+    ],
+    "addr": 2149845360
+   },
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31232,
+    "allocs": 5,
+    "frees": 5
+   },
+   "bits": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "results": [
+    31232,
+    3,
+    0,
+    31232
+   ],
+   "sched": {
+    "quantum_ticks": 100000,
+    "timer_ticks": 12,
+    "switches": 14,
+    "idle_entered": 0,
+    "verbose": 1,
+    "waits": 0,
+    "ext_irqs": 0,
+    "next_pid": 4,
+    "spawned": 1,
+    "killed": 1,
+    "reclaimed": 1
+   },
+   "name": "killed",
+   "host_time": 1792003758.1665113
+  },
+  {
+   "wait": {
+    "reached": true,
+    "watch_hit": null
+   },
+   "proc": {
+    "pid": 3,
+    "state": 3,
+    "satp": 9223372036855301120,
+    "dispatches": 6,
+    "preemptions": 6,
+    "yields": 0,
+    "syscalls": 0,
+    "rejected_syscalls": 0,
+    "exit_code": 137,
+    "fault_cause": 0,
+    "fault_epc": 0,
+    "fault_tval": 0,
+    "writes": 0,
+    "bytes_written": 0,
+    "sleeps": 0,
+    "sleep_start": 0,
+    "wake_time": 0,
+    "last_dispatch_time": 1594220,
+    "reads": 0,
+    "bytes_read": 0,
+    "read_pending": 0,
+    "read_va": 0,
+    "read_len": 0,
+    "block_start": 0,
+    "prog": 1,
+    "killed": 1,
+    "npages": 0,
+    "pages": [
+     2151677952,
+     2151682048,
+     2151686144,
+     2151690240,
+     2151694336
+    ],
+    "addr": 2149845360
+   },
+   "name": "quiet",
+   "host_time": 1792003758.3759646
+  },
+  {
+   "hit": true,
+   "proc": {
+    "pid": 4,
+    "state": 1,
+    "satp": 9223372036855301120,
+    "dispatches": 0,
+    "preemptions": 0,
+    "yields": 0,
+    "syscalls": 0,
+    "rejected_syscalls": 0,
+    "exit_code": 0,
+    "fault_cause": 0,
+    "fault_epc": 0,
+    "fault_tval": 0,
+    "writes": 0,
+    "bytes_written": 0,
+    "sleeps": 0,
+    "sleep_start": 0,
+    "wake_time": 0,
+    "last_dispatch_time": 0,
+    "reads": 0,
+    "bytes_read": 0,
+    "read_pending": 0,
+    "read_va": 0,
+    "read_len": 0,
+    "block_start": 0,
+    "prog": 1,
+    "killed": 0,
+    "npages": 5,
+    "pages": [
+     2151677952,
+     2151682048,
+     2151686144,
+     2151690240,
+     2151694336
+    ],
+    "addr": 2149845360
+   },
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31227,
+    "allocs": 10,
+    "frees": 5
+   },
+   "bits": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "results": [
+    31232,
+    3,
+    0,
+    31232,
+    4
+   ],
+   "name": "respawned",
+   "host_time": 1792003758.426334
+  },
+  {
+   "hit": true,
+   "proc": {
+    "pid": 5,
+    "state": 3,
+    "satp": 9223372036855301120,
+    "dispatches": 1,
+    "preemptions": 0,
+    "yields": 0,
+    "syscalls": 2,
+    "rejected_syscalls": 0,
+    "exit_code": 0,
+    "fault_cause": 0,
+    "fault_epc": 0,
+    "fault_tval": 0,
+    "writes": 1,
+    "bytes_written": 17,
+    "sleeps": 0,
+    "sleep_start": 0,
+    "wake_time": 0,
+    "last_dispatch_time": 5068232,
+    "reads": 0,
+    "bytes_read": 0,
+    "read_pending": 0,
+    "read_va": 0,
+    "read_len": 0,
+    "block_start": 0,
+    "prog": 2,
+    "killed": 0,
+    "npages": 0,
+    "pages": [
+     2151677952,
+     2151682048,
+     2151686144,
+     2151690240,
+     2151694336
+    ],
+    "addr": 2149845360
+   },
+   "mem": {
+    "base": 2151677952,
+    "pages": 31232,
+    "free": 31232,
+    "allocs": 15,
+    "frees": 15
+   },
+   "bits": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "results": [
+    31232,
+    3,
+    0,
+    31232,
+    4,
+    0,
+    5,
+    31232
+   ],
+   "sched": {
+    "quantum_ticks": 100000,
+    "timer_ticks": 74,
+    "switches": 33,
+    "idle_entered": 0,
+    "verbose": 1,
+    "waits": 0,
+    "ext_irqs": 0,
+    "next_pid": 6,
+    "spawned": 3,
+    "killed": 2,
+    "reclaimed": 3
+   },
+   "name": "done",
+   "host_time": 1792003758.8595786
+  }
+ ],
+ "complete": true,
+ "error": null
+}

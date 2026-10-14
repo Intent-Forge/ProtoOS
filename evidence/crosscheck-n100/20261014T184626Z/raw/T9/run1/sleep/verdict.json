@@ -1,0 +1,78 @@
+{
+ "test": "T9",
+ "repetition": 1,
+ "scenario": "protoos.test=sleep",
+ "probe": "t9",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.47,
+ "checks": [
+  {
+   "check": "sleep ecall from A: a7=1001, ms=200",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B runs in U-mode under its own root while A sleeps",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A is SLEEPING while B runs",
+   "ok": true,
+   "detail": "SLEEPING"
+  },
+  {
+   "check": "wake time = sleep start + 200 ms",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A woke at its next instruction in U-mode with a0 = 0",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "slept >= 200 ms and <= 200 ms + 2 quanta (kernel time stamps)",
+   "ok": true,
+   "detail": "210.48 ms"
+  },
+  {
+   "check": "A dispatched exactly once since it went to sleep",
+   "ok": true,
+   "detail": "(1, 2)"
+  },
+  {
+   "check": "B dispatched in between",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "e8906b6e601be3765a08e9530cbc8160fa0136f20ccd955fcf14383d3e777e52",
+  "gdb.log": "4c1ba5a1e6e78b1d6ecfd87e09f8d219e95d2e3f98505607210bc7c1d848c609",
+  "observations.json": "4095ac2291718727911eb18f087513791e7e224f983b897227c29d6e7de314c9",
+  "probe-config.json": "916a515863eb2a5a02cd565143c16dc80b2e572eea00cd810f8061bc81d1cc82",
+  "qemu-int.log": "aa51897e59c196b2ae55f08d1a411ab069b54c49bc8ffc04758a80cb51e53b2c",
+  "uart.log": "dff5c9f3460977bfebf6819e9ed6ab10045567994f7eb78c81444781720daa69"
+ }
+}

@@ -1,0 +1,101 @@
+{
+ "test": "N13",
+ "repetition": 2,
+ "scenario": "protoos.mode=shell",
+ "probe": "n13",
+ "program_archive": "programs.img",
+ "disk": {
+  "spec": {
+   "disk": "disks/bad/name_pad.img"
+  },
+  "sha_source": "487ad10435743b4e90ddf245ef86966d09085581dc1a569471a6d9600f9e7a9c",
+  "sha_before": "487ad10435743b4e90ddf245ef86966d09085581dc1a569471a6d9600f9e7a9c",
+  "sha_after": "487ad10435743b4e90ddf245ef86966d09085581dc1a569471a6d9600f9e7a9c",
+  "pfsck": {
+   "mounts": false,
+   "reject": 14,
+   "slot": null,
+   "seq": null,
+   "files": [],
+   "copies": {
+    "A": {
+     "code": 14,
+     "seq": null
+    },
+    "B": {
+     "code": 14,
+     "seq": null
+    }
+   },
+   "data_ok": null,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "the system came up (shell prompt) with this disk",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "refused with code 14 (kernel state)",
+   "ok": true,
+   "detail": "{'mounted': 0, 'reject': 14, 'ops': 0, 'errors': 0, 'fs': {'blocks': 256, 'slot': 0, 'seq': 0, 'files': 0, 'failed': 0, 'reject_a': 14, 'reject_b': 14, 'entries': []}, 'boot': {'virtio_count': 8, 'virtio': [268468224, 268464128, 268460032, 268455936, 268451840, 268447744, 268443648, 268439552]}}"
+  },
+  {
+   "check": "UART: DISK rejected code=-14",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "pfsck refuses it with the same code",
+   "ok": true,
+   "detail": "14"
+  },
+  {
+   "check": "the device itself was fine (driver ready)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "the image is unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "d9b176082c8b4f72d484b9813674d662cef1dc00c6f3994d8f5d7322c2d5efe4"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "cb514d2dec430bcf90d93b90d132ecdabd716a75b0dce96140dfbe2729f3cfa9",
+  "gdb.log": "12bb8c2b76dfb8a69d3defeb877fd0b1c1beebcedf202148fa12a0aa319502f7",
+  "observations.json": "523bcd8f7504c2e2b1afe48304120d3b7fe0e4ef3d4566928b3d3fb87749e2be",
+  "pfsck.json": "0e8b5a5228d572853fec9aa4ef0f17aaf37724cd554cec6773719c862191c04a",
+  "probe-config.json": "e3b1f3649de614f4db8c6663c53a03f7c219c28468f02debdd4afc850ec35bd9",
+  "qemu-int.log": "9cd36de27e6045623091bfdf9f3756ec261caef82fb02ada44c41081eec568a4",
+  "uart.log": "2e828c9ae4f0dda5e5eb939997a2b40d93a6c5a2364cc1662877a9da9c8ab7cb"
+ }
+}

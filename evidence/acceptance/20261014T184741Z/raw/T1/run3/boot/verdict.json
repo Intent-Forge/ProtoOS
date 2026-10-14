@@ -1,0 +1,113 @@
+{
+ "test": "T1",
+ "repetition": 3,
+ "scenario": "protoos.test=boot",
+ "probe": "t1",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.22,
+ "checks": [
+  {
+   "check": "reset state observed in M-mode before firmware (priv=3)",
+   "ok": true,
+   "detail": "{'pc': 4096, 'priv': 3, 'satp': 0, 'sstatus': 8589934592, 'scause': 0, 'sepc': 0, 'stval': 0, 'sscratch': 0, 'sie': 0, 'stvec': 0}"
+  },
+  {
+   "check": "kernel entry reached",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "entry pc == ELF _start == 0x80200000",
+   "ok": true,
+   "detail": "0x80200000"
+  },
+  {
+   "check": "entry privilege S (priv=1) after OpenSBI handoff",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "check": "OpenSBI handoff args: hart 0, DTB pointer",
+   "ok": true,
+   "detail": "(0, '0x87e00000')"
+  },
+  {
+   "check": "kernel_main executes in S-mode",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "check": "halt reached in S-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "Sv39 active in S-mode (satp.MODE=8, kernel root)",
+   "ok": true,
+   "detail": "0x8000000000080216"
+  },
+  {
+   "check": "boot_phase == 3 (READY path)",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "check": "PT walk: kernel text R+X, no U, no W",
+   "ok": true,
+   "detail": "VRXA"
+  },
+  {
+   "check": "PT walk: kernel rodata R only, no U",
+   "ok": true,
+   "detail": "VRA"
+  },
+  {
+   "check": "PT walk: kernel stack R+W, no U",
+   "ok": true,
+   "detail": "VRWAD"
+  },
+  {
+   "check": "PT walk: kernel stack guard page unmapped",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "PT walk: user pages absent from kernel root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "UART correlates (banner + READY)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "9fed51299fd01ea62c6b3c4427f296ed6d7dfade38d34b73375e6eb0c0d4b4fe",
+  "gdb.log": "0c6c843bb9679a1ca4bae49d11f2feb0c6b41e637313ee424cba242677dc51cb",
+  "observations.json": "43d4ae54363ed2b951074c15210065e1586b48a442e28144fbd5cbe93e96575e",
+  "probe-config.json": "24737816d14905f3a2d02ea207cda59a959199f5e23e4118ea5222cde9973719",
+  "qemu-int.log": "0b58eb278578feebc451331652faf3239c2b204aeed2e361a7220e0f77f608f9",
+  "uart.log": "1e5ac15a96fe93a5d0f11cf6017adc70e4cd8d67ac48b1765d8254714bca7073"
+ }
+}

@@ -1,5 +1,5 @@
-/* ProtoOS v1.4 user library: system calls and a few helpers for programs
- * in the program archive. Freestanding C, no libc. System call numbers
+/* ProtoOS v1.4/v1.5 user library: system calls and a few helpers for programs
+ * in the program archive or on the disk. Freestanding C, no libc. System call numbers
  * and error codes as in src/proc.h (errors are small negative numbers). */
 #ifndef PROTO_H
 #define PROTO_H
@@ -15,7 +15,29 @@
 #define E_FAULT   (-14)
 #define E_BUSY    (-16)
 #define E_INVAL   (-22)
+/* v1.5 */
+#define E_IO      (-5)
+#define E_NODEV   (-19)
+#define E_FBIG    (-27)
+#define E_NOSPC   (-28)
+#define E_ROFS    (-30)
 #define WAIT_FOREGROUND 1
+#define FILE_MAX  (128 * 1024)      /* v1.5: largest file on the disk */
+#define ARG_MAX   55                /* v1.5: longest argument line */
+
+/* v1.5: five arguments (fs_read) */
+static inline long proto_call5(long nr, long a0, long a1, long a2, long a3, long a4)
+{
+    register long r0 __asm__("a0") = a0;
+    register long r1 __asm__("a1") = a1;
+    register long r2 __asm__("a2") = a2;
+    register long r3 __asm__("a3") = a3;
+    register long r4 __asm__("a4") = a4;
+    register long r7 __asm__("a7") = nr;
+    __asm__ volatile("ecall" : "+r"(r0) : "r"(r1), "r"(r2), "r"(r3), "r"(r4), "r"(r7)
+                     : "memory");
+    return r0;
+}
 
 static inline long proto_call(long nr, long a0, long a1, long a2)
 {
@@ -58,7 +80,18 @@ int strcmp(const char *a, const char *b);
 void *memset(void *dst, int c, size_t n);
 void *memcpy(void *dst, const void *src, size_t n);
 
-long sys_run(const char *name);                 /* pid or error */
+long sys_run(const char *name);                 /* pid or error (run_arg, no argument) */
+/* v1.5 */
+long sys_run_arg(const char *name, const char *arg);   /* pid or error */
+/* The argument line this program was started with, NUL-terminated
+ * (at most max-1 characters); returns its length. */
+long get_arg(char *buf, size_t max);
+long fs_list(unsigned long index, char name[16]);      /* size, or E_NOENT past the end */
+long fs_read(const char *name, unsigned long off, void *buf, unsigned long len);
+long fs_write(const char *name, const void *buf, unsigned long len);   /* 0 when durable */
+long fs_delete(const char *name);
+/* "<prog>: <what went wrong>" for an error code */
+void print_error(const char *prog, long err);
 void print(const char *s);                      /* any length */
 void print_dec(unsigned long v);
 void print_int(long v);

@@ -1,0 +1,80 @@
+{
+ "mounts": true,
+ "reject": null,
+ "slot": 2,
+ "seq": 136,
+ "files": [
+  {
+   "slot": 0,
+   "name": "s0",
+   "size": 0,
+   "first": 0,
+   "count": 0,
+   "crc": 0,
+   "crc_ok": true,
+   "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+   "slot": 1,
+   "name": "s1",
+   "size": 1,
+   "first": 3,
+   "count": 1,
+   "crc": 2427484129,
+   "crc_ok": true,
+   "sha256": "ba5ec51d07a4ac0e951608704431d59a02b21a4e951acc10505a8dc407c501ee"
+  },
+  {
+   "slot": 2,
+   "name": "s2",
+   "size": 4095,
+   "first": 4,
+   "count": 1,
+   "crc": 3561301741,
+   "crc_ok": true,
+   "sha256": "0f5e156cfda8cbbb053b5dcf9a76993011ff8df08ffac174239c31ad2a48d9a4"
+  },
+  {
+   "slot": 3,
+   "name": "s3",
+   "size": 4096,
+   "first": 5,
+   "count": 1,
+   "crc": 2762157692,
+   "crc_ok": true,
+   "sha256": "be66e6d75b984b25d33367f51fd2c3c4ca4da607a22bf61096497a0eecf6876e"
+  },
+  {
+   "slot": 4,
+   "name": "s4",
+   "size": 3000,
+   "first": 40,
+   "count": 1,
+   "crc": 1373256048,
+   "crc_ok": true,
+   "sha256": "4e30eebd1a12a2ba03ac00c8a077a7b8297ce0ab354e495281bf8ec05ab27468"
+  },
+  {
+   "slot": 5,
+   "name": "s5",
+   "size": 131072,
+   "first": 8,
+   "count": 32,
+   "crc": 1838258273,
+   "crc_ok": true,
+   "sha256": "3e00335cce533ab786576c76cc0011b858bd85d49f7561017c6024ec364d0f5a"
+  }
+ ],
+ "copies": {
+  "A": {
+   "code": 0,
+   "seq": 135
+  },
+  "B": {
+   "code": 0,
+   "seq": 136
+  }
+ },
+ "data_ok": true,
+ "blocks": 256
+}

@@ -71,6 +71,8 @@ uint64_t vm_elf_create(uint64_t pages[ELF_TABLE_PAGES]);
 /* Map user page va (4 KiB aligned, inside the window) to pa in the window's
  * level-0 table with leaf flags pte (VM_PTE_*). */
 void vm_elf_map(uint64_t l0_pa, uint64_t va, uint64_t pa, uint64_t pte);
+/* v1.5: 1 if the DT virtio-mmio transport at pa is mapped (kernel-only). */
+int vm_virtio_usable(uint64_t pa);
 /* Install satp and flush all translations. */
 void vm_switch(uint64_t satp);
 #endif

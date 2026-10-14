@@ -1,0 +1,471 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 1, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 2 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 2, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 3 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 3, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 4 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 4, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 5 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 5, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 6 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 6, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 7 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 7, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 8 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 8, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 9 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 9, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 10 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 10, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 11 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 11, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 12 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 12, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 13 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 13, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 14 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 14, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 15 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 15, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 16 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 16, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 17 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 17, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 18 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 18, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 19 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 19, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 20 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 20, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 21 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 21, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 22 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 22, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 23 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 23, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 24 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 24, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 25 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 25, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 26 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 26, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 27 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 27, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 28 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 28, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 29 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 29, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 30 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 30, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 31 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 31, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 32 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 32, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 33 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 33, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 34 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 34, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 35 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 35, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 36 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 36, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 37 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 37, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 38 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 38, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 39 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 39, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 40 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 40, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 41 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 41, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 42 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 42, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 43 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 43, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 44 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 44, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 45 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 45, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 46 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 46, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 47 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 47, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 48 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 48, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 49 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 49, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 50 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 50, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 51 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 51, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 52 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 52, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 53 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 53, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 54 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 54, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 55 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 55, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 56 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 56, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 57 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 57, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 58 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 58, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 59 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 59, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 60 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 60, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 61 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 61, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 62 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 62, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 63 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 63, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 64 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 64, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 65 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 65, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 66 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 66, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 67 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 67, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 68 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 68, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 69 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 69, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 70 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 70, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 71 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 71, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 72 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 72, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 73 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 73, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 74 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 74, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 75 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 75, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 76 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 76, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 77 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 77, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 78 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 78, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 79 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 79, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 80 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 80, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 81 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 81, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 82 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 82, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 83 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 83, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 84 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 84, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 85 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 85, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 86 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 86, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 87 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 87, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 88 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 88, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 89 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 89, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 90 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 90, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 91 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 91, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 92 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 92, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 93 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 93, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 94 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 94, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 95 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 95, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 96 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 96, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 97 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 97, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 98 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 98, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 99 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 99, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 100 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 100, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 101 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 101, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 102 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 102, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 103 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 103, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 104 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 104, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 105 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 105, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 106 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 106, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 107 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 107, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 108 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 108, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 109 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 109, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 110 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 110, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 111 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 111, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 112 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 112, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 113 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 113, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 114 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 114, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 115 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 115, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 116 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 116, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+Breakpoint 117 at 0x802062b4: file src/proc.c, line 868.
+
+Breakpoint 117, trap_from_user (f=0x802400c0 <procs>) at src/proc.c:868
+868	{
+[Inferior 1 (process 1) killed]

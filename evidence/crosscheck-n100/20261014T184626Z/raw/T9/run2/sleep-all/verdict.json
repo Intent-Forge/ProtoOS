@@ -1,0 +1,68 @@
+{
+ "test": "T9",
+ "repetition": 2,
+ "scenario": "protoos.test=sleep-all",
+ "probe": "t9_all",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 2.23,
+ "checks": [
+  {
+   "check": "kernel waits only when both processes sleep",
+   "ok": true,
+   "detail": "['SLEEPING', 'SLEEPING']"
+  },
+  {
+   "check": "wait deadline = earliest wake-up",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no idle, fault or panic within 2 s",
+   "ok": true,
+   "detail": "None"
+  },
+  {
+   "check": "both processes keep making progress",
+   "ok": true,
+   "detail": "(1, 20, 1, 14)"
+  },
+  {
+   "check": "kernel waited repeatedly, never idle",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no exception from user code (trace)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "0c88d22a68a8f3a9ae85795bd837e0ae42979360ea02323b640b70fef6e12157",
+  "gdb.log": "bec3e31956ca748dc3034dfcc44d71abad409101c92e8a2bc631daa98ffd9c31",
+  "observations.json": "e5fe991f7cb436d30c1a2394aa02988a7fe4956fb18a80c6b52721071c390b4b",
+  "probe-config.json": "888dda45469a8c136124030dcf3ce1de62b81c6be3e94f0f20f44ea2d8248aca",
+  "qemu-int.log": "8403df81831ade67484fef622761a64631ec87df9d5831ede9c612829f4a6044",
+  "uart.log": "3ded7242112cf65f20d58c8026fe3cb63f4c14ce4d70693d8bb8cb856b747d1e"
+ }
+}

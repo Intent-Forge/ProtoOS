@@ -1084,6 +1084,149 @@ PROBES.update({'t18': probe_t18, 't19': probe_t19, 't20': probe_t20, 't21': prob
                't22': probe_t22, 'n10': probe_n10, 'n11': probe_n11, 'n12': probe_n12})
 
 
+# ------------------------------------------------------------------ v1.5
+PID_OFF = 288                    # struct process: pid follows the 288-byte frame
+
+
+def user_read(satp, va, n):
+    """n bytes at user VA va of the root in satp, through independent walks."""
+    out = b''
+    while n:
+        w = walk(satp, va)
+        if not w['mapped']:
+            raise RuntimeError(f'user VA {va:#x} not mapped')
+        chunk = min(n, 4096 - (va & 0xfff))
+        out += phys(w['pa'], chunk)
+        va += chunk
+        n -= chunk
+    return out
+
+
+def vblk_state():
+    v = {k: ev(f'vblk.{k}') for k in ('base', 'state', 'reason', 'device_features', 'features',
+                                       'capacity', 'qsize', 'avail_idx', 'used_seen', 'reads',
+                                       'writes', 'flushes', 'legacy_base', 'last_len')}
+    v['vq_avail_idx'] = ev("'virtio_blk.c'::vq.avail.idx")
+    v['vq_used_idx'] = ev("'virtio_blk.c'::vq.used.idx")
+    v['desc'] = [{'addr': ev(f"'virtio_blk.c'::vq.desc[{i}].addr"), 'len': ev(f"'virtio_blk.c'::vq.desc[{i}].len"),
+                  'next': ev(f"'virtio_blk.c'::vq.desc[{i}].next"),
+                  'flags': ev(f"'virtio_blk.c'::vq.desc[{i}].flags")} for i in range(3)]
+    v['buffers'] = {k: ev(f"(unsigned long)&'virtio_blk.c'::{s}") for k, s in (
+        ('req', 'req'), ('bounce', 'bounce'), ('status', 'req_status'), ('vq', 'vq'))}
+    if v['base']:
+        regs = phys(v['base'], 0x74)
+        v['mmio'] = {'magic': int.from_bytes(regs[0:4], 'little'),
+                     'version': int.from_bytes(regs[4:8], 'little'),
+                     'device_id': int.from_bytes(regs[8:12], 'little'),
+                     'status': int.from_bytes(regs[0x70:0x74], 'little')}
+    return v
+
+
+def disk_state():
+    d = {k: ev(f'disk.{k}') for k in ('mounted', 'reject', 'ops', 'errors')}
+    d['fs'] = {k: ev(f'disk_fs.{k}') for k in ('blocks', 'slot', 'seq', 'files', 'failed',
+                                               'reject_a', 'reject_b')}
+    ents = []
+    for i in range(63):
+        name = phys(ev(f'(unsigned long)&disk_fs.ent[{i}]'), 16)
+        if name[0]:
+            ents.append({'slot': i, 'name': name.split(b'\0', 1)[0].decode(),
+                         **{k: ev(f'disk_fs.ent[{i}].{k}') for k in ('size', 'first', 'count', 'crc')}})
+    d['fs']['entries'] = ents
+    bc = {'virtio_count': ev('boot_configuration.virtio_count')}
+    bc['virtio'] = [ev(f'boot_configuration.virtio[{i}]') for i in range(bc['virtio_count'])]
+    d['boot'] = bc
+    return d
+
+
+def autorun_exit(prog, wall=120.0):
+    """Stop when the boot-started test driver calls exit(); read its r[]
+    through its own page table, and the kernel's disk, driver and memory."""
+    cond = (f'*(unsigned long *)($a1 + 136) == 93 && '
+            f'*(unsigned long *)($a0 + {PID_OFF}) == sched.autorun_pid')
+    hit = stop_at(SYM['proc_syscall'], cond, wall=wall)
+    data = {'hit': hit, 'autorun_pid': ev('sched.autorun_pid')}
+    if hit:
+        satp = ev(f'*(unsigned long *)($a0 + {PID_OFF + 16})')
+        raw = user_read(satp, USYM[prog]['r'], 64 * 8)
+        data['results'] = [int.from_bytes(raw[8 * k:8 * k + 8], 'little') for k in range(64)]
+        data['exit_code'] = ev('*(unsigned long *)($a1 + 80)')     # its a0
+    data.update(mem=mem14(), sched=sched14(), disk=disk_state(), vblk=vblk_state())
+    return data
+
+
+def probe_autorun():
+    """T24, T25, N14, N15: the driver named in the probe config. With mem_check
+    (N14) also the allocator's counters at the driver's first meminfo call."""
+    if CFG.get('mem_check'):
+        cond = (f'*(unsigned long *)($a1 + 136) == 1006 && '
+                f'*(unsigned long *)($a0 + {PID_OFF}) == sched.autorun_pid')
+        hit = stop_at(SYM['proc_syscall'], cond, wall=60.0)
+        step('first_meminfo', hit=hit, mem=mem14() if hit else {})
+    step('exit', **autorun_exit(CFG['autorun']))
+
+
+def probe_t23():
+    uart = Uart()
+    ok = shell_settle(uart, 1)
+    s = satps()
+    v = vblk_state()
+    walks = {}
+    for base in [ev(f'boot_configuration.virtio[{i}]')
+                 for i in range(ev('boot_configuration.virtio_count'))]:
+        walks[hex(base)] = {'kernel': walk(ev('vm_kernel_satp'), base), 'A': walk(s['A'], base),
+                            'B': walk(s['B'], base)}
+    step('first_prompt', ok=ok, text=uart.text(), vblk=v, disk=disk_state(), walks=walks,
+         kernel_range=[SYM['__kernel_start'], SYM['__kernel_end']])
+
+
+def probe_n13():
+    uart = Uart()
+    ok = shell_settle(uart, 1)
+    step('first_prompt', ok=ok, text=uart.text(), vblk=vblk_state(), disk=disk_state())
+
+
+# T26 session: (typed line, 1 if the shell prompt comes back after it). The
+# lines for note are typed while note runs; its empty line saves and ends it.
+T26_SESSION = [('run hello world', 1), ('run files', 1), ('run note memo', 0), ('first line', 0),
+               ('second line', 0), ('', 1), ('run cat memo', 1),
+               ('run note memo', 0), ('', 1),       # nothing typed: memo must stay
+               ('run note tmp', 0),
+               ('scratch', 0), ('', 1), ('run rm tmp', 1), ('run files', 1),
+               ('run cat nosuch', 1)]
+
+
+def probe_t26():
+    uart = Uart()
+    ok = shell_settle(uart, 1)
+    prompts = 1
+    step('first_prompt', ok=ok, disk=disk_state())
+    for cmd, back in T26_SESSION:
+        uart.send(cmd.encode() + b'\r')
+        if not back:
+            time.sleep(0.3)
+            continue
+        prompts += 1
+        ok = shell_settle(uart, prompts, wall=40.0)
+        step(f'cmd {cmd}', cmd=cmd, ok=ok, procs=procs15(), disk=disk_state(), mem=mem14())
+    step('end', text=uart.text(), disk=disk_state(), vblk=vblk_state())
+
+
+def procs15():
+    out = []
+    for i in range(8):
+        p = proc14(i)
+        p['prog'] = ev(f'procs[{i}].prog')
+        p['arglen'] = ev(f'procs[{i}].arglen')
+        p['arg'] = phys(ev(f'(unsigned long)&procs[{i}].arg'), 56).split(b'\0', 1)[0].decode(
+            'ascii', 'replace')
+        out.append(p)
+    return out
+
+
+PROBES.update({'t23': probe_t23, 'autorun': probe_autorun, 'n13': probe_n13, 't26': probe_t26})
+
+
 def main():
     gdb.execute('set pagination off')
     gdb.execute('set confirm off')

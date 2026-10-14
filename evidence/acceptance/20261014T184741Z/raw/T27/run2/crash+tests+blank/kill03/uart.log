@@ -1,0 +1,202 @@
+
+OpenSBI v1.7
+   ____                    _____ ____ _____
+  / __ \                  / ____|  _ \_   _|
+ | |  | |_ __   ___ _ __ | (___ | |_) || |
+ | |  | | '_ \ / _ \ '_ \ \___ \|  _ < | |
+ | |__| | |_) |  __/ | | |____) | |_) || |_
+  \____/| .__/ \___|_| |_|_____/|____/_____|
+        | |
+        |_|
+
+Platform Name               : riscv-virtio,qemu
+Platform Features           : medeleg
+Platform HART Count         : 1
+Platform IPI Device         : aclint-mswi
+Platform Timer Device       : aclint-mtimer @ 10000000Hz
+Platform Console Device     : uart8250
+Platform HSM Device         : ---
+Platform PMU Device         : ---
+Platform Reboot Device      : syscon-reboot
+Platform Shutdown Device    : syscon-poweroff
+Platform Suspend Device     : ---
+Platform CPPC Device        : ---
+Firmware Base               : 0x80000000
+Firmware Size               : 317 KB
+Firmware RW Offset          : 0x40000
+Firmware RW Size            : 61 KB
+Firmware Heap Offset        : 0x46000
+Firmware Heap Size          : 37 KB (total), 2 KB (reserved), 11 KB (used), 23 KB (free)
+Firmware Scratch Size       : 4096 B (total), 1400 B (used), 2696 B (free)
+Runtime SBI Version         : 3.0
+Standard SBI Extensions     : ipi,pmu,srst,sse,hsm,rfnc,fwft,time,base,legacy,dbcn,dbtr
+Experimental SBI Extensions : none
+
+Domain0 Name                : root
+Domain0 Boot HART           : 0
+Domain0 HARTs               : 0*
+Domain0 Region00            : 0x0000000000100000-0x0000000000100fff M: (I,R,W) S/U: (R,W)
+Domain0 Region01            : 0x0000000010000000-0x0000000010000fff M: (I,R,W) S/U: (R,W)
+Domain0 Region02            : 0x0000000002000000-0x000000000200ffff M: (I,R,W) S/U: ()
+Domain0 Region03            : 0x0000000080040000-0x000000008004ffff M: (R,W) S/U: ()
+Domain0 Region04            : 0x0000000080000000-0x000000008003ffff M: (R,X) S/U: ()
+Domain0 Region05            : 0x000000000c400000-0x000000000c5fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region06            : 0x000000000c000000-0x000000000c3fffff M: (I,R,W) S/U: (R,W)
+Domain0 Region07            : 0x0000000000000000-0xffffffffffffffff M: () S/U: (R,W,X)
+Domain0 Next Address        : 0x0000000080200000
+Domain0 Next Arg1           : 0x0000000087e00000
+Domain0 Next Mode           : S-mode
+Domain0 SysReset            : yes
+Domain0 SysSuspend          : yes
+
+Boot HART ID                : 0
+Boot HART Domain            : root
+Boot HART Priv Version      : v1.12
+Boot HART Base ISA          : rv64imafdch
+Boot HART ISA Extensions    : sstc,zicntr,zihpm,zicboz,zicbom,sdtrig,svadu
+Boot HART PMP Count         : 16
+Boot HART PMP Granularity   : 2 bits
+Boot HART PMP Address Bits  : 54
+Boot HART MHPM Info         : 16 (0x0007fff8)
+Boot HART Debug Triggers    : 2 triggers
+Boot HART MIDELEG           : 0x0000000000001666
+Boot HART MEDELEG           : 0x0000000000f0b509
+ProtoOS boot foundation: S-mode kernel, Sv39, 2 U-mode processes
+hart=0x0000000000000000 dtb=0x0000000087e00000 timebase=0x0000000000989680 bootargs=protoos.test=crash
+ARCHIVE 337844 bytes at 0x0000000084200000, 83 pages reserved: 22 programs
+MMU Sv39 active satp=0x8000000000080216
+DISK virtio-blk at 0x0000000010008000: 2048 sectors, flush, read-write
+DISK 256 blocks, 2 files
+SCENARIO protoos.test=crash
+AUTORUN t_crash pid=3
+ProtoOS shell: process A in U-mode, B works in the background. Type help.
+proto> t_crash: starting after generation 167
+saved g 168
+saved h 168
+saved g 169
+saved h 169
+saved g 170
+saved h 170
+saved g 171
+saved h 171
+saved g 172
+saved h 172
+saved g 173
+saved h 173
+saved g 174
+saved h 174
+saved g 175
+saved h 175
+saved g 176
+saved h 176
+saved g 177
+saved h 177
+saved g 178
+saved h 178
+saved g 179
+saved h 179
+saved g 180
+saved h 180
+saved g 181
+saved h 181
+saved g 182
+saved h 182
+saved g 183
+saved h 183
+saved g 184
+saved h 184
+saved g 185
+saved h 185
+saved g 186
+saved h 186
+saved g 187
+saved h 187
+saved g 188
+saved h 188
+saved g 189
+saved h 189
+saved g 190
+saved h 190
+saved g 191
+saved h 191
+saved g 192
+saved h 192
+saved g 193
+saved h 193
+saved g 194
+saved h 194
+saved g 195
+saved h 195
+saved g 196
+saved h 196
+saved g 197
+saved h 197
+saved g 198
+saved h 198
+saved g 199
+saved h 199
+saved g 200
+saved h 200
+saved g 201
+saved h 201
+saved g 202
+saved h 202
+saved g 203
+saved h 203
+saved g 204
+saved h 204
+saved g 205
+saved h 205
+saved g 206
+saved h 206
+saved g 207
+saved h 207
+saved g 208
+saved h 208
+saved g 209
+saved h 209
+saved g 210
+saved h 210
+saved g 211
+saved h 211
+saved g 212
+saved h 212
+saved g 213
+saved h 213
+saved g 214
+saved h 214
+saved g 215
+saved h 215
+saved g 216
+saved h 216
+saved g 217
+saved h 217
+saved g 218
+saved h 218
+saved g 219
+saved h 219
+saved g 220
+saved h 220
+saved g 221
+saved h 221
+saved g 222
+saved h 222
+saved g 223
+saved h 223
+saved g 224
+saved h 224
+saved g 225
+saved h 225
+saved g 226
+saved h 226
+saved g 227
+saved h 227
+saved g 228
+saved h 228
+saved g 229
+saved h 229
+saved g 230
+saved h 230
+saved g 231
+saved h 231
+saved g 232

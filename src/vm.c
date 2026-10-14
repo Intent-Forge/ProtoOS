@@ -30,6 +30,13 @@ extern char user_a_data[], user_a_stack[], user_b_data[], user_b_stack[];
 #define PTE_UTEXT (SV39_PTE_R | SV39_PTE_X | SV39_PTE_U | SV39_PTE_A)
 #define PTE_URW   (SV39_PTE_R | SV39_PTE_W | SV39_PTE_U | SV39_PTE_A | SV39_PTE_D)
 
+/* v1.5: a virtio-mmio transport is used only inside the UART's 2 MiB (QEMU
+ * virt: 0x10001000 ... 0x10008000), so its page needs no new table. */
+int vm_virtio_usable(uint64_t pa)
+{
+    return pa > UART_PHYS && pa < UART_PHYS + SV39_MEGA_SIZE && !(pa & SV39_PAGE_OFFSET_MASK);
+}
+
 static enum sv39_result map_identity(struct sv39_builder *b, uintptr_t start,
     uintptr_t end, uint64_t flags)
 {
@@ -55,6 +62,12 @@ static enum sv39_result map_kernel(struct sv39_builder *b, uint64_t pool_end)
         (r = sv39_map4k(b, PLIC_ENABLE_PAGE, PLIC_ENABLE_PAGE, PTE_KRW)) ||
         (r = sv39_map4k(b, PLIC_CONTEXT_PAGE, PLIC_CONTEXT_PAGE, PTE_KRW)))
         return r;
+    /* v1.5: the virtio-mmio transport pages from the DT, kernel-only like
+     * the UART (they share its level-0 table: no new table). */
+    for (unsigned i = 0; i < boot_configuration.virtio_count; ++i) {
+        uint64_t pa = boot_configuration.virtio[i];
+        if (vm_virtio_usable(pa) && (r = sv39_map4k(b, pa, pa, PTE_KRW))) return r;
+    }
     /* v1.3: the page pool, kernel-only, so the kernel can build and clear
      * pages of run-time processes in any address space. */
     for (uint64_t pa = MEM_POOL_START; pa < pool_end; pa += SV39_MEGA_SIZE)

@@ -1,0 +1,11 @@
+The target architecture is set to "riscv:rv64".
+0x0000000000001000 in ?? ()
+Breakpoint 1 at 0x80204078: file src/proc.c, line 741.
+
+Breakpoint 1, proc_syscall (p=0x80240970 <procs+2224>, f=0x80240970 <procs+2224>) at src/proc.c:741
+741	{
+Breakpoint 2 at 0x80204078: file src/proc.c, line 741.
+
+Breakpoint 2, proc_syscall (p=0x80240970 <procs+2224>, f=0x80240970 <procs+2224>) at src/proc.c:741
+741	{
+[Inferior 1 (process 1) killed]

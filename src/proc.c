@@ -3,6 +3,7 @@
 #include "input.h"
 #include "mem.h"
 #include "proc.h"
+#include "disk.h"
 #include "sbi.h"
 #include "sv39.h"
 
@@ -436,25 +437,63 @@ static uint64_t refused(int reason, const char *name)
     return SYS_ENOEXEC;
 }
 
-/* run(name, len): start program `name` from the archive in a free slot.
- * Everything about the file is checked before anything is allocated; then
- * its own root, tables, segment pages (file bytes copied, rest zero) and
- * stack are built, or all of it is given back. Returns the pid. */
-static uint64_t sys_run(struct process *p, uint64_t va, uint64_t len)
+/* Copy n bytes from / to a user range the caller has validated. */
+static void copy_from_user(uint8_t *dst, uint64_t va, uint64_t n)
 {
-    char name[ARCHIVE_NAME_MAX + 1];
-    if (len == 0 || len > ARCHIVE_NAME_MAX) return SYS_EINVAL;
-    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R)) return SYS_EFAULT;
     csr_set(sstatus, SSTATUS_SUM);
-    for (uint64_t i = 0; i < len; ++i) name[i] = *(volatile const char *)(uintptr_t)(va + i);
+    for (uint64_t i = 0; i < n; ++i) dst[i] = *(volatile const uint8_t *)(uintptr_t)(va + i);
     csr_clear(sstatus, SSTATUS_SUM);
+}
+
+static void copy_to_user(uint64_t va, const uint8_t *src, uint64_t n)
+{
+    csr_set(sstatus, SSTATUS_SUM);
+    for (uint64_t i = 0; i < n; ++i) *(volatile uint8_t *)(uintptr_t)(va + i) = src[i];
+    csr_clear(sstatus, SSTATUS_SUM);
+}
+
+/* v1.5: a name argument (pointer + length): 0 and name[] NUL terminated,
+ * or EINVAL (length 0 or over 15) / EFAULT. */
+static uint64_t user_name(const struct process *p, uint64_t va, uint64_t len, char *name)
+{
+    if (len == 0 || len > PFS_NAME_MAX) return SYS_EINVAL;
+    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R)) return SYS_EFAULT;
+    copy_from_user((uint8_t *)name, va, len);
     name[len] = 0;
+    return 0;
+}
+
+/* The one path that starts a program (run, run_arg, autorun): `name` from
+ * the archive, else (v1.5) from the disk, in a free slot, with argument
+ * line arg[0..arglen). Everything about the file is checked before anything
+ * is allocated; then its own root, tables, segment pages (file bytes
+ * copied, rest zero) and stack are built, or all of it is given back.
+ * Returns the pid. */
+static uint64_t start_program(const char *name, uint64_t len, const char *arg, uint64_t arglen)
+{
+    const uint8_t *img;
+    uint64_t size, prog;
     int idx = archive_find(&prog_archive, name, len);
-    if (idx < 0) return SYS_ENOENT;
-    const struct archive_file *file = &prog_archive.files[idx];
-    const uint8_t *img = (const uint8_t *)(uintptr_t)(prog_archive_pa + file->offset);
+    if (idx >= 0) {
+        const struct archive_file *file = &prog_archive.files[idx];
+        img = (const uint8_t *)(uintptr_t)(prog_archive_pa + file->offset);
+        size = file->size;
+        prog = PROG_FILE + (uint64_t)idx;
+    } else {
+        if (disk.mounted && disk_fs.failed) return SYS_EIO;   /* stopped disk */
+        int d = disk.mounted ? pfs_find(&disk_fs, name, len) : PFS_ENOENT;
+        if (d < 0) return SYS_ENOENT;
+        /* The file is read whole and its CRC checked before elf_check
+         * sees one byte of it. */
+        disk.ops++;
+        int n = pfs_read(&disk_fs, (uint32_t)d, disk_buf);
+        if (n < 0) { disk.errors++; return SYS_EIO; }
+        img = disk_buf;
+        size = (uint64_t)n;
+        prog = PROG_DISK + (uint64_t)d;
+    }
     struct elf_plan plan;
-    int err = elf_check(img, file->size, PROC_PAGE_LIMIT - ELF_TABLE_PAGES - ELF_STACK_PAGES, &plan);
+    int err = elf_check(img, size, PROC_PAGE_LIMIT - ELF_TABLE_PAGES - ELF_STACK_PAGES, &plan);
     if (err) return refused(err, name);
     if (sched.next_pid == UINT64_MAX) return SYS_EAGAIN;
     struct process *q = free_slot();
@@ -487,7 +526,9 @@ static uint64_t sys_run(struct process *p, uint64_t va, uint64_t len)
     __asm__ volatile("fence.i" ::: "memory");
     clear_slot(q);
     q->pid = sched.next_pid++;
-    q->prog = PROG_FILE + (uint64_t)idx;
+    q->prog = prog;
+    for (uint64_t i = 0; i < arglen; ++i) q->arg[i] = arg[i];
+    q->arglen = arglen;
     q->satp = satp;
     q->npages = n;
     for (uint64_t i = 0; i < n; ++i) q->pages[i] = pages[i];
@@ -507,6 +548,114 @@ static uint64_t sys_run(struct process *p, uint64_t va, uint64_t len)
 out_of_memory:
     vm_destroy(pages, n);
     return SYS_ENOMEM;
+}
+
+/* run(name, len): v1.4, unchanged meaning; = run_arg with no argument. */
+static uint64_t sys_run(struct process *p, uint64_t va, uint64_t len)
+{
+    char name[PFS_NAME_MAX + 1];
+    uint64_t e = user_name(p, va, len, name);
+    if (e) return e;
+    return start_program(name, len, "", 0);
+}
+
+/* v1.5 run_arg(name, len, arg, arglen): the argument line (at most 55
+ * bytes) is kept for the new process, which reads it with args(). */
+static uint64_t sys_run_arg(struct process *p, const struct trap_frame *f)
+{
+    char name[PFS_NAME_MAX + 1], arg[ARG_MAX];
+    uint64_t e = user_name(p, f->x[10], f->x[11], name);
+    if (e) return e;
+    uint64_t va = f->x[12], arglen = f->x[13];
+    if (arglen > ARG_MAX) return SYS_EINVAL;
+    if (!vm_user_range_ok(p->satp, va, arglen, SV39_PTE_R)) return SYS_EFAULT;
+    copy_from_user((uint8_t *)arg, va, arglen);
+    return start_program(name, f->x[11], arg, arglen);
+}
+
+/* v1.5 args(buf, len): copy the caller's argument line (at most len bytes,
+ * no NUL) into buf; returns its full length. */
+static uint64_t sys_args(struct process *p, uint64_t va, uint64_t len)
+{
+    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R | SV39_PTE_W)) return SYS_EFAULT;
+    copy_to_user(va, (const uint8_t *)p->arg, len < p->arglen ? len : p->arglen);
+    return p->arglen;
+}
+
+/* ------------------------------------------------------------------ v1.5
+ * File system calls. Arguments are checked first (EINVAL, EFAULT), then
+ * the disk (ENODEV without one). Each call runs whole in the kernel with
+ * interrupts off: no other process runs during it. */
+static uint64_t fs_error(int e)
+{
+    disk.errors++;
+    return (uint64_t)(int64_t)e;        /* PFS errors are the syscall numbers */
+}
+
+/* fs_list(index, buf): name of the index-th file (16 bytes, NUL padded)
+ * into buf; returns its size. */
+static uint64_t sys_fs_list(struct process *p, uint64_t index, uint64_t va)
+{
+    if (!vm_user_range_ok(p->satp, va, FS_NAME_BYTES, SV39_PTE_R | SV39_PTE_W)) return SYS_EFAULT;
+    if (!disk.mounted) return SYS_ENODEV;
+    if (disk_fs.failed) return fs_error(PFS_EIO);      /* stopped: EIO until reboot */
+    const struct pfs_entry *e = index < PFS_FILES ? pfs_nth(&disk_fs, (uint32_t)index) : 0;
+    if (!e) return SYS_ENOENT;
+    copy_to_user(va, (const uint8_t *)e->name, FS_NAME_BYTES);
+    return e->size;
+}
+
+/* fs_read(name, namelen, off, buf, len): bytes [off, off+len) of the file,
+ * after a CRC check of the whole file; returns the number copied. */
+static uint64_t sys_fs_read(struct process *p, const struct trap_frame *f)
+{
+    char name[PFS_NAME_MAX + 1];
+    uint64_t e = user_name(p, f->x[10], f->x[11], name);
+    if (e) return e;
+    uint64_t off = f->x[12], va = f->x[13], len = f->x[14];
+    if (!pfs_name_ok(name, f->x[11]) || len > PFS_FILE_MAX) return SYS_EINVAL;
+    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R | SV39_PTE_W)) return SYS_EFAULT;
+    if (!disk.mounted) return SYS_ENODEV;
+    if (disk_fs.failed) return fs_error(PFS_EIO);      /* stopped: EIO until reboot */
+    int idx = pfs_find(&disk_fs, name, f->x[11]);
+    if (idx < 0) return SYS_ENOENT;
+    disk.ops++;
+    int n = pfs_read(&disk_fs, (uint32_t)idx, disk_buf);
+    if (n < 0) return fs_error(n);
+    uint64_t size = (uint64_t)n, cnt = off < size ? (size - off < len ? size - off : len) : 0;
+    copy_to_user(va, disk_buf + (cnt ? off : 0), cnt);
+    return cnt;
+}
+
+/* fs_write(name, namelen, buf, len): create or replace the file whole;
+ * returns 0 once the new directory is durable. */
+static uint64_t sys_fs_write(struct process *p, const struct trap_frame *f)
+{
+    char name[PFS_NAME_MAX + 1];
+    uint64_t e = user_name(p, f->x[10], f->x[11], name);
+    if (e) return e;
+    uint64_t va = f->x[12], len = f->x[13];
+    if (!pfs_name_ok(name, f->x[11])) return SYS_EINVAL;
+    if (len > PFS_FILE_MAX) return SYS_EFBIG;
+    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R)) return SYS_EFAULT;
+    if (!disk.mounted) return SYS_ENODEV;
+    copy_from_user(disk_buf, va, len);
+    disk.ops++;
+    int r = pfs_write(&disk_fs, name, f->x[11], disk_buf, len);
+    return r ? fs_error(r) : 0;
+}
+
+/* fs_delete(name, namelen): same durability path as fs_write. */
+static uint64_t sys_fs_delete(struct process *p, const struct trap_frame *f)
+{
+    char name[PFS_NAME_MAX + 1];
+    uint64_t e = user_name(p, f->x[10], f->x[11], name);
+    if (e) return e;
+    if (!pfs_name_ok(name, f->x[11])) return SYS_EINVAL;
+    if (!disk.mounted) return SYS_ENODEV;
+    disk.ops++;
+    int r = pfs_delete(&disk_fs, name, f->x[11]);
+    return r ? fs_error(r) : 0;
 }
 
 /* wait(pid, flags): the status of process pid once it has ended: its exit
@@ -632,6 +781,24 @@ __attribute__((noinline)) struct trap_frame *proc_syscall(struct process *p,
     case SYS_PROGS:
         f->x[10] = sys_progs(p, f->x[10], f->x[11]);
         return f;
+    case SYS_FS_LIST:
+        f->x[10] = sys_fs_list(p, f->x[10], f->x[11]);
+        return f;
+    case SYS_FS_READ:
+        f->x[10] = sys_fs_read(p, f);
+        return f;
+    case SYS_FS_WRITE:
+        f->x[10] = sys_fs_write(p, f);
+        return f;
+    case SYS_FS_DELETE:
+        f->x[10] = sys_fs_delete(p, f);
+        return f;
+    case SYS_ARGS:
+        f->x[10] = sys_args(p, f->x[10], f->x[11]);
+        return f;
+    case SYS_RUN_ARG:
+        f->x[10] = sys_run_arg(p, f);
+        return f;
     case SYS_YIELD:
         p->yields++;
         f->x[10] = 0;
@@ -727,7 +894,8 @@ struct trap_frame *trap_from_user(struct trap_frame *f)
     return proc_fault(p, f);
 }
 
-_Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int heartbeat_on)
+_Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int heartbeat_on,
+                          const char *autorun)
 {
     static const uint64_t bases[PROC_STATIC] = { USER_A_BASE, USER_B_BASE };
     const uint64_t entries[PROC_STATIC] = { entry_a, entry_b };
@@ -752,6 +920,21 @@ _Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int h
             uart_puts(" sp="); uart_hex(p->frame.x[2]);
             uart_puts(" satp="); uart_hex(p->satp); uart_puts("\n");
         }
+    }
+    /* v1.5 test scenarios: one archive program started at boot, through the
+     * same path as run(). */
+    if (autorun) {
+        uint64_t len = 0;
+        while (autorun[len]) ++len;
+        sched.autorun_pid = start_program(autorun, len, "", 0);
+        uart_puts("AUTORUN "); uart_puts(autorun); uart_puts(" pid=");
+        if (sched.autorun_pid >> 63) {
+            uart_puts("-");
+            uart_dec(0 - sched.autorun_pid);
+        } else {
+            uart_dec(sched.autorun_pid);
+        }
+        uart_puts("\n");
     }
     csr_write(scounteren, 0);
     input_init();

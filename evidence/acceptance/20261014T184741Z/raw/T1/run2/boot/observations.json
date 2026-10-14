@@ -1,0 +1,231 @@
+{
+ "probe": "t1",
+ "steps": [
+  {
+   "cpu": {
+    "pc": 4096,
+    "priv": 3,
+    "satp": 0,
+    "sstatus": 8589934592,
+    "scause": 0,
+    "sepc": 0,
+    "stval": 0,
+    "sscratch": 0,
+    "sie": 0,
+    "stvec": 0
+   },
+   "name": "attach",
+   "host_time": 1792003663.6261003
+  },
+  {
+   "hit": true,
+   "cpu": {
+    "pc": 2149580800,
+    "priv": 1,
+    "satp": 0,
+    "sstatus": 9223372045444734976,
+    "scause": 0,
+    "sepc": 0,
+    "stval": 0,
+    "sscratch": 0,
+    "sie": 0,
+    "stvec": 2149580800
+   },
+   "a0": 0,
+   "a1": 2279604224,
+   "name": "kernel_entry",
+   "host_time": 1792003663.6796699
+  },
+  {
+   "hit": true,
+   "cpu": {
+    "pc": 2149582232,
+    "priv": 1,
+    "satp": 0,
+    "sstatus": 9223372045444734976,
+    "scause": 0,
+    "sepc": 0,
+    "stval": 0,
+    "sscratch": 0,
+    "sie": 0,
+    "stvec": 2149580920
+   },
+   "name": "kernel_main",
+   "host_time": 1792003663.6927967
+  },
+  {
+   "hit": true,
+   "cpu": {
+    "pc": 2149581924,
+    "priv": 1,
+    "satp": 9223372036855300630,
+    "sstatus": 9223372045444734976,
+    "scause": 0,
+    "sepc": 0,
+    "stval": 0,
+    "sscratch": 0,
+    "sie": 0,
+    "stvec": 2149580920
+   },
+   "boot_phase": 3,
+   "satps": {
+    "kernel": 9223372036855300630,
+    "A": 9223372036855300652,
+    "B": 9223372036855300662
+   },
+   "walk_text": {
+    "satp": 9223372036855300630,
+    "va": 2149580800,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670928,
+      "pte": 537418753
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149675016,
+      "pte": 537419777
+     },
+     {
+      "level": 0,
+      "pte_addr": 2149679104,
+      "pte": 537395275
+     }
+    ],
+    "mapped": true,
+    "leaf_level": 0,
+    "pte": 537395275,
+    "flags": "VRXA",
+    "pa": 2149580800
+   },
+   "walk_rodata": {
+    "satp": 9223372036855300630,
+    "va": 2149625856,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670928,
+      "pte": 537418753
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149675016,
+      "pte": 537419777
+     },
+     {
+      "level": 0,
+      "pte_addr": 2149679192,
+      "pte": 537406531
+     }
+    ],
+    "mapped": true,
+    "leaf_level": 0,
+    "pte": 537406531,
+    "flags": "VRA",
+    "pa": 2149625856
+   },
+   "walk_stack": {
+    "satp": 9223372036855300630,
+    "va": 2149658616,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670928,
+      "pte": 537418753
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149675016,
+      "pte": 537419777
+     },
+     {
+      "level": 0,
+      "pte_addr": 2149679248,
+      "pte": 537413831
+     }
+    ],
+    "mapped": true,
+    "leaf_level": 0,
+    "pte": 537413831,
+    "flags": "VRWAD",
+    "pa": 2149658616
+   },
+   "walk_guard": {
+    "satp": 9223372036855300630,
+    "va": 2149638144,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670928,
+      "pte": 537418753
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149675016,
+      "pte": 537419777
+     },
+     {
+      "level": 0,
+      "pte_addr": 2149679216,
+      "pte": 0
+     }
+    ],
+    "mapped": false
+   },
+   "walk_user_a": {
+    "satp": 9223372036855300630,
+    "va": 4194304,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670912,
+      "pte": 537420801
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149683216,
+      "pte": 0
+     }
+    ],
+    "mapped": false
+   },
+   "walk_uart": {
+    "satp": 9223372036855300630,
+    "va": 268435456,
+    "mode": 8,
+    "levels": [
+     {
+      "level": 2,
+      "pte_addr": 2149670912,
+      "pte": 537420801
+     },
+     {
+      "level": 1,
+      "pte_addr": 2149684224,
+      "pte": 537421825
+     },
+     {
+      "level": 0,
+      "pte_addr": 2149687296,
+      "pte": 67109063
+     }
+    ],
+    "mapped": true,
+    "leaf_level": 0,
+    "pte": 67109063,
+    "flags": "VRWAD",
+    "pa": 268435456
+   },
+   "name": "halt",
+   "host_time": 1792003663.7086103
+  }
+ ],
+ "complete": true,
+ "error": null
+}

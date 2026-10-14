@@ -13,12 +13,15 @@ import html
 import os
 import pathlib
 import select
+import shutil
 import subprocess
+import tempfile
 import time
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 ELF = ROOT / 'build/protoos.elf'
 PROGRAMS = ROOT / 'build/programs.img'
+DISK = ROOT / 'build/disk.img'          # copied: the demo never writes the built image
 OUT = ROOT / 'docs/demo/protoos-demo.svg'
 FW = os.environ.get('OPENSBI', '/usr/lib/riscv64-linux-gnu/opensbi/generic/fw_dynamic.bin')
 
@@ -32,28 +35,42 @@ GUESS = b'GUESS'
 PROGRAM_TYPING = [(1.0, b'ls\r'), (2.2, b'run primes\r'), (3.6, b'run clock\r'),
                   (6.8, b'\x03'), (7.8, b'run guess\r')] + \
                  [(9.0 + 1.1 * k, GUESS) for k in range(7)] + [(17.0, b'mem\r')]
-# (bootargs, seconds to run, max captured lines, comment, real timing?, typing, archive)
+# v1.5: files on the virtio-blk disk, then a second boot on the same disk.
+DISK_TYPING = [(1.0, b'run files\r'), (2.2, b'run hello world\r'), (3.4, b'run note todo\r'),
+               (4.6, b'water the plants\r'), (5.8, b'plan v1.6\r'), (7.0, b'\r'),
+               (8.2, b'run cat todo\r'), (9.4, b'run files\r')]
+REBOOT_TYPING = [(1.0, b'run cat todo\r'), (2.2, b'ps\r')]
+# (bootargs, seconds to run, max captured lines, comment, real timing?, typing, archive,
+#  disk: None, 'fresh' (a new copy of disk.img) or 'same' (the previous scene's copy))
 SCENES = [
     ('protoos.mode=demo', 9, 22,
-     'demo mode: A and B print via write() and sleep(); then B attacks A', True, None, None),
+     'demo mode: A and B print via write() and sleep(); then B attacks A', True, None, None, None),
     ('protoos.mode=shell', 11, 32,
      'shell mode: A is a command shell; it starts and stops processes on demand',
-     True, SHELL_TYPING, None),
+     True, SHELL_TYPING, None, None),
     ('protoos.mode=shell', 19, 40,
      'v1.4: programs written in C, loaded from the program archive; Ctrl-C stops them',
-     True, PROGRAM_TYPING, PROGRAMS),
+     True, PROGRAM_TYPING, PROGRAMS, None),
+    ('protoos.mode=shell', 12, 34,
+     'v1.5: files on the disk (virtio-blk + PFS); hello is a program on the disk, not in the archive',
+     True, DISK_TYPING, PROGRAMS, 'fresh'),
+    ('protoos.mode=shell', 4, 18,
+     'v1.5: a new boot on the same disk: the file written before is still there',
+     True, REBOOT_TYPING, PROGRAMS, 'same'),
     ('protoos.test=umode', 2, 15,
-     'two user processes, switched by the timer interrupt every 10 ms', False, None, None),
+     'two user processes, switched by the timer interrupt every 10 ms', False, None, None, None),
 ]
 PACE, COMMAND_PAUSE, SCENE_HOLD = 0.22, 0.9, 2.6
 COLS, ROWS = 112, 19
 FONT, LINE_H, CHAR_W, PAD, TITLE_H = 13, 18, 7.82, 14, 28
 
 
-def record(args, seconds, max_lines, typing=None, initrd=None):
+def record(args, seconds, max_lines, typing=None, initrd=None, disk=None):
     cmd = ['qemu-system-riscv64', '-machine', 'virt', '-accel', 'tcg', '-cpu', 'rv64',
            '-smp', '1', '-m', '128M', '-bios', FW, '-kernel', str(ELF)]
     cmd += ['-initrd', str(initrd)] if initrd else []
+    cmd += ['-drive', f'if=none,file={disk},format=raw,id=hd0', '-device',
+            'virtio-blk-device,drive=hd0', '-global', 'virtio-mmio.force-legacy=false'] if disk else []
     cmd += ['-display', 'none', '-monitor', 'none', '-serial', 'stdio', '-nic', 'none',
             '-append', args, '-no-reboot']
     vm = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
@@ -107,20 +124,25 @@ def style_of(line):
                         ('free pages', 'mmu'), ('crash:', 'attack'), ('hello from', 'userb'),
                         ('^C', 'attack'), ('ARCHIVE', 'mmu'), ('Primes', 'userb'),
                         ('There are', 'userb'), ('uptime ', 'userb'), ('clock:', 'userb'),
-                        ('I picked', 'userb'), ('Your guess', 'userb'), ('Too ', 'userb')):
+                        ('I picked', 'userb'), ('Your guess', 'userb'), ('Too ', 'userb'),
+                        ('DISK', 'mmu'), ('Hello from the disk', 'userb'), ('note:', 'userb'),
+                        ('saved ', 'beat')):
         if line.startswith(prefix):
             return cls
     return 'out'
 
 
-def frames_for(scenes):
+def frames_for(scenes, workdir):
     """Yield (visible lines, duration) for every animation frame."""
-    for args, seconds, max_lines, note, real, typing, initrd in scenes:
+    disk = pathlib.Path(workdir) / 'disk.img'
+    for args, seconds, max_lines, note, real, typing, initrd, use_disk in scenes:
         run = ('sh build-scripts/run-shell.sh' if typing else
                f'sh build-scripts/run-scenario.sh {args} {seconds}')
         screen = [f'# {note}', f'$ {run}']
         yield list(screen), COMMAND_PAUSE
-        output = record(args, seconds, max_lines, typing, initrd)
+        if use_disk == 'fresh':
+            shutil.copyfile(DISK, disk)
+        output = record(args, seconds, max_lines, typing, initrd, disk if use_disk else None)
         if not output:
             raise SystemExit(f'no UART output captured for {args}')
         for i, (t, line) in enumerate(output):
@@ -163,7 +185,7 @@ def render(frames):
         '<circle cx="18" cy="14" r="5" fill="#ff5f57"/><circle cx="34" cy="14" r="5" fill="#febc2e"/>'
         '<circle cx="50" cy="14" r="5" fill="#28c840"/>',
         f'<text class="title" x="{width / 2:.0f}" y="18" text-anchor="middle">'
-        'ProtoOS v1.4 on QEMU virt (RISC-V RV64) - real UART output</text>',
+        'ProtoOS v1.5 on QEMU virt (RISC-V RV64) - real UART output</text>',
         f'<svg x="0" y="{TITLE_H}" width="{width}" height="{body_h}"><g class="tape">',
     ]
     for i, (screen, _) in enumerate(frames):
@@ -179,7 +201,8 @@ def render(frames):
 def main():
     if not ELF.exists():
         raise SystemExit('build/protoos.elf missing: run build-scripts/build-wsl.sh first')
-    frames = list(frames_for(SCENES))
+    with tempfile.TemporaryDirectory() as workdir:
+        frames = list(frames_for(SCENES, workdir))
     OUT.write_text(render(frames))
     print(f'{OUT.relative_to(ROOT)}: {len(frames)} frames, '
           f'{sum(d for _, d in frames):.1f} s loop, {OUT.stat().st_size} bytes')

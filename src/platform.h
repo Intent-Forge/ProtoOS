@@ -2,6 +2,7 @@
 #define PROTOOS_PLATFORM_H
 #include <stdint.h>
 #include <stddef.h>
+#define BOOT_VIRTIO_MAX 8u      /* QEMU virt has 8 virtio-mmio transports */
 struct boot_config {
     uintptr_t uart;
     uint32_t timebase_hz;
@@ -10,6 +11,10 @@ struct boot_config {
      * flags say which of the two properties were present. */
     uint64_t initrd_start, initrd_end;
     uint32_t initrd_found;      /* bit 0: start, bit 1: end */
+    /* v1.5: /soc/virtio_mmio@* transports (compatible "virtio,mmio") in
+     * DT order; only their base addresses (each one 4 KiB page or less). */
+    uint32_t virtio_count;
+    uint64_t virtio[BOOT_VIRTIO_MAX];
 };
 /* Parse only the DT subset needed for QEMU virt. Reject malformed input. */
 int parse_dtb(const void *blob, size_t available, struct boot_config *out);

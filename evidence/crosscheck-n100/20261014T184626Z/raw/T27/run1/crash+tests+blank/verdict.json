@@ -1,0 +1,112 @@
+{
+ "test": "T27",
+ "repetition": 1,
+ "scenario": "protoos.test=crash",
+ "probe": "t27",
+ "program_archive": "tests.img",
+ "disk": {
+  "spec": {
+   "disk": "disks/blank.img",
+   "share": true
+  },
+  "sha_source": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+  "sha_before": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+  "sha_after": "ea922e41549f698a95ae10f70077ee61fb157679984a5fa9f7e1dcac3c67763c",
+  "pfsck": {
+   "mounts": true,
+   "reject": null,
+   "slot": 2,
+   "seq": 5210,
+   "files": [
+    {
+     "slot": 0,
+     "name": "g",
+     "size": 1000,
+     "first": 3,
+     "count": 1,
+     "crc": 1249092605,
+     "crc_ok": true,
+     "sha256": "0515f852cf4c0cf08a8207b7d6d8992600a417d0cfed78ba194965adbb83dc2a"
+    },
+    {
+     "slot": 1,
+     "name": "h",
+     "size": 1000,
+     "first": 4,
+     "count": 1,
+     "crc": 1249092605,
+     "crc_ok": true,
+     "sha256": "0515f852cf4c0cf08a8207b7d6d8992600a417d0cfed78ba194965adbb83dc2a"
+    }
+   ],
+   "copies": {
+    "A": {
+     "code": 0,
+     "seq": 5209
+    },
+    "B": {
+     "code": 0,
+     "seq": 5210
+    }
+   },
+   "data_ok": true,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 30.1,
+ "checks": [
+  {
+   "check": "20 boots, each killed while the driver ran (seeded)",
+   "ok": true,
+   "detail": "1506"
+  },
+  {
+   "check": "after every kill: pfsck mounts the image, every file intact",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "after every kill: every file is one whole generation (old or new, never mixed)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "a write reported saved survived the kill; the next boot went on from it",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "the series made progress (generations saved)",
+   "ok": true,
+   "detail": "2611"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "pfsck.json": "4fb266a15ef076dbc6c5bc23cee2d05e347f025c5a8b116ed3adcb5f0fb8331b"
+ }
+}

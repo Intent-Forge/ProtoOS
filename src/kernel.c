@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "archive.h"
+#include "disk.h"
 #include "mem.h"
 #include "proc.h"
 #include "vm.h"
@@ -112,50 +113,60 @@ extern char a_mem_test[], a_spawn_test[], a_kill_test[], a_multi_test[], a_spawn
 extern char p_t_elf[], p_t_sbrk[], p_t_wait[], p_t_ctrlc[], p_t_elfbad[], p_t_arcbad[],
     p_t_userbad[];
 enum scenario_kind { SCENARIO_NORMAL, SCENARIO_TEST, SCENARIO_BOOT, SCENARIO_BOOT_TRAP,
-    SCENARIO_DEMO, SCENARIO_SHELL };
-struct scenario { const char *args; enum scenario_kind kind; char *a, *b; };
+    SCENARIO_DEMO, SCENARIO_SHELL, SCENARIO_AUTORUN };
+/* v1.5: an AUTORUN scenario also starts archive program `autorun` at boot
+ * (a C test driver from tests.img); A is the shell, idle in read(). */
+struct scenario { const char *args; enum scenario_kind kind; char *a, *b; const char *autorun; };
 static const struct scenario scenarios[]={
-    {"protoos.mode=normal",       SCENARIO_NORMAL,    a_worker, b_worker},
-    {"protoos.test=boot",         SCENARIO_BOOT,      0, 0},
-    {"protoos.test=boot-trap",    SCENARIO_BOOT_TRAP, 0, 0},
-    {"protoos.test=umode",        SCENARIO_TEST, a_worker, b_worker},
-    {"protoos.test=preempt",      SCENARIO_TEST, a_worker, b_worker},
-    {"protoos.test=getpid",       SCENARIO_TEST, a_getpid, b_getpid},
-    {"protoos.test=yield",        SCENARIO_TEST, a_yield, b_yield},
-    {"protoos.test=exit",         SCENARIO_TEST, a_exit, b_worker},
-    {"protoos.test=isolation",    SCENARIO_TEST, a_cross_write, b_worker},
-    {"protoos.test=fault",        SCENARIO_TEST, a_fault, b_worker},
-    {"protoos.test=kernel-read",  SCENARIO_TEST, a_kernel_read, b_worker},
-    {"protoos.test=csr",          SCENARIO_TEST, a_csr, b_worker},
-    {"protoos.test=bad-syscall",  SCENARIO_TEST, a_bad_syscall, b_worker},
-    {"protoos.test=idle",         SCENARIO_TEST, a_idle_exit, b_idle_exit},
-    {"protoos.test=idle-fault",   SCENARIO_TEST, a_idle_fault, b_idle_exit},
+    {"protoos.mode=normal",       SCENARIO_NORMAL,    a_worker, b_worker, 0},
+    {"protoos.test=boot",         SCENARIO_BOOT,      0, 0, 0},
+    {"protoos.test=boot-trap",    SCENARIO_BOOT_TRAP, 0, 0, 0},
+    {"protoos.test=umode",        SCENARIO_TEST, a_worker, b_worker, 0},
+    {"protoos.test=preempt",      SCENARIO_TEST, a_worker, b_worker, 0},
+    {"protoos.test=getpid",       SCENARIO_TEST, a_getpid, b_getpid, 0},
+    {"protoos.test=yield",        SCENARIO_TEST, a_yield, b_yield, 0},
+    {"protoos.test=exit",         SCENARIO_TEST, a_exit, b_worker, 0},
+    {"protoos.test=isolation",    SCENARIO_TEST, a_cross_write, b_worker, 0},
+    {"protoos.test=fault",        SCENARIO_TEST, a_fault, b_worker, 0},
+    {"protoos.test=kernel-read",  SCENARIO_TEST, a_kernel_read, b_worker, 0},
+    {"protoos.test=csr",          SCENARIO_TEST, a_csr, b_worker, 0},
+    {"protoos.test=bad-syscall",  SCENARIO_TEST, a_bad_syscall, b_worker, 0},
+    {"protoos.test=idle",         SCENARIO_TEST, a_idle_exit, b_idle_exit, 0},
+    {"protoos.test=idle-fault",   SCENARIO_TEST, a_idle_fault, b_idle_exit, 0},
     /* v1.1 */
-    {"protoos.mode=demo",         SCENARIO_DEMO, a_demo, b_demo},
-    {"protoos.test=write",        SCENARIO_TEST, a_write, b_worker},
-    {"protoos.test=write-bad",    SCENARIO_TEST, a_write_bad, b_worker},
-    {"protoos.test=sleep",        SCENARIO_TEST, a_sleep, b_worker},
-    {"protoos.test=sleep-all",    SCENARIO_TEST, a_sleep_all, b_sleep_all},
+    {"protoos.mode=demo",         SCENARIO_DEMO, a_demo, b_demo, 0},
+    {"protoos.test=write",        SCENARIO_TEST, a_write, b_worker, 0},
+    {"protoos.test=write-bad",    SCENARIO_TEST, a_write_bad, b_worker, 0},
+    {"protoos.test=sleep",        SCENARIO_TEST, a_sleep, b_worker, 0},
+    {"protoos.test=sleep-all",    SCENARIO_TEST, a_sleep_all, b_sleep_all, 0},
     /* v1.2 */
-    {"protoos.mode=shell",        SCENARIO_SHELL, p_shell, b_worker},
-    {"protoos.test=read",         SCENARIO_TEST, a_read, b_worker},
-    {"protoos.test=uptime",       SCENARIO_TEST, a_uptime, b_worker},
-    {"protoos.test=read-bad",     SCENARIO_TEST, a_read_bad, b_worker},
-    {"protoos.test=read-flood",   SCENARIO_TEST, a_flood, b_worker},
+    {"protoos.mode=shell",        SCENARIO_SHELL, p_shell, b_worker, 0},
+    {"protoos.test=read",         SCENARIO_TEST, a_read, b_worker, 0},
+    {"protoos.test=uptime",       SCENARIO_TEST, a_uptime, b_worker, 0},
+    {"protoos.test=read-bad",     SCENARIO_TEST, a_read_bad, b_worker, 0},
+    {"protoos.test=read-flood",   SCENARIO_TEST, a_flood, b_worker, 0},
     /* v1.3 */
-    {"protoos.test=mem",          SCENARIO_TEST, a_mem_test, b_worker},
-    {"protoos.test=spawn",        SCENARIO_TEST, a_spawn_test, b_worker},
-    {"protoos.test=kill",         SCENARIO_TEST, a_kill_test, b_worker},
-    {"protoos.test=multi",        SCENARIO_TEST, a_multi_test, b_worker},
-    {"protoos.test=spawn-bad",    SCENARIO_TEST, a_spawn_bad, b_worker},
+    {"protoos.test=mem",          SCENARIO_TEST, a_mem_test, b_worker, 0},
+    {"protoos.test=spawn",        SCENARIO_TEST, a_spawn_test, b_worker, 0},
+    {"protoos.test=kill",         SCENARIO_TEST, a_kill_test, b_worker, 0},
+    {"protoos.test=multi",        SCENARIO_TEST, a_multi_test, b_worker, 0},
+    {"protoos.test=spawn-bad",    SCENARIO_TEST, a_spawn_bad, b_worker, 0},
     /* v1.4: booted with a program archive (QEMU -initrd) */
-    {"protoos.test=elf",          SCENARIO_TEST, p_t_elf, b_worker},
-    {"protoos.test=sbrk",         SCENARIO_TEST, p_t_sbrk, b_worker},
-    {"protoos.test=wait",         SCENARIO_TEST, p_t_wait, b_worker},
-    {"protoos.test=ctrlc",        SCENARIO_TEST, p_t_ctrlc, b_worker},
-    {"protoos.test=elf-bad",      SCENARIO_TEST, p_t_elfbad, b_worker},
-    {"protoos.test=archive-bad",  SCENARIO_TEST, p_t_arcbad, b_worker},
-    {"protoos.test=user-bad",     SCENARIO_TEST, p_t_userbad, b_worker},
+    {"protoos.test=elf",          SCENARIO_TEST, p_t_elf, b_worker, 0},
+    {"protoos.test=sbrk",         SCENARIO_TEST, p_t_sbrk, b_worker, 0},
+    {"protoos.test=wait",         SCENARIO_TEST, p_t_wait, b_worker, 0},
+    {"protoos.test=ctrlc",        SCENARIO_TEST, p_t_ctrlc, b_worker, 0},
+    {"protoos.test=elf-bad",      SCENARIO_TEST, p_t_elfbad, b_worker, 0},
+    {"protoos.test=archive-bad",  SCENARIO_TEST, p_t_arcbad, b_worker, 0},
+    {"protoos.test=user-bad",     SCENARIO_TEST, p_t_userbad, b_worker, 0},
+    /* v1.5: booted with tests.img and (most) a disk */
+    {"protoos.test=fs",           SCENARIO_AUTORUN, p_shell, b_worker, "t_fs"},
+    {"protoos.test=fs-ro",        SCENARIO_AUTORUN, p_shell, b_worker, "t_fsro"},
+    {"protoos.test=persist-w",    SCENARIO_AUTORUN, p_shell, b_worker, "t_pw"},
+    {"protoos.test=persist-r",    SCENARIO_AUTORUN, p_shell, b_worker, "t_pr"},
+    {"protoos.test=crash",        SCENARIO_AUTORUN, p_shell, b_worker, "t_crash"},
+    {"protoos.test=fs-bad",       SCENARIO_AUTORUN, p_shell, b_worker, "t_fsbad"},
+    {"protoos.test=no-disk",      SCENARIO_AUTORUN, p_shell, b_worker, "t_nodisk"},
 };
 static const struct scenario *find_scenario(const char *args) {
     for(size_t i=0;i<sizeof(scenarios)/sizeof(scenarios[0]);++i)
@@ -234,8 +245,11 @@ void kernel_main(uint64_t hart, uintptr_t dtb) {
         boot_phase=3;
         halt();
     }
+    /* v1.5: the disk, if there is one (nothing printed without one) */
+    disk_init();
     boot_phase=5;
     uart_puts("SCENARIO "); uart_puts(s->args); uart_puts("\n");
     proc_start(user_va(USER_A_BASE,__user_a_text,s->a), user_va(USER_B_BASE,__user_b_text,s->b),
-               s->kind==SCENARIO_TEST, s->kind==SCENARIO_NORMAL);
+               s->kind==SCENARIO_TEST, s->kind==SCENARIO_NORMAL,
+               s->kind==SCENARIO_AUTORUN ? s->autorun : 0);
 }

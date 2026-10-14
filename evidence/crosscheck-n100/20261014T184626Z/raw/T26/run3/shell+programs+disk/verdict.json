@@ -1,0 +1,152 @@
+{
+ "test": "T26",
+ "repetition": 3,
+ "scenario": "protoos.mode=shell",
+ "probe": "t26",
+ "program_archive": "programs.img",
+ "disk": {
+  "spec": {
+   "disk": "disk.img"
+  },
+  "sha_source": "e925a45da056e7d5df65bbd0e2845b091a71e88ecfc4d4cb33de6f99c92a8154",
+  "sha_before": "e925a45da056e7d5df65bbd0e2845b091a71e88ecfc4d4cb33de6f99c92a8154",
+  "sha_after": "92795084c980d19a6cbf1f82eb8303e1ed559371b369b9a4661cd1a87ed53b26",
+  "pfsck": {
+   "mounts": true,
+   "reject": null,
+   "slot": 2,
+   "seq": 4,
+   "files": [
+    {
+     "slot": 0,
+     "name": "hello",
+     "size": 15192,
+     "first": 3,
+     "count": 4,
+     "crc": 2348286995,
+     "crc_ok": true,
+     "sha256": "67dd525c33ebe81a7d4e566a6a34b902c671f287bfcc258b2539c8c53c467d4f"
+    },
+    {
+     "slot": 1,
+     "name": "memo",
+     "size": 23,
+     "first": 7,
+     "count": 1,
+     "crc": 1564826156,
+     "crc_ok": true,
+     "sha256": "c2097f55f01fc297fc7f4acf21438123e06e4d409a818524428534e850642f4f"
+    }
+   ],
+   "copies": {
+    "A": {
+     "code": 0,
+     "seq": 3
+    },
+    "B": {
+     "code": 0,
+     "seq": 4
+    }
+   },
+   "data_ok": true,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 4.39,
+ "checks": [
+  {
+   "check": "every command came back to the prompt",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "run hello world: the program from the disk got its argument",
+   "ok": true,
+   "detail": "[['Hello from the disk! Your argument: world', 'EXIT C(pid=3) code=0', '']]"
+  },
+  {
+   "check": "kernel: it was started from disk entry 0 with argument \"world\", exit 0",
+   "ok": true,
+   "detail": "[{'pid': 3, 'state': 3, 'satp': 9223372036855301120, 'dispatches': 1, 'preemptions': 0, 'yields': 0, 'syscalls': 6, 'rejected_syscalls': 0, 'exit_code': 0, 'fault_cause': 0, 'fault_epc': 0, 'fault_tval': 0, 'writes': 4, 'bytes_written': 42, 'sleeps': 0, 'sleep_start': 0, 'wake_time': 0, 'last_dispatch_time': 1340020, 'reads': 0, 'bytes_read': 0, 'read_pending': 0, 'read_va': 0, 'read_len': 0, 'block_start': 0, 'prog': 256, 'killed': 0, 'npages': 0, 'pages': [], 'addr': 2149845360, 'heap_base': 1073754112, 'brk': 1073754112, 'wait_pid': 0, 'waits_done': 0, 'arglen': 5, 'arg': 'world'}]"
+  },
+  {
+   "check": "run files, before and after",
+   "ok": true,
+   "detail": "[['hello  15192 bytes', 'EXIT C(pid=4) code=0', ''], ['hello  15192 bytes', 'memo  23 bytes', 'EXIT C(pid=10) code=0', '']]"
+  },
+  {
+   "check": "note saved memo (23 bytes) and tmp (8 bytes); rm removed tmp",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "run cat memo printed it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "note memo with an empty first line saved nothing (memo kept, no directory update)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "run cat nosuch: no such file",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "kernel: 3 directory updates (seq 4), files hello and memo",
+   "ok": true,
+   "detail": "{'blocks': 256, 'slot': 2, 'seq': 4, 'files': 2, 'failed': 0, 'reject_a': 0, 'reject_b': 0, 'entries': [{'slot': 0, 'name': 'hello', 'size': 15192, 'first': 3, 'count': 4, 'crc': 2348286995}, {'slot': 1, 'name': 'memo', 'size': 23, 'first': 7, 'count': 1, 'crc': 1564826156}]}"
+  },
+  {
+   "check": "T26: pfsck: the image mounts and every file is intact",
+   "ok": true,
+   "detail": "{'reject': None, 'slot': 2, 'seq': 4, 'data_ok': True}"
+  },
+  {
+   "check": "T26: pfsck: exactly the expected files with the expected content",
+   "ok": true,
+   "detail": "{'got': ['hello', 'memo'], 'want': ['hello', 'memo']}"
+  },
+  {
+   "check": "T26: pfsck: directory seq 4",
+   "ok": true,
+   "detail": "4"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "d9b176082c8b4f72d484b9813674d662cef1dc00c6f3994d8f5d7322c2d5efe4"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "43ebd39ee0c1540ff84f1a5fc3765e39fced895314d8b27478d8b5ea6a3984b7",
+  "gdb.log": "7944fdb70cfb9dd2e4f34211821725b543313bf705c99fd1d1f855cf15ef0cbb",
+  "observations.json": "d01b0299bcdc2990b265488d57fc236465f135cf23a156a1e14ed7a138d7c01e",
+  "pfsck.json": "11301d2bbbf9d6d693cf513feaf56e31c466c486137e78246c1fef807b87e34e",
+  "probe-config.json": "034b57971535e566b47fbd03214e926fee55fde2ece64be0ae0389f09331b80d",
+  "qemu-int.log": "3e5ca92f7f61d47fa492807f03e17b9859de1c280a9f5b142870e7b4d7d4aea4",
+  "uart.log": "3be16229f78b0adb1fe044c40611ac2e6b297b6d907dd856503aa64acc3a0585"
+ }
+}

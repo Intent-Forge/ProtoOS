@@ -1,0 +1,134 @@
+{
+ "test": "T24",
+ "repetition": 3,
+ "scenario": "protoos.test=fs-ro",
+ "probe": "autorun",
+ "program_archive": "tests.img",
+ "disk": {
+  "spec": {
+   "disk": "disks/ro.img",
+   "mode": "noflush",
+   "autorun": "t_fsro"
+  },
+  "sha_source": "dc3576421e8196042d5f0127fb04bb802e0bfc2d27eff97b54a40bd255728771",
+  "sha_before": "dc3576421e8196042d5f0127fb04bb802e0bfc2d27eff97b54a40bd255728771",
+  "sha_after": "dc3576421e8196042d5f0127fb04bb802e0bfc2d27eff97b54a40bd255728771",
+  "pfsck": {
+   "mounts": true,
+   "reject": null,
+   "slot": 1,
+   "seq": 1,
+   "files": [
+    {
+     "slot": 0,
+     "name": "ro.txt",
+     "size": 5000,
+     "first": 3,
+     "count": 2,
+     "crc": 425168808,
+     "crc_ok": true,
+     "sha256": "ebd41ed1b5f4c8dc0e86ded6ea9e71c60864c600c573b0ceed216c2b1e470d1d"
+    }
+   ],
+   "copies": {
+    "A": {
+     "code": 0,
+     "seq": 1
+    },
+    "B": {
+     "code": 0,
+     "seq": 0
+    }
+   },
+   "data_ok": true,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "the test driver exited and its results were read through its own page table",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "check": "t_fsro: every result as specified (9 values)",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "t_fsro: the driver ran to the end (r[63] = 0x600d)",
+   "ok": true,
+   "detail": "0x600d"
+  },
+  {
+   "check": "noflush disk: VIRTIO_BLK_F_FLUSH not offered nor negotiated, RO not set",
+   "ok": true,
+   "detail": "0x10130006454"
+  },
+  {
+   "check": "UART: no flush, read-only",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "driver: not one write or flush reached the device",
+   "ok": true,
+   "detail": "{'reads': 7, 'writes': 0, 'flushes': 0}"
+  },
+  {
+   "check": "the disk image is byte-identical after the boot",
+   "ok": true,
+   "detail": "dc3576421e8196042d5f0127fb04bb802e0bfc2d27eff97b54a40bd255728771"
+  },
+  {
+   "check": "T24 read-only: pfsck: the image mounts and every file is intact",
+   "ok": true,
+   "detail": "{'reject': None, 'slot': 1, 'seq': 1, 'data_ok': True}"
+  },
+  {
+   "check": "T24 read-only: pfsck: exactly the expected files with the expected content",
+   "ok": true,
+   "detail": "{'got': ['ro.txt'], 'want': ['ro.txt']}"
+  },
+  {
+   "check": "T24 read-only: pfsck: directory seq 1",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "7d1208cf2ec083f1bd7e6338900b2a9d2251b4a70eeb2a860e7ab93141c17621",
+  "gdb.log": "0eef8a8f585f50872d87789d915b3aa14e5ebf3a74f77154bbace9d4a0469f9b",
+  "observations.json": "560761188373373b5f2dbd8212ea2f35d4da9e8fd4a052b92f619aa1d451134a",
+  "pfsck.json": "5d619b45a61adf4941b4e6aeba5af32c4193ee8fd27823447293fc9cef4acd63",
+  "probe-config.json": "be4bc54cb53b1ed22a741151b1484ff8d34939c0d7fca717a5b23122245d1ee3",
+  "qemu-int.log": "2ca78d9970957c3d183b6980a3454812468ff0c2482792d82f7237caad26aef3",
+  "uart.log": "02edd380bb2af83a29ce127b00efbf2048aa387117279ced633caadaae7024e0"
+ }
+}

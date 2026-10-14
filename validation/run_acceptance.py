@@ -48,6 +48,13 @@ EXT = (1 << 63) | 9
 M64 = (1 << 64) - 1
 TIMER = (1 << 63) | 5
 
+# v1.5 N13: the malformed disk images build-scripts/mkimages.py makes (one
+# defect each; images.json gives the refusal code the kernel must report)
+BAD_DISKS = ['sb_magic', 'sb_version', 'sb_crc', 'sb_small', 'sb_huge', 'sb_device', 'sb_reserved',
+             'dir_magic', 'dir_crc', 'dir_reserved', 'entry_reserved', 'name_upper', 'name_pad',
+             'name_long', 'dup', 'range_low', 'range_high', 'range_empty', 'size_big',
+             'size_count', 'overlap', 'empty_garbage']
+
 # test id -> list of (bootargs scenario, probe). One repetition = one clean
 # boot per listed scenario.
 MATRIX = {
@@ -93,6 +100,31 @@ MATRIX = {
         'a_magic', 'a_hex', 'a_trunc', 'a_name', 'a_longname', 'a_dir', 'a_check', 'a_data',
         'a_many', 'a_dup', 'a_notrailer', 'a_tail', 'a_big')],
     'N12': [('protoos.test=user-bad', 'n12', 'tests.img')],
+    # v1.5 (docs/SPEC_V1_5.md): the fourth element is the disk: image (from
+    # --images), QEMU mode (rw, noflush, ro, legacy; none: no disk at all),
+    # 'share' = the same disk copy for every boot of one repetition, and the
+    # test driver an AUTORUN scenario starts at boot.
+    'T23': [('protoos.mode=shell', 't23', 'programs.img', {'disk': 'disk.img'})],
+    'T24': [('protoos.test=fs', 'autorun', 'tests.img',
+             {'disk': 'disks/blank.img', 'autorun': 't_fs'}),
+            ('protoos.test=fs-ro', 'autorun', 'tests.img',
+             {'disk': 'disks/ro.img', 'mode': 'noflush', 'autorun': 't_fsro'}),
+            ('protoos.test=fs-ro', 'autorun', 'tests.img',
+             {'disk': 'disks/ro.img', 'mode': 'ro', 'autorun': 't_fsro'})],
+    'T25': [('protoos.test=persist-w', 'autorun', 'tests.img',
+             {'disk': 'disks/blank.img', 'share': True, 'autorun': 't_pw'}),
+            ('protoos.test=persist-r', 'autorun', 'tests.img',
+             {'disk': 'disks/blank.img', 'share': True, 'autorun': 't_pr'})],
+    'T26': [('protoos.mode=shell', 't26', 'programs.img', {'disk': 'disk.img'})],
+    'T27': [('protoos.test=crash', 't27', 'tests.img', {'disk': 'disks/blank.img', 'share': True})],
+    'N13': [('protoos.mode=shell', 'n13', 'programs.img', {'disk': f'disks/bad/{n}.img'})
+            for n in BAD_DISKS] + [('protoos.mode=shell', 'n13', 'programs.img',
+                                    {'disk': 'disks/fallback.img'})],
+    'N14': [('protoos.test=fs-bad', 'autorun', 'tests.img',
+             {'disk': 'disks/crcbad.img', 'autorun': 't_fsbad', 'mem_check': True})],
+    'N15': [('protoos.test=no-disk', 'autorun', 'tests.img', {'autorun': 't_nodisk'}),
+            ('protoos.test=no-disk', 'autorun', 'tests.img',
+             {'disk': 'disks/blank.img', 'mode': 'legacy', 'autorun': 't_nodisk'})],
 }
 # Scenarios whose probe types into the UART: the serial port is a UNIX
 # socket (logged to uart.log as before) instead of a plain output file.
@@ -168,7 +200,26 @@ def in_range(v, rng):
 
 
 # ------------------------------------------------------------- one boot
-def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None, uart_sock=None, initrd=None):
+def drive_args(disk):
+    """v1.5: QEMU options for a disk {'path', 'mode'}. rw: virtio-mmio v2 with
+    flush; noflush: write-through and no WCE, so no VIRTIO_BLK_F_FLUSH (both
+    are needed: checked on QEMU 8.2.2); ro: readonly=on (VIRTIO_BLK_F_RO);
+    legacy: the virt default, virtio-mmio version 1."""
+    if not disk or not disk.get('path'):
+        return []
+    mode = disk.get('mode', 'rw')
+    opt = {'noflush': ',cache=writethrough', 'ro': ',readonly=on'}.get(mode, '')
+    out = ['-drive', f'if=none,file={disk["path"]},format=raw,id=hd0{opt}',
+           '-device', 'virtio-blk-device,drive=hd0']
+    if mode == 'noflush':
+        out += ['-global', 'virtio-blk-device.config-wce=off']
+    if mode != 'legacy':
+        out += ['-global', 'virtio-mmio.force-legacy=false']
+    return out
+
+
+def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None, uart_sock=None, initrd=None,
+             disk=None, trace=True):
     if uart_sock:
         serial = ['-chardev', f'socket,id=ser0,path={uart_sock},server=on,wait=off,'
                   f'logfile={rundir / "uart.log"}', '-serial', 'chardev:ser0']
@@ -178,9 +229,11 @@ def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None, uart_sock=None, initrd=
            '-m', '128M', '-bios', FW, '-kernel', str(elf)]
     if initrd:
         cmd += ['-initrd', str(initrd)]
+    cmd += drive_args(disk)
     cmd += ['-display', 'none', '-monitor', 'none'] + serial + ['-nic', 'none',
-           '-append', args, '-no-reboot', '-d', 'int,guest_errors',
-           '-D', str(rundir / 'qemu-int.log')]
+           '-append', args, '-no-reboot']
+    if trace:
+        cmd += ['-d', 'int,guest_errors', '-D', str(rundir / 'qemu-int.log')]
     if gdb_port:
         cmd += ['-S', '-gdb', f'tcp:127.0.0.1:{gdb_port}']
     if qmp:
@@ -188,13 +241,14 @@ def qemu_cmd(elf, args, rundir, gdb_port=None, qmp=None, uart_sock=None, initrd=
     return cmd
 
 
-def boot_with_gdb(elf, args, probe, rundir, sym, uva, initrd=None, usym=None):
+def boot_with_gdb(elf, args, probe, rundir, sym, uva, initrd=None, usym=None, disk=None):
     port = free_port()
     sock = f'/tmp/protoos-uart-{os.getpid()}-{time.time_ns()}.sock' if args in INPUT_SCENARIOS else None
-    cmd = qemu_cmd(elf, args, rundir, gdb_port=port, uart_sock=sock, initrd=initrd)
+    cmd = qemu_cmd(elf, args, rundir, gdb_port=port, uart_sock=sock, initrd=initrd, disk=disk)
     cfg = {'probe': probe, 'symbols': sym, 'user_va': uva, 'elf': str(elf), 'port': port,
            'observations': str(rundir / 'observations.json'), 'uart_sock': sock,
-           'user_symbols': usym or {}}
+           'user_symbols': usym or {}, 'autorun': (disk or {}).get('autorun'),
+           'mem_check': bool((disk or {}).get('mem_check'))}
     (rundir / 'probe-config.json').write_text(json.dumps(cfg, indent=1))
     (rundir / 'command.json').write_text(json.dumps({'qemu': cmd}, indent=1))
     env = dict(os.environ, PROTOOS_PROBE_CFG=str(rundir / 'probe-config.json'))
@@ -218,6 +272,63 @@ def boot_with_gdb(elf, args, probe, rundir, sym, uva, initrd=None, usym=None):
     p = rundir / 'observations.json'
     return json.loads(p.read_text()) if p.exists() else {'steps': [], 'complete': False,
                                                          'error': 'no observations'}
+
+
+def boot_crash_series(elf, args, rundir, initrd, disk, seed, kills=20):
+    """v1.5 T27: boot `kills` times on the same disk copy, no debugger; each
+    boot is killed (SIGKILL) at a random moment, from a seeded RNG, after the
+    test driver started its write loop. After every kill: pfsck, and the
+    files' generations against what the driver reported as saved."""
+    import random
+    sys.path.insert(0, str(ROOT / 'build-scripts'))
+    import pfsck
+    rng = random.Random(seed)
+    steps = []
+    for i in range(kills):
+        bdir = rundir / f'kill{i:02d}'
+        bdir.mkdir()
+        cmd = qemu_cmd(elf, args, bdir, initrd=initrd, disk=disk, trace=False)
+        (bdir / 'command.json').write_text(json.dumps({'qemu': cmd}, indent=1))
+        delay = rng.uniform(0.2, 2.5)
+        vm = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        started = False
+        try:
+            end = time.monotonic() + 60
+            while time.monotonic() < end and not started:
+                time.sleep(0.05)
+                log = bdir / 'uart.log'
+                started = log.exists() and 't_crash: starting' in log.read_text(errors='replace')
+            time.sleep(delay)
+        finally:
+            vm.kill()
+            vm.wait()
+        uart = (bdir / 'uart.log').read_text(errors='replace') if (bdir / 'uart.log').exists() else ''
+        # only whole lines: the kill can cut the last one ("saved g 12" of 123)
+        saved = {f: [int(x) for x in re.findall(rf'^saved {f} (\d+)\r?\n', uart, re.M)]
+                 for f in 'gh'}
+        img = pathlib.Path(disk['path']).read_bytes()
+        res = pfsck.check(img)
+        files = {}
+        for f in res['files']:
+            data = img[f['first'] * 4096:f['first'] * 4096 + f['size']]
+            gen = int.from_bytes(data[:8], 'little') if len(data) >= 8 else None
+            files[f['name']] = {'size': f['size'], 'gen': gen, 'crc_ok': f['crc_ok'],
+                                'consistent': gen is not None and data == crash_content(gen)}
+        steps.append({'name': f'kill{i:02d}', 'started': started, 'delay': round(delay, 3),
+                      'saved_last': {f: (v[-1] if v else None) for f, v in saved.items()},
+                      'saved_count': {f: len(v) for f, v in saved.items()},
+                      'start_gen': [int(x) for x in re.findall(
+                          r't_crash: starting after generation (\d+)', uart)],
+                      'pfsck': {k: res[k] for k in ('mounts', 'reject', 'slot', 'seq', 'data_ok')},
+                      'files': files, 'disk_sha256': hashlib.sha256(img).hexdigest()})
+    return {'probe': 't27', 'steps': steps, 'complete': True, 'error': None, 'seed': seed}
+
+
+def crash_content(gen):
+    """What user/tests/t_crash.c writes for generation gen."""
+    n = 1000 + (gen % 7) * 9000
+    body = bytes((i * 131 + (gen & 255) * 17 + 7) & 255 for i in range(n))
+    return gen.to_bytes(8, 'little') + body[8:]
 
 
 class Qmp:
@@ -1167,13 +1278,17 @@ def load_v14(images, work, out, tests):
     """v1.4: copy the program archives the selected tests boot with (SHA-256
     recorded), read images.json, and read the symbols and program headers of
     every program ELF here, independently of the kernel's own checker."""
-    need = sorted({e[2] for t in tests for e in MATRIX[t] if len(e) > 2})
+    need = sorted({e[2] for t in tests for e in MATRIX[t] if len(e) > 2} |
+                  {e[3]['disk'] for t in tests for e in MATRIX[t] if len(e) > 3 and 'disk' in e[3]})
     res = {'images_sha256': {}, 'work_images': work / 'images', 'manifest': {}, 'usym': {},
            'uelf': {}}
     if not need:
         return res
     for rel in need + ['images.json']:
-        for dst in (work / 'images' / rel, out / 'images' / rel):
+        # v1.5: disk images (1 MiB each, rebuilt byte-identically from the
+        # source) are recorded by SHA-256 only, not copied into the evidence
+        is_disk = rel == 'disk.img' or rel.startswith('disks/')
+        for dst in (work / 'images' / rel,) + (() if is_disk else (out / 'images' / rel,)):
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(images / rel, dst)
         res['images_sha256'][rel] = sha256(images / rel)
@@ -1461,9 +1576,12 @@ def oracle_t22(c, obs, ctx):
     end = st['end']
     first = st['first_prompt']
     total = first['mem']['pages'] - first['mem']['reserved']
-    c('archive with the 3 programs loaded; its pages reserved',
-      re.search(r'ARCHIVE \d+ bytes at 0x[0-9a-f]+, \d+ pages reserved: 3 programs', uart)
-      and first['archive']['count'] == 3 and first['archive_bits'] == [1] * len(first['archive_bits'])
+    # v1.5: programs.img also has files, cat, note and rm: the count comes
+    # from images.json (3 in v1.4, 7 since v1.5); the check is otherwise the same
+    n = len(ctx['manifest']['programs.img'])
+    c(f'archive with the {n} programs loaded; its pages reserved',
+      re.search(rf'ARCHIVE \d+ bytes at 0x[0-9a-f]+, \d+ pages reserved: {n} programs', uart)
+      and first['archive']['count'] == n and first['archive_bits'] == [1] * len(first['archive_bits'])
       and first['mem']['reserved'] == len(first['archive_bits']))
     blocks = {}
     for b in uart.split('proto> ')[1:]:
@@ -1611,6 +1729,310 @@ ORACLES.update({'t18': oracle_t18, 't19': oracle_t19, 't20': oracle_t20, 't21': 
                 't22': oracle_t22, 'n10': oracle_n10, 'n11': oracle_n11, 'n12': oracle_n12})
 
 
+# ------------------------------------------------------------------ v1.5
+VIRTIO_F_VERSION_1, BLK_F_RO, BLK_F_FLUSH = 1 << 32, 1 << 5, 1 << 9
+
+
+def pat(n, tag):
+    """The test data pattern (user/include/ptest.h)."""
+    return bytes((i * 131 + tag * 17 + 7) & 255 for i in range(n))
+
+
+def expect_results(c, label, got, want):
+    """want: {index: value}; values compared as the kernel's 64-bit words."""
+    bad = {k: (got[k] - (1 << 64) if got[k] >> 63 else got[k]) for k, v in want.items()
+           if got[k] != v & M64}
+    c(f'{label}: every result as specified ({len(want)} values)', not bad, bad)
+    c(f'{label}: the driver ran to the end (r[63] = 0x600d)', got[63] == 0x600d, hex(got[63]))
+
+
+def queue_ok(c, label, v, kernel):
+    """The virtqueue: every request completed, descriptors on kernel buffers only."""
+    n = (v['reads'] + v['writes'] + v['flushes']) & 0xffff
+    c(f'{label}: every request completed (avail = used = requests)',
+      v['avail_idx'] == v['used_seen'] == v['vq_avail_idx'] == v['vq_used_idx'] == n,
+      {k: v[k] for k in ('avail_idx', 'used_seen', 'vq_avail_idx', 'vq_used_idx', 'reads',
+                         'writes', 'flushes')})
+    b = v['buffers']
+    bufs = set(b[k] for k in ('req', 'bounce', 'status'))
+    # each descriptor: exactly one of the three kernel buffers, with its own length,
+    # flags (NEXT 1, WRITE 2) and link; or unused (all zero)
+    shapes = {b['req']: [(16, 1, 1)], b['bounce']: [(4096, 1, 2), (4096, 3, 2)],
+              b['status']: [(1, 2, 0)]}
+    bad = [d for d in v['desc'] if not (
+        (d['addr'] == 0 and d['len'] == 0) or
+        (d['len'], d['flags'], d['next']) in shapes.get(d['addr'], []))]
+    c(f'{label}: descriptors are exactly the request header (16 B), the bounce buffer (4096 B) and '
+      f'the status byte (1 B, device-writable), linked header -> data -> status',
+      not bad and v['desc'][0]['addr'] == b['req'] and all(kernel[0] <= x < kernel[1] for x in bufs),
+      bad or v['desc'])
+
+
+def pfsck_files(c, label, ctx, want, seq=None):
+    """want: {name: bytes}: the disk image after the boot, read by pfsck."""
+    p = ctx['disk']['pfsck']
+    c(f'{label}: pfsck: the image mounts and every file is intact', p['mounts'] and p['data_ok'],
+      {k: p.get(k) for k in ('reject', 'slot', 'seq', 'data_ok')})
+    got = {n: hashlib.sha256(d).hexdigest() for n, d in ctx['disk']['data'].items()}
+    exp = {n: hashlib.sha256(d).hexdigest() for n, d in want.items()}
+    c(f'{label}: pfsck: exactly the expected files with the expected content', got == exp,
+      {'got': sorted(got), 'want': sorted(exp)})
+    if seq is not None:
+        c(f'{label}: pfsck: directory seq {seq}', p['seq'] == seq, p['seq'])
+
+
+def exit_data(c, obs):
+    s = steps(obs)['exit']
+    c('the test driver exited and its results were read through its own page table', s['hit'],
+      s.get('autorun_pid'))
+    return s
+
+
+T24_SIZES = [0, 1, 4095, 4096, 4097, 131072]
+
+
+def oracle_t_fs(c, obs, ctx):
+    s = exit_data(c, obs)
+    want = {k: 0 for k in range(6)}
+    want.update({6 + k: n for k, n in enumerate(T24_SIZES)})
+    want.update({12 + k: 1 for k in range(6)})
+    want.update({18: -27, 19: 97, 20: 1, 21: 0, 22: 100, 23: 1, 24: 6, 25: sum(T24_SIZES),
+                 26: 0, 27: 3000, 28: 1, 29: 0, 30: 0, 31: -2, 32: -2, 33: 6, 34: -28, 35: 6,
+                 36: 57, 37: -28, 38: -2, 39: 0, 40: 57, 41: 6,
+                 42: 0 + 1 + 4095 + 4096 + 3000 + 131072})
+    expect_results(c, 't_fs', s['results'], want)
+    c('t_fs exit code 0', s['exit_code'] == 0, s['exit_code'])
+    fs = s['disk']['fs']
+    # 135 successful changes: 6 writes, 1 replace, tmp written and deleted,
+    # 6 big files written and deleted, 57 empty files written and deleted
+    c('kernel: 135 directory updates (seq 136, now copy B), no failure',
+      fs['seq'] == 136 and fs['slot'] == 2 and fs['files'] == 6 and not fs['failed']
+      and s['disk']['mounted'] == 1, fs)
+    want_files = {f's{k}': pat(n, k + 1) for k, n in enumerate(T24_SIZES)}
+    want_files['s4'] = pat(3000, 99)
+    pfsck_files(c, 'T24', ctx, want_files, seq=136)
+    c('UART: the empty disk was found', 'DISK 256 blocks, 0 files' in ctx['uart'])
+    v = s['vblk']
+    c('driver: writes and flushes went to the device', v['writes'] > 0 and v['flushes'] > 0,
+      {k: v[k] for k in ('reads', 'writes', 'flushes')})
+    queue_ok(c, 'driver', v, (ctx['sym']['__kernel_start'], ctx['sym']['__kernel_end']))
+
+
+def oracle_t_fsro(c, obs, ctx):
+    s = exit_data(c, obs)
+    expect_results(c, 't_fsro', s['results'], {0: 5000, 1: 1, 2: -30, 3: -30, 4: -30, 5: 5000,
+                                                6: 5000, 7: 1, 8: 1})
+    v, mode = s['vblk'], ctx['spec']['mode']
+    if mode == 'noflush':
+        c('noflush disk: VIRTIO_BLK_F_FLUSH not offered nor negotiated, RO not set',
+          not v['device_features'] & BLK_F_FLUSH and not v['features'] & BLK_F_FLUSH
+          and not v['features'] & BLK_F_RO, hex(v['device_features']))
+        c('UART: no flush, read-only', ': 2048 sectors, no flush, read-only' in ctx['uart'])
+    else:
+        c('readonly=on: VIRTIO_BLK_F_RO negotiated', v['features'] & BLK_F_RO, hex(v['features']))
+        c('UART: read-only', ', read-only' in ctx['uart'])
+    c('driver: not one write or flush reached the device', v['writes'] == 0 and v['flushes'] == 0,
+      {k: v[k] for k in ('reads', 'writes', 'flushes')})
+    d = ctx['disk']
+    c('the disk image is byte-identical after the boot', d['sha_after'] == d['sha_before'],
+      d['sha_after'])
+    pfsck_files(c, 'T24 read-only', ctx, {'ro.txt': pat(5000, 5)}, seq=1)
+
+
+def oracle_t_pw(c, obs, ctx):
+    s = exit_data(c, obs)
+    expect_results(c, 't_pw', s['results'], {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 2})
+    pfsck_files(c, 'T25 after boot 1', ctx, {'p1': pat(200, 4), 'p3': pat(131072, 3)}, seq=6)
+
+
+def oracle_t_pr(c, obs, ctx):
+    s = exit_data(c, obs)
+    expect_results(c, 't_pr', s['results'], {0: 2, 1: 200 + 131072, 2: 200, 3: 1, 4: 131072,
+                                              5: 1, 6: -2})
+    c('boot 2 mounted what boot 1 left: seq 6 (5 changes), 2 files',
+      s['disk']['fs']['seq'] == 6 and s['disk']['fs']['files'] == 2, s['disk']['fs'])
+    d = ctx['disk']
+    c('boot 2 only read: the image is byte-identical after it', d['sha_after'] == d['sha_before'])
+    pfsck_files(c, 'T25 after boot 2', ctx, {'p1': pat(200, 4), 'p3': pat(131072, 3)}, seq=6)
+
+
+def oracle_t23(c, obs, ctx):
+    s = steps(obs)['first_prompt']
+    v, d = s['vblk'], s['disk']
+    src = ctx['disk']['pfsck']
+    c('the shell came up with the disk', s['ok'])
+    line = f'DISK virtio-blk at {v["base"]:#018x}: {v["capacity"]} sectors, flush, read-write'
+    c('UART: the device line', line in ctx['uart'], line)
+    c('UART: blocks and files match the image',
+      f'DISK {src["blocks"]} blocks, {len(src["files"])} files' in ctx['uart'])
+    c('DT: the 8 virtio-mmio transports of QEMU virt were found', d['boot']['virtio_count'] == 8,
+      [hex(x) for x in d['boot']['virtio']])
+    c('the device in use is a DT transport', v['base'] in d['boot']['virtio'], hex(v['base']))
+    m = v.get('mmio', {})
+    c('its registers (read physically): magic "virt", version 2, block device, DRIVER_OK',
+      m.get('magic') == 0x74726976 and m.get('version') == 2 and m.get('device_id') == 2
+      and m.get('status') == 0xf, m)
+    c('capacity = image file size / 512', v['capacity'] == ctx['disk']['size'] // 512,
+      (v['capacity'], ctx['disk']['size']))
+    c('negotiated exactly VERSION_1 and FLUSH', v['features'] == VIRTIO_F_VERSION_1 | BLK_F_FLUSH,
+      hex(v['features']))
+    c('driver ready, queue of 8', v['state'] == 1 and v['qsize'] == 8, v)
+    c('mount read exactly the superblock and both directory copies, wrote nothing',
+      v['reads'] == 3 and v['writes'] == 0 and v['flushes'] == 0)
+    c('the device reported 4097 bytes written for the last read (4096 data + status; checked by '
+      'the driver)', v['last_len'] == 4097, v['last_len'])
+    queue_ok(c, 'driver', v, s['kernel_range'])
+    fs = d['fs']
+    c('kernel mounted copy A, seq 1, 256 blocks', d['mounted'] == 1 and fs['slot'] == 1
+      and fs['seq'] == 1 and fs['blocks'] == src['blocks'], fs)
+    want = [{k: f[k] for k in ('slot', 'name', 'size', 'first', 'count', 'crc')} for f in src['files']]
+    c('kernel directory = pfsck directory of the image', fs['entries'] == want, fs['entries'])
+    bad = {b: {k: w.get('flags') for k, w in ws.items()} for b, ws in s['walks'].items()
+           if not all(w['mapped'] and 'U' not in w['flags'] for w in ws.values())}
+    c('every transport page is mapped U=0 in the kernel, A and B roots (PT walk)', not bad, bad)
+    c('the image is unchanged', ctx['disk']['sha_after'] == ctx['disk']['sha_before'])
+
+
+def uart_blocks(uart):
+    """command -> list of output lines, per shell prompt."""
+    out = {}
+    for b in uart.replace('\r', '').split('proto> ')[1:]:
+        lines = b.split('\n')
+        out.setdefault(lines[0], []).append(lines[1:])
+    return out
+
+
+def oracle_t26(c, obs, ctx):
+    st = steps(obs)
+    c('every command came back to the prompt', all(s.get('ok') for n, s in st.items()
+                                                   if n.startswith('cmd ')))
+    b = uart_blocks(ctx['uart'])
+    hello = len(ctx['uelf']['hello']) if 'hello' in ctx['uelf'] else None
+    c('run hello world: the program from the disk got its argument',
+      b.get('run hello world', [[]])[0][:1] == ['Hello from the disk! Your argument: world'],
+      b.get('run hello world'))
+    procs = st['cmd run hello world']['procs']
+    dp = [p for p in procs[2:] if p['prog'] >= 256]
+    c('kernel: it was started from disk entry 0 with argument "world", exit 0',
+      dp and dp[0]['prog'] == 256 and dp[0]['arg'] == 'world' and dp[0]['arglen'] == 5
+      and dp[0]['state'] == 3 and dp[0]['exit_code'] == 0, dp[:1])
+    files = b.get('run files', [[], []])
+    c('run files, before and after', files[0][:1] == [f'hello  {hello} bytes'] and
+      files[1][:2] == [f'hello  {hello} bytes', 'memo  23 bytes'], files)
+    notes = ctx['uart'].replace('\r', '')
+    c('note saved memo (23 bytes) and tmp (8 bytes); rm removed tmp',
+      'saved memo: 23 bytes' in notes and 'saved tmp: 8 bytes' in notes and
+      b.get('run rm tmp', [[]])[0][:1] == ['removed tmp'])
+    c('run cat memo printed it', b.get('run cat memo', [[]])[0][:2] == ['first line', 'second line'])
+    c('note memo with an empty first line saved nothing (memo kept, no directory update)',
+      'note: nothing typed, nothing saved' in notes and notes.count('saved memo: 23 bytes') == 1)
+    c('run cat nosuch: no such file', b.get('run cat nosuch', [[]])[0][:1] == ['cat: no such file'])
+    fs = st['end']['disk']['fs']
+    c('kernel: 3 directory updates (seq 4), files hello and memo',
+      fs['seq'] == 4 and [e['name'] for e in fs['entries']] == ['hello', 'memo'], fs)
+    pfsck_files(c, 'T26', ctx, {'hello': ctx['uelf']['hello'],
+                                'memo': b'first line\nsecond line\n'}, seq=4)
+
+
+def oracle_t27(c, obs, ctx):
+    ks = obs['steps']
+    c('20 boots, each killed while the driver ran (seeded)', len(ks) == 20 and all(k['started'] for k in ks),
+      obs.get('seed'))
+    bad = [k['name'] for k in ks if not (k['pfsck']['mounts'] and k['pfsck']['data_ok'])]
+    c('after every kill: pfsck mounts the image, every file intact', not bad, bad)
+    incon = [k['name'] for k in ks for f in k['files'].values() if not f['consistent']]
+    c('after every kill: every file is one whole generation (old or new, never mixed)', not incon,
+      incon)
+    lost = []
+    prev = 0
+    acked = {'g': 0, 'h': 0}        # highest generation reported saved in any boot so far
+    for k in ks:
+        g = k['files'].get('g', {}).get('gen') or 0
+        h = k['files'].get('h', {}).get('gen') or 0
+        for f, gen in (('g', g), ('h', h)):
+            if k['saved_last'][f] is not None:
+                acked[f] = max(acked[f], k['saved_last'][f])
+            # never below what any boot acknowledged; at most one unacknowledged write ahead
+            if not acked[f] <= gen <= acked[f] + 1:
+                lost.append((k['name'], f, gen, acked[f]))
+        if not (h == g or h == g - 1 or (g == 0 and h == 0)):
+            lost.append((k['name'], 'h vs g', h, g))
+        if k['start_gen'][:1] != [prev]:
+            lost.append((k['name'], 'start', k['start_gen'], prev))
+        prev = g
+    c('a write reported saved survived the kill; the next boot went on from it', not lost, lost)
+    c('the series made progress (generations saved)', prev > 0 and
+      sum(k['saved_count']['g'] for k in ks) >= 20, prev)
+
+
+def oracle_n13(c, obs, ctx):
+    s = steps(obs)['first_prompt']
+    d, name = s['disk'], pathlib.Path(ctx['spec']['disk']).stem
+    c('the system came up (shell prompt) with this disk', s['ok'])
+    if name == 'fallback':
+        c('copy A damaged, copy B valid: B mounted', d['mounted'] == 1 and d['fs']['slot'] == 2
+          and d['fs']['reject_a'] == 12 and d['fs']['reject_b'] == 0, d)
+        c('UART: 1 file', 'DISK 256 blocks, 1 files' in ctx['uart'])
+        c('pfsck agrees', ctx['disk']['pfsck']['slot'] == 2)
+    else:
+        code = ctx['manifest']['disks']['disks/bad'][name]
+        c(f'refused with code {code} (kernel state)', d['mounted'] == 0 and d['reject'] == code, d)
+        c(f'UART: DISK rejected code=-{code}', f'DISK rejected code=-{code}\n' in
+          ctx['uart'].replace('\r', ''))
+        c('pfsck refuses it with the same code', ctx['disk']['pfsck']['reject'] == code,
+          ctx['disk']['pfsck']['reject'])
+        c('the device itself was fine (driver ready)', s['vblk']['state'] == 1)
+    c('the image is unchanged', ctx['disk']['sha_after'] == ctx['disk']['sha_before'])
+
+
+def oracle_t_fsbad(c, obs, ctx):
+    s = exit_data(c, obs)
+    r = s['results']
+    want = dict(zip(range(1, 12), [-22, -22, -22, -14, -14, -14, -14, -27, -22, -14, -14]))
+    want.update({12: 3000, 13: 1, 14: -5, 15: -5, 16: 3000, 17: -8, 18: -5, 19: -2, 20: 4,
+                 21: 0, 22: 3, 23: r[0], 24: 1, 25: -5, 26: -5})
+    expect_results(c, 't_fsbad', r, want)
+    c('no page leaked (free pages before = after the bad calls)', r[23] == r[0], (r[0], r[23]))
+    first = steps(obs).get('first_meminfo', {})
+    free0, free1 = first.get('mem', {}).get('free'), s['mem']['free']
+    c('GDB: allocator free-page counter at the first meminfo of the driver = at its exit',
+      first.get('hit') and free0 == free1 == r[0], (free0, free1, r[0]))
+    fs = s['disk']['fs']
+    c('the file system did not stop: CRC damage is EIO for that file only',
+      not fs['failed'] and s['disk']['mounted'] == 1, fs)
+    c('the broken ELF from the disk was refused by elf_check', s['sched']['load_errors'] >= 1,
+      s['sched'].get('last_load_error'))
+    p = ctx['disk']['pfsck']
+    bad = sorted(f['name'] for f in p['files'] if not f['crc_ok'])
+    c('pfsck: the same two files damaged (dmg, dmgprog), the rest intact, "ok" added',
+      bad == ['dmg', 'dmgprog'] and ctx['disk']['data'].get('ok') == b'abc' and
+      sorted(ctx['disk']['data']) == ['badelf', 'dmg', 'dmgprog', 'good', 'ok'],
+      (bad, sorted(ctx['disk']['data'])))
+
+
+def oracle_t_nodisk(c, obs, ctx):
+    s = exit_data(c, obs)
+    expect_results(c, 't_nodisk', s['results'], {0: -19, 1: -19, 2: -19, 3: -19, 4: -2, 5: 0,
+                                                  6: 1, 7: 42})
+    c('kernel: no disk mounted', s['disk']['mounted'] == 0, s['disk'])
+    lines = [x for x in ctx['uart'].replace('\r', '').split('\n') if x.startswith('DISK')]
+    if ctx['spec'].get('mode') == 'legacy':
+        v = s['vblk']
+        c('legacy device refused cleanly', v['state'] == 3 and v['legacy_base'] in
+          s['disk']['boot']['virtio'] and v['base'] == 0, v)
+        c('UART: exactly the refusal line',
+          lines == [f'DISK refused: legacy virtio-mmio block device at {v["legacy_base"]:#018x}'], lines)
+        c('the image is unchanged', ctx['disk']['sha_after'] == ctx['disk']['sha_before'])
+    else:
+        c('no disk: no driver state, no DISK line (as v1.4)', s['vblk']['state'] == 0 and not lines,
+          lines)
+
+
+ORACLES.update({'t23': oracle_t23, 't_fs': oracle_t_fs, 't_fsro': oracle_t_fsro,
+                't_pw': oracle_t_pw, 't_pr': oracle_t_pr, 't26': oracle_t26, 't27': oracle_t27,
+                'n13': oracle_n13, 't_fsbad': oracle_t_fsbad, 't_nodisk': oracle_t_nodisk})
+
+
 def judge(probe, obs, ctx):
     c = Checks()
     if not obs.get('complete'):
@@ -1660,9 +2082,14 @@ def main():
     for test in args.tests.split(','):
         for rep in range(1, args.reps + 1):
             parts = []
+            shared = {}                 # v1.5: the disk copy of this repetition
             for scenario, probe, *img in MATRIX[test]:
+                spec = img[1] if len(img) > 1 else None
                 img = img[0] if img else None
                 name = scenario.split('=')[1] + (f'+{pathlib.Path(img).stem}' if img else '')
+                if spec:
+                    name += f'+{pathlib.Path(spec.get("disk", "nodisk")).stem}'
+                    name += f'-{spec["mode"]}' if spec.get('mode') else ''
                 rel = pathlib.Path('raw') / test / f'run{rep}' / name
                 initrd = v14['work_images'] / img if img else None
                 # QEMU writes the -d int trace synchronously from the vCPU
@@ -1671,12 +2098,42 @@ def main():
                 # then copy the finished boot directory into the evidence.
                 rundir = work / rel
                 rundir.mkdir(parents=True)
+                # v1.5: a fresh copy of the disk image for this boot (or the
+                # repetition's shared copy); it stays in the work directory,
+                # the evidence keeps its SHA-256 and pfsck's verdict.
+                disk = dict(spec) if spec else None      # no 'path': no disk at all
+                if spec and spec.get('disk'):
+                    src = v14['work_images'] / spec['disk']
+                    path = shared.get('path') if spec.get('share') else None
+                    if not path:
+                        path = (work / 'disks' / test / f'run{rep}' /
+                                ('shared' if spec.get('share') else name) / 'disk.img')
+                        path.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copyfile(src, path)
+                        if spec.get('share'):
+                            shared['path'] = path
+                    disk = dict(spec, path=str(path))
+                disk_before = sha256(disk['path']) if disk and disk.get('path') else None
                 t0 = time.monotonic()
                 if probe == 't7':
                     obs = boot_free_running(elf, scenario, rundir, sym, offsets, args.t7_seconds)
+                elif probe == 't27':
+                    obs = boot_crash_series(elf, scenario, rundir, initrd, disk, seed=1505 + rep)
                 else:
                     obs = boot_with_gdb(elf, scenario, probe, rundir, sym, uva, initrd,
-                                        v14['usym'])
+                                        v14['usym'], disk)
+                disk_ctx = None
+                if disk and disk.get('path'):
+                    sys.path.insert(0, str(ROOT / 'build-scripts'))
+                    import pfsck
+                    raw = pathlib.Path(disk['path']).read_bytes()
+                    disk_ctx = {'spec': spec, 'sha_source': v14['images_sha256'].get(spec['disk']),
+                                'sha_before': disk_before, 'sha_after': sha256(disk['path']),
+                                'pfsck': pfsck.check(raw), 'data': {}, 'size': len(raw)}
+                    for f in disk_ctx['pfsck']['files']:
+                        disk_ctx['data'][f['name']] = raw[f['first'] * 4096:
+                                                          f['first'] * 4096 + f['size']]
+                    (rundir / 'pfsck.json').write_text(json.dumps(disk_ctx['pfsck'], indent=1))
                 ctx = {'trace': parse_trace(rundir / 'qemu-int.log')
                        if (rundir / 'qemu-int.log').exists() else [],
                        'uart': (rundir / 'uart.log').read_text(errors='replace')
@@ -1686,10 +2143,13 @@ def main():
                        'image': img, 'image_sha': v14['images_sha256'].get(img),
                        'image_sha_after': sha256(initrd) if initrd else None,
                        'image_size': initrd.stat().st_size if initrd else None,
-                       'manifest': v14['manifest'], 'usym': v14['usym'], 'uelf': v14['uelf']}
-                status, items, note = judge(probe, obs, ctx)
+                       'manifest': v14['manifest'], 'usym': v14['usym'], 'uelf': v14['uelf'],
+                       'disk': disk_ctx, 'spec': spec or {}, 'test': test}
+                status, items, note = judge((spec or {}).get('autorun') or probe, obs, ctx)
                 verdict = {'test': test, 'repetition': rep, 'scenario': scenario, 'probe': probe,
                            'program_archive': img,
+                           'disk': ({k: v for k, v in disk_ctx.items() if k != 'data'}
+                                    if disk_ctx else None),
                            'status': status, 'note': note, 'elf_sha256': image,
                            'seconds': round(time.monotonic() - t0, 2), 'checks': items,
                            'summary': obs.get('summary'),
@@ -1697,8 +2157,12 @@ def main():
                                           if p.is_file()}}
                 (rundir / 'verdict.json').write_text(json.dumps(verdict, indent=1))
                 (out / rel).mkdir(parents=True)
-                for f in rundir.iterdir():     # plain copy: /mnt/c rejects copystat
-                    shutil.copyfile(f, out / rel / f.name)
+                for f in sorted(rundir.rglob('*')):     # plain copy: /mnt/c rejects copystat
+                    dst = out / rel / f.relative_to(rundir)
+                    if f.is_dir():
+                        dst.mkdir(parents=True, exist_ok=True)
+                    else:
+                        shutil.copyfile(f, dst)
                 parts.append(verdict)
                 bad = [i['check'] for i in items if not i['ok']]
                 print(f'{test} run{rep} {name:28s} {status:12s} '

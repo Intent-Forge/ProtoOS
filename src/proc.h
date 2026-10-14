@@ -23,6 +23,13 @@
 #define SYS_WAIT   UINT64_C(1009)
 #define SYS_SBRK   UINT64_C(1010)
 #define SYS_PROGS  UINT64_C(1011)
+/* v1.5 (docs/SPEC_V1_5.md): names are pointer + length */
+#define SYS_FS_LIST   UINT64_C(1012)
+#define SYS_FS_READ   UINT64_C(1013)
+#define SYS_FS_WRITE  UINT64_C(1014)
+#define SYS_FS_DELETE UINT64_C(1015)
+#define SYS_ARGS      UINT64_C(1016)
+#define SYS_RUN_ARG   UINT64_C(1017)
 #define SYS_EPERM  ((uint64_t)-1)
 #define SYS_ENOENT ((uint64_t)-2)
 #define SYS_ESRCH  ((uint64_t)-3)
@@ -34,6 +41,14 @@
 #define SYS_EBUSY  ((uint64_t)-16)
 #define SYS_EINVAL ((uint64_t)-22)
 #define SYS_ENOSYS ((uint64_t)-38)
+/* v1.5 */
+#define SYS_EIO    ((uint64_t)-5)
+#define SYS_ENODEV ((uint64_t)-19)
+#define SYS_EFBIG  ((uint64_t)-27)
+#define SYS_ENOSPC ((uint64_t)-28)
+#define SYS_EROFS  ((uint64_t)-30)
+#define ARG_MAX    55u                   /* run_arg(): the shell line is 63 bytes */
+#define FS_NAME_BYTES 16u                /* fs_list(): name buffer, NUL padded */
 #define WRITE_MAX  UINT64_C(256)
 #define READ_MAX   UINT64_C(256)
 #define SLEEP_MAX_MS UINT64_C(60000)
@@ -50,6 +65,8 @@ enum program_id { PROG_NONE, PROG_WORKER, PROG_HELLO, PROG_COUNTER, PROG_CRASH,
                   PROG_MEMCHECK, PROG_IDS };
 /* v1.4: a process started from archive file n has program id PROG_FILE + n. */
 #define PROG_FILE UINT64_C(16)
+/* v1.5: a process started from disk file entry n has program id PROG_DISK + n. */
+#define PROG_DISK UINT64_C(256)
 
 enum proc_state { PROC_UNUSED, PROC_READY, PROC_RUNNING, PROC_EXITED, PROC_FAULTED,
                   PROC_SLEEPING, PROC_BLOCKED };
@@ -77,6 +94,9 @@ struct process {
     /* v1.4: heap of an archive program; a BLOCKED waiter (wait_pid != 0) */
     uint64_t heap_base, brk;
     uint64_t wait_pid, waits_done;
+    /* v1.5: the argument line given by run_arg() (empty for run()) */
+    uint64_t arglen;
+    char arg[ARG_MAX + 1];
 };
 _Static_assert(offsetof(struct process, frame) == 0, "trap.S frame protocol");
 
@@ -99,6 +119,7 @@ struct sched_stats {
     uint64_t fg_pid;        /* console foreground: Ctrl-C ends this process */
     uint64_t fg_waiter;     /* pid whose foreground wait() set fg_pid */
     uint64_t interrupted;   /* processes ended by Ctrl-C */
+    uint64_t autorun_pid;   /* v1.5: pid of the program a test scenario started at boot */
 };
 
 extern struct process procs[PROC_MAX];
@@ -109,7 +130,9 @@ extern struct sched_stats sched;
 extern struct archive prog_archive;
 extern uint64_t prog_archive_pa;
 
-_Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int heartbeat);
+/* autorun (v1.5 test scenarios): an archive program started at boot, or 0. */
+_Noreturn void proc_start(uint64_t entry_a, uint64_t entry_b, int verbose, int heartbeat,
+                          const char *autorun);
 struct trap_frame *trap_from_user(struct trap_frame *f);
 _Noreturn void user_return(struct trap_frame *f);
 #endif

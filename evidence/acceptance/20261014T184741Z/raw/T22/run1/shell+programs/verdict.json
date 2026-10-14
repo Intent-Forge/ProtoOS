@@ -1,0 +1,118 @@
+{
+ "test": "T22",
+ "repetition": 1,
+ "scenario": "protoos.mode=shell",
+ "probe": "t22",
+ "program_archive": "programs.img",
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 6.85,
+ "checks": [
+  {
+   "check": "archive with the 7 programs loaded; its pages reserved",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ls lists guess, primes, clock with their file sizes",
+   "ok": true,
+   "detail": "['guess  15440 bytes', 'primes  15264 bytes', 'clock  15400 bytes']"
+  },
+  {
+   "check": "run primes: the program printed the right primes and count, exit 0",
+   "ok": true,
+   "detail": "['Primes below 100: 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97', 'There are 1229 primes below 10000 (sieve of 10000 bytes on the heap).', 'EXIT C(pid=3) code=0']"
+  },
+  {
+   "check": "typed ahead with the command, \"50\" reached the game, not the shell (answered by the game; no \"unknown command\")",
+   "ok": true,
+   "detail": "[50, 75]"
+  },
+  {
+   "check": "run guess: the binary search found the number; the program counted the tries",
+   "ok": true,
+   "detail": "([50, 75, 88, 94, 97], ['Too small.', 'Too small.', 'Too small.', 'Too small.', 'Correct!'])"
+  },
+  {
+   "check": "run clock: at least 3 lines one second apart, then ^C and a new prompt",
+   "ok": true,
+   "detail": "([1.08, 2.09, 3.1], ['^C', ''])"
+  },
+  {
+   "check": "Ctrl-C ended clock (pid 5): EXITED 130, killed, pages back; the shell waited in the foreground",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "run clock & -> started pid 6 (background, no wait)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ps shows the background program by name",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "kill 6 returned its 10 pages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "run nosuch -> not found message",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "mem at the end: all pages free",
+   "ok": true,
+   "detail": "[(31205, 31205)]"
+  },
+  {
+   "check": "at the end: shell BLOCKED at its prompt, B running, no run-time process owns pages",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "every command ended with a new prompt (10 prompts)",
+   "ok": true,
+   "detail": "10"
+  },
+  {
+   "check": "trace: no user exception other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "d9b176082c8b4f72d484b9813674d662cef1dc00c6f3994d8f5d7322c2d5efe4"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "34374c03dc8a6062bc610a8e0f6089abdf2e7fd13447da17a2ddce66d8faabd5",
+  "gdb.log": "cbfe624e473d5382270eb87b9de8eeab3ff370ad5393ebb066b71e3396998af1",
+  "observations.json": "04c9a43e595e39398d4eb6cce258877a7938714616222bf8b3e0cf1047f220df",
+  "probe-config.json": "0db36e4aaefcf280699c6d606b8745703986659f00786e55c246de5e94acf269",
+  "qemu-int.log": "de1e14da9e2b69abeaa8367b2f955ad3d5b38d491244cfee4b090d1d2f6f7c1a",
+  "uart.log": "dbbd5e5440c651ed1ddfb3c4073ddb198017a8aad78e2366e046ecaeaa2e1f6d"
+ }
+}

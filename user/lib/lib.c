@@ -29,9 +29,69 @@ void *memcpy(void *dst, const void *src, size_t n)
     return dst;
 }
 
+/* v1.5: every start goes through run_arg (1017); 1008 stays for old code. */
 long sys_run(const char *name)
 {
-    return proto_call(1008, (long)name, (long)strlen(name), 0);
+    return sys_run_arg(name, "");
+}
+
+long sys_run_arg(const char *name, const char *arg)
+{
+    return proto_call5(1017, (long)name, (long)strlen(name), (long)arg, (long)strlen(arg), 0);
+}
+
+long get_arg(char *buf, size_t max)
+{
+    if (max == 0) return -1;
+    long n = proto_call(1016, (long)buf, (long)(max - 1), 0);
+    if (n < 0) return n;
+    if ((size_t)n > max - 1) n = (long)(max - 1);
+    buf[n] = 0;
+    return n;
+}
+
+long fs_list(unsigned long index, char name[16])
+{
+    return proto_call(1012, (long)index, (long)name, 0);
+}
+
+long fs_read(const char *name, unsigned long off, void *buf, unsigned long len)
+{
+    return proto_call5(1013, (long)name, (long)strlen(name), (long)off, (long)buf, (long)len);
+}
+
+long fs_write(const char *name, const void *buf, unsigned long len)
+{
+    return proto_call5(1014, (long)name, (long)strlen(name), (long)buf, (long)len, 0);
+}
+
+long fs_delete(const char *name)
+{
+    return proto_call(1015, (long)name, (long)strlen(name), 0);
+}
+
+void print_error(const char *prog, long err)
+{
+    const char *what = "error";
+    switch (err) {
+    case E_NOENT: what = "no such file"; break;
+    case E_IO: what = "disk error (the file is damaged or the disk failed)"; break;
+    case E_NODEV: what = "no disk"; break;
+    case E_FBIG: what = "file too large (at most 128 KiB)"; break;
+    case E_NOSPC: what = "the disk is full"; break;
+    case E_ROFS: what = "the disk is read-only"; break;
+    case E_INVAL: what = "bad name (1-15 of a-z 0-9 _ .)"; break;
+    case E_NOEXEC: what = "not a program"; break;
+    case E_NOMEM: what = "out of memory"; break;
+    }
+    print(prog);
+    print(": ");
+    print(what);
+    if (what[0] == 'e' && what[1] == 'r') {     /* not a known code: show its number */
+        print(" ");
+        print_int(err);
+    }
+    print("\n");
 }
 
 /* write() takes at most 256 bytes per call */

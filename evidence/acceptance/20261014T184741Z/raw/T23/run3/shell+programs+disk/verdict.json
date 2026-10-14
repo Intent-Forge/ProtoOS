@@ -1,0 +1,167 @@
+{
+ "test": "T23",
+ "repetition": 3,
+ "scenario": "protoos.mode=shell",
+ "probe": "t23",
+ "program_archive": "programs.img",
+ "disk": {
+  "spec": {
+   "disk": "disk.img"
+  },
+  "sha_source": "e925a45da056e7d5df65bbd0e2845b091a71e88ecfc4d4cb33de6f99c92a8154",
+  "sha_before": "e925a45da056e7d5df65bbd0e2845b091a71e88ecfc4d4cb33de6f99c92a8154",
+  "sha_after": "e925a45da056e7d5df65bbd0e2845b091a71e88ecfc4d4cb33de6f99c92a8154",
+  "pfsck": {
+   "mounts": true,
+   "reject": null,
+   "slot": 1,
+   "seq": 1,
+   "files": [
+    {
+     "slot": 0,
+     "name": "hello",
+     "size": 15192,
+     "first": 3,
+     "count": 4,
+     "crc": 2348286995,
+     "crc_ok": true,
+     "sha256": "67dd525c33ebe81a7d4e566a6a34b902c671f287bfcc258b2539c8c53c467d4f"
+    }
+   ],
+   "copies": {
+    "A": {
+     "code": 0,
+     "seq": 1
+    },
+    "B": {
+     "code": 0,
+     "seq": 0
+    }
+   },
+   "data_ok": true,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "the shell came up with the disk",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "UART: the device line",
+   "ok": true,
+   "detail": "DISK virtio-blk at 0x0000000010008000: 2048 sectors, flush, read-write"
+  },
+  {
+   "check": "UART: blocks and files match the image",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "DT: the 8 virtio-mmio transports of QEMU virt were found",
+   "ok": true,
+   "detail": "['0x10008000', '0x10007000', '0x10006000', '0x10005000', '0x10004000', '0x10003000', '0x10002000', '0x10001000']"
+  },
+  {
+   "check": "the device in use is a DT transport",
+   "ok": true,
+   "detail": "0x10008000"
+  },
+  {
+   "check": "its registers (read physically): magic \"virt\", version 2, block device, DRIVER_OK",
+   "ok": true,
+   "detail": "{'magic': 1953655158, 'version': 2, 'device_id': 2, 'status': 15}"
+  },
+  {
+   "check": "capacity = image file size / 512",
+   "ok": true,
+   "detail": "(2048, 1048576)"
+  },
+  {
+   "check": "negotiated exactly VERSION_1 and FLUSH",
+   "ok": true,
+   "detail": "0x100000200"
+  },
+  {
+   "check": "driver ready, queue of 8",
+   "ok": true,
+   "detail": "{'base': 268468224, 'state': 1, 'reason': 0, 'device_features': 1104611929684, 'features': 4294967808, 'capacity': 2048, 'qsize': 8, 'avail_idx': 3, 'used_seen': 3, 'reads': 3, 'writes': 0, 'flushes': 0, 'legacy_base': 0, 'last_len': 4097, 'vq_avail_idx': 3, 'vq_used_idx': 3, 'desc': [{'addr': 2149875728, 'len': 16, 'next': 1, 'flags': 1}, {'addr': 2149867520, 'len': 4096, 'next': 2, 'flags': 3}, {'addr': 2149875712, 'len': 1, 'next': 0, 'flags': 2}], 'buffers': {'req': 2149875728, 'bounce': 2149867520, 'status': 2149875712, 'vq': 2149871616}, 'mmio': {'magic': 1953655158, 'version': 2, 'device_id': 2, 'status': 15}}"
+  },
+  {
+   "check": "mount read exactly the superblock and both directory copies, wrote nothing",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "the device reported 4097 bytes written for the last read (4096 data + status; checked by the driver)",
+   "ok": true,
+   "detail": "4097"
+  },
+  {
+   "check": "driver: every request completed (avail = used = requests)",
+   "ok": true,
+   "detail": "{'avail_idx': 3, 'used_seen': 3, 'vq_avail_idx': 3, 'vq_used_idx': 3, 'reads': 3, 'writes': 0, 'flushes': 0}"
+  },
+  {
+   "check": "driver: descriptors are exactly the request header (16 B), the bounce buffer (4096 B) and the status byte (1 B, device-writable), linked header -> data -> status",
+   "ok": true,
+   "detail": "[{'addr': 2149875728, 'len': 16, 'next': 1, 'flags': 1}, {'addr': 2149867520, 'len': 4096, 'next': 2, 'flags': 3}, {'addr': 2149875712, 'len': 1, 'next': 0, 'flags': 2}]"
+  },
+  {
+   "check": "kernel mounted copy A, seq 1, 256 blocks",
+   "ok": true,
+   "detail": "{'blocks': 256, 'slot': 1, 'seq': 1, 'files': 1, 'failed': 0, 'reject_a': 0, 'reject_b': 0, 'entries': [{'slot': 0, 'name': 'hello', 'size': 15192, 'first': 3, 'count': 4, 'crc': 2348286995}]}"
+  },
+  {
+   "check": "kernel directory = pfsck directory of the image",
+   "ok": true,
+   "detail": "[{'slot': 0, 'name': 'hello', 'size': 15192, 'first': 3, 'count': 4, 'crc': 2348286995}]"
+  },
+  {
+   "check": "every transport page is mapped U=0 in the kernel, A and B roots (PT walk)",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "the image is unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "d9b176082c8b4f72d484b9813674d662cef1dc00c6f3994d8f5d7322c2d5efe4"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "c6139f1bec33a18488cffcc2c5550509b2b8986192af2ec5881aac483b4921ef",
+  "gdb.log": "12bb8c2b76dfb8a69d3defeb877fd0b1c1beebcedf202148fa12a0aa319502f7",
+  "observations.json": "01b9520a3e3bd94fe34eb64468c3f5eede5311c76b4156d6cc70693fd6ce4f43",
+  "pfsck.json": "91a01807d534ecda1c5fb22ec2751fb35a2e8db8d0d920dfbe18aa56d5910891",
+  "probe-config.json": "40309a9de9360f33f72008e01baad6bd13ce3d31862a5b1538cd4f49ecd781dc",
+  "qemu-int.log": "9cd36de27e6045623091bfdf9f3756ec261caef82fb02ada44c41081eec568a4",
+  "uart.log": "51cd6b40ef177edc37604a0faf3f09696448871f118414505169bda92fbcb713"
+ }
+}
