@@ -105,6 +105,7 @@ A boot whose probe could not finish is a **FAIL** (not INCONCLUSIVE) when the ou
 - Snapshots make reading a large file cost its whole size in memory. There is no streaming read in v1.6.
 - Write mode always replaces the whole file. Append and editing in place stay out of scope (v1.8 plans atomic editing).
 - Unchanged from v1.5: QEMU only, no real disks.
+- A stopped file system (a failed write or flush, v1.5) also makes `open` return −5, in both modes, as every other file call. QEMU cannot make the device fail on demand, so no acceptance check reaches this path; it is covered by review only, as the same rule for the v1.5 calls.
 
 ## Owner answers (2026-10-13)
 1. At most **4 open files** per process in v1.6; v1.7 decides again together with pipes.
