@@ -17,6 +17,7 @@ Usage: python3 validation/run_acceptance.py [--elf build/protoos.elf]
 """
 import argparse
 import datetime
+import gzip
 import hashlib
 import json
 import os
@@ -2255,6 +2256,12 @@ def main():
                     dst = out / rel / f.relative_to(rundir)
                     if f.is_dir():
                         dst.mkdir(parents=True, exist_ok=True)
+                    elif f.suffix == '.log' and f.stat().st_size > (1 << 20):
+                        # v1.6: big traces (the fuzzer's) are kept gzip-compressed;
+                        # verdict.json holds the SHA-256 of the uncompressed file
+                        with open(f, 'rb') as src, open(str(dst) + '.gz', 'wb') as gz, \
+                                gzip.GzipFile(filename='', mode='wb', fileobj=gz, mtime=0) as z:
+                            shutil.copyfileobj(src, z)
                     else:
                         shutil.copyfile(f, dst)
                 parts.append(verdict)
