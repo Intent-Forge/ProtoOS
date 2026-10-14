@@ -2122,6 +2122,14 @@ ORACLES.update({'t23': oracle_t23, 't_fs': oracle_t_fs, 't_fsro': oracle_t_fsro,
 def judge(probe, obs, ctx):
     c = Checks()
     if not obs.get('complete'):
+        # v1.6: a probe that could not finish is still a FAIL when the outside
+        # evidence shows a violation (an S-mode exception, KERNEL_PANIC).
+        try:
+            common_checks(c, ctx)
+        except (KeyError, IndexError, TypeError):
+            pass
+        if c.items and not all(i['ok'] for i in c.items):
+            return 'FAIL', c.items, f'probe incomplete and a violation observed: {obs.get("error")}'
         return 'INCONCLUSIVE', c.items, f'probe incomplete: {obs.get("error")}'
     try:
         ORACLES[probe](c, obs, ctx)

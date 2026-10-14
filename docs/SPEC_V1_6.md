@@ -85,18 +85,20 @@ v1.6 is accepted when T1–T29 and N1–N17 all PASS in 3 clean boots each.
 
 - **Host tests:** the descriptor logic (positions, bounds, the page accounting) as pure code, plain and with ASan/UBSan, like PFS in v1.5.
 - **Nightly:** the fuzzer with new seeds every night on the mini-PC; a failing seed is reported with the command that repeats it.
-- **Mutants**, each must fail its check:
+- **Mutants**: 8 new kernels with one plausible bug each (`tools/v16`, outside the repository), plus the 10 of v1.5; each must not pass its check:
 
-| Bug put in | Check |
-|---|---|
-| `close` writes the directory before the data | T29, host |
-| a write buffer saved when its process is killed | T29 |
-| no snapshot (`read` goes to the disk) | T28 |
-| descriptor pages outside the 64-page limit | T28 |
-| another process's descriptor accepted | N16 |
-| `lseek` without a bounds check | N16 |
-| a page lost at `close` | T28 |
-| the harness ignoring an S-mode exception | N17 with a kernel that faults on call 1100 |
+| # | Bug put in | Check |
+|---|---|---|
+| M26 | a write buffer saved when its process ends (killed, faulted or exited) | T29 |
+| M27 | no snapshot: `read` reads the file on the disk every time | T28 |
+| M28 | descriptor pages outside the 64-page limit | T28 |
+| M29 | another process's descriptor accepted | N16 |
+| M30 | `lseek` from the start without a bounds check | T28 |
+| M31 | a page lost when a descriptor is given back | T28 |
+| M32 | the kernel faults on unknown numbers 1090–1099 | N17 (the fuzzer reaches them; the QEMU trace and the UART show the fault) |
+| M33 | a write-mode file visible before `close` (written through) | T28 |
+
+A boot whose probe could not finish is a **FAIL** (not INCONCLUSIVE) when the outside evidence shows a violation: an S-mode exception in the QEMU trace or `KERNEL_PANIC` on the UART. M32 needed this: the fuzzer's kernel panicked, so the probe never saw the fuzzer end.
 
 ## Honest limits
 - The fuzzer finds what random search reaches. It is not a proof.
