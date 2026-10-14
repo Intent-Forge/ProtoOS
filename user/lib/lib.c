@@ -70,6 +70,31 @@ long fs_delete(const char *name)
     return proto_call(1015, (long)name, (long)strlen(name), 0);
 }
 
+long fd_open(const char *name, int flags)
+{
+    return proto_call(1018, (long)name, (long)strlen(name), flags);
+}
+
+long fd_read(long fd, void *buf, unsigned long len)
+{
+    return proto_call(63, fd, (long)buf, (long)len);
+}
+
+long fd_write(long fd, const void *buf, unsigned long len)
+{
+    return proto_call(64, fd, (long)buf, (long)len);
+}
+
+long fd_close(long fd)
+{
+    return proto_call(1019, fd, 0, 0);
+}
+
+long fd_seek(long fd, long off, int whence)
+{
+    return proto_call(1020, fd, off, whence);
+}
+
 void print_error(const char *prog, long err)
 {
     const char *what = "error";
@@ -83,6 +108,8 @@ void print_error(const char *prog, long err)
     case E_INVAL: what = "bad name (1-15 of a-z 0-9 _ .)"; break;
     case E_NOEXEC: what = "not a program"; break;
     case E_NOMEM: what = "out of memory"; break;
+    case E_BADF: what = "bad file descriptor"; break;
+    case E_MFILE: what = "too many open files"; break;
     }
     print(prog);
     print(": ");

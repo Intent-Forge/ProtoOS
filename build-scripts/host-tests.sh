@@ -30,5 +30,11 @@ if [ -f build/images.json ]; then
 else
   python3 tests/test_pfsck_agree.py "$T/dump"
 fi
+# v1.6: descriptor arithmetic (positions, bounds, pages), plain and with ASan/UBSan
+cc -std=c11 -Wall -Wextra -Werror -O2 tests/test_fdmath.c -o "$T/fdm"
+"$T/fdm" | tail -1
+cc -std=c11 -Wall -Wextra -Werror -O1 -fsanitize=address,undefined -fno-sanitize-recover=all \
+  -fno-omit-frame-pointer tests/test_fdmath.c -o "$T/fdm-san"
+ASAN_OPTIONS=detect_leaks=0 "$T/fdm-san" | tail -1
 rm -rf "$T"
 echo HOST_TESTS_PASS

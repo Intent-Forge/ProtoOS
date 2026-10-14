@@ -4,8 +4,11 @@
 #include "mem.h"
 #include "proc.h"
 #include "disk.h"
+#include "fdmath.h"
 #include "sbi.h"
 #include "sv39.h"
+
+static uint64_t fd_pages(const struct process *p);     /* v1.6: below, with reclaim */
 
 struct process procs[PROC_MAX];
 struct process *current;
@@ -241,8 +244,27 @@ static struct trap_frame *schedule(const char *reason)
 /* v1.3: give back every page of a run-time process that has ended. Its
  * root may be the one installed (exit, fault): switch to the kernel root
  * first, so no freed table is ever in use. */
+/* v1.6: descriptor pages of p, and giving a descriptor back. */
+static uint64_t fd_pages(const struct process *p)
+{
+    uint64_t n = 0;
+    for (unsigned i = 0; i < FD_FILES; ++i) n += p->files[i].npages;
+    return n;
+}
+
+static void fd_drop(struct fd *d)
+{
+    for (uint64_t i = 0; i < d->npages; ++i) mem_free(d->pages[i]);
+    volatile uint64_t *w = (volatile uint64_t *)d;
+    for (size_t i = 0; i < sizeof(*d) / 8u; ++i) w[i] = 0;
+}
+
 static void reclaim(struct process *p)
 {
+    /* v1.6: open files go first; a write buffer is discarded unsaved, so
+     * the disk keeps the old file (SPEC_V1_6, "a process that ends"). */
+    for (unsigned i = 0; i < FD_FILES; ++i)
+        if (p->files[i].mode) fd_drop(&p->files[i]);
     if (!p->npages) return;
     if (p == current || csr_read(satp) == p->satp) {
         vm_switch(vm_kernel_satp);
@@ -261,8 +283,12 @@ static void reclaim(struct process *p)
 
 /* Copy a validated user buffer to the console. The range check walks the
  * caller's own page table first, so the SUM window never faults. */
+static uint64_t sys_fd_write(struct process *p, uint64_t fd, uint64_t va, uint64_t len);
+static uint64_t sys_fd_read(struct process *p, uint64_t fd, uint64_t va, uint64_t len);
+
 static uint64_t sys_write(struct process *p, uint64_t fd, uint64_t va, uint64_t len)
 {
+    if (fd >= FD_FIRST && fd < FD_FIRST + FD_FILES) return sys_fd_write(p, fd, va, len);
     if (fd != 1) return SYS_EBADF;
     if (len > WRITE_MAX) return SYS_EINVAL;
     if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R)) return SYS_EFAULT;
@@ -285,6 +311,10 @@ static uint64_t sys_write(struct process *p, uint64_t fd, uint64_t va, uint64_t 
 static struct trap_frame *sys_read(struct process *p, struct trap_frame *f)
 {
     uint64_t fd = f->x[10], va = f->x[11], len = f->x[12];
+    if (fd >= FD_FIRST && fd < FD_FIRST + FD_FILES) {      /* v1.6: a file */
+        f->x[10] = sys_fd_read(p, fd, va, len);
+        return f;
+    }
     if (fd != 0) { f->x[10] = SYS_EBADF; return f; }
     if (len > READ_MAX) { f->x[10] = SYS_EINVAL; return f; }
     if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R | SV39_PTE_W)) {
@@ -655,6 +685,142 @@ static uint64_t sys_fs_delete(struct process *p, const struct trap_frame *f)
     return r ? fs_error(r) : 0;
 }
 
+/* ------------------------------------------------------------------ v1.6
+ * File descriptors (docs/SPEC_V1_6.md). Arguments first (-22, -14), then
+ * the descriptor (-9), then the disk. */
+static struct fd *fd_get(struct process *p, uint64_t fd)
+{
+    if (fd < FD_FIRST || fd >= FD_FIRST + FD_FILES) return 0;
+    struct fd *d = &p->files[fd - FD_FIRST];
+    return d->mode ? d : 0;
+}
+
+/* Grow d to `want` pages inside the process's page limit (zeroed pages). */
+static uint64_t fd_grow(struct process *p, struct fd *d, uint64_t want)
+{
+    if (want <= d->npages) return 0;
+    uint64_t need = want - d->npages, used = p->npages + fd_pages(p);
+    if (want > FD_PAGES || used > PROC_PAGE_LIMIT || need > PROC_PAGE_LIMIT - used)
+        return SYS_ENOMEM;
+    for (uint64_t k = 0; k < need; ++k) {
+        uint64_t pa = mem_alloc();
+        if (!pa) {
+            while (k--) mem_free(d->pages[d->npages + k]);
+            return SYS_ENOMEM;
+        }
+        d->pages[d->npages + k] = pa;
+    }
+    d->npages = want;
+    return 0;
+}
+
+/* Copy n bytes between the descriptor's pages at byte `at` and a user range
+ * the caller validated (to_user: pages -> user). */
+static void fd_copy(struct fd *d, uint64_t at, uint64_t va, uint64_t n, int to_user)
+{
+    csr_set(sstatus, SSTATUS_SUM);
+    for (uint64_t i = 0; i < n; ++i) {
+        uint64_t b = at + i;
+        volatile uint8_t *k = (volatile uint8_t *)(uintptr_t)(d->pages[b / SV39_PAGE_SIZE] + b % SV39_PAGE_SIZE);
+        volatile uint8_t *u = (volatile uint8_t *)(uintptr_t)(va + i);
+        if (to_user) *u = *k;
+        else *k = *u;
+    }
+    csr_clear(sstatus, SSTATUS_SUM);
+}
+
+/* open(name, namelen, flags): 0 read (a snapshot now), 1 write (saved at
+ * close). Programs from the archive or the disk only (like sbrk). */
+static uint64_t sys_open(struct process *p, const struct trap_frame *f)
+{
+    char name[PFS_NAME_MAX + 1];
+    uint64_t len = f->x[11], flags = f->x[12];
+    if (p->prog < PROG_FILE) return SYS_EINVAL;
+    uint64_t e = user_name(p, f->x[10], len, name);
+    if (e) return e;
+    if (!pfs_name_ok(name, len) || flags > 1) return SYS_EINVAL;
+    if (!disk.mounted) return SYS_ENODEV;
+    unsigned slot = 0;
+    while (slot < FD_FILES && p->files[slot].mode) ++slot;
+    if (slot == FD_FILES) return SYS_EMFILE;
+    struct fd *d = &p->files[slot];
+    if (flags == 1) {
+        if (disk_fs.dev->readonly) return SYS_EROFS;
+    } else {
+        int idx = pfs_find(&disk_fs, name, len);
+        if (idx < 0) return SYS_ENOENT;
+        disk.ops++;
+        int n = pfs_read(&disk_fs, (uint32_t)idx, disk_buf);
+        if (n < 0) return fs_error(n);
+        if (fd_grow(p, d, fd_pages_for((uint64_t)n))) return SYS_ENOMEM;
+        for (uint64_t b = 0; b < (uint64_t)n; ++b)
+            *(volatile uint8_t *)(uintptr_t)(d->pages[b / SV39_PAGE_SIZE] + b % SV39_PAGE_SIZE) = disk_buf[b];
+        d->size = (uint64_t)n;
+    }
+    for (uint64_t i = 0; i < len; ++i) d->name[i] = name[i];
+    d->namelen = len;
+    d->pos = 0;
+    d->mode = flags == 1 ? FD_WRITE : FD_READ;
+    return FD_FIRST + slot;
+}
+
+/* close(fd): read mode frees the snapshot; write mode saves the file whole
+ * (the fs_write path) and returns 0 once it is durable. The descriptor is
+ * closed in every case. */
+static uint64_t sys_close(struct process *p, uint64_t fd)
+{
+    struct fd *d = fd_get(p, fd);
+    if (!d) return SYS_EBADF;
+    if (d->mode == FD_READ) {
+        fd_drop(d);
+        return 0;
+    }
+    for (uint64_t b = 0; b < d->size; ++b)
+        disk_buf[b] = *(volatile uint8_t *)(uintptr_t)(d->pages[b / SV39_PAGE_SIZE] + b % SV39_PAGE_SIZE);
+    disk.ops++;
+    int r = pfs_write(&disk_fs, d->name, d->namelen, disk_buf, d->size);
+    fd_drop(d);
+    return r ? fs_error(r) : 0;
+}
+
+/* read(fd >= 3, buf, len): from the snapshot at its position. */
+static uint64_t sys_fd_read(struct process *p, uint64_t fd, uint64_t va, uint64_t len)
+{
+    if (len > PFS_FILE_MAX) return SYS_EINVAL;
+    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R | SV39_PTE_W)) return SYS_EFAULT;
+    struct fd *d = fd_get(p, fd);
+    if (!d || d->mode != FD_READ) return SYS_EBADF;
+    uint64_t n = fd_read_count(d->size, d->pos, len);
+    fd_copy(d, d->pos, va, n, 1);
+    d->pos += n;
+    return n;
+}
+
+/* write(fd >= 3, buf, len): append to the buffer (the file stays <= 128 KiB). */
+static uint64_t sys_fd_write(struct process *p, uint64_t fd, uint64_t va, uint64_t len)
+{
+    if (!vm_user_range_ok(p->satp, va, len, SV39_PTE_R)) return SYS_EFAULT;
+    struct fd *d = fd_get(p, fd);
+    if (!d || d->mode != FD_WRITE) return SYS_EBADF;
+    if (!fd_write_fits(d->size, len, PFS_FILE_MAX)) return SYS_EFBIG;
+    if (fd_grow(p, d, fd_pages_for(d->size + len))) return SYS_ENOMEM;
+    fd_copy(d, d->size, va, len, 0);
+    d->size += len;
+    return len;
+}
+
+/* lseek(fd, off, whence): read mode only; the new position in 0 .. size. */
+static uint64_t sys_lseek(struct process *p, uint64_t fd, uint64_t off, uint64_t whence)
+{
+    if (whence > 2) return SYS_EINVAL;
+    struct fd *d = fd_get(p, fd);
+    if (!d || d->mode != FD_READ) return SYS_EBADF;
+    int64_t np = fd_seek(d->size, d->pos, (int64_t)off, whence);
+    if (np < 0) return SYS_EINVAL;
+    d->pos = (uint64_t)np;
+    return d->pos;
+}
+
 /* wait(pid, flags): the status of process pid once it has ended: its exit
  * code (low 8 bits; 137 killed, 130 Ctrl-C) or 139 if it faulted. Blocks
  * while it is alive. WAIT_FOREGROUND makes it the console foreground
@@ -697,7 +863,7 @@ static uint64_t sys_sbrk(struct process *p, uint64_t incr)
     if (incr > ELF_HEAP_END - old) return SYS_ENOMEM;
     uint64_t from = page_up(old), to = page_up(old + incr);
     uint64_t need = (to - from) / SV39_PAGE_SIZE;
-    if (need > PROC_PAGE_LIMIT - p->npages) return SYS_ENOMEM;
+    if (need > PROC_PAGE_LIMIT - p->npages - fd_pages(p)) return SYS_ENOMEM;   /* v1.6 */
     for (uint64_t k = 0; k < need; ++k) {
         uint64_t pa = mem_alloc();
         if (!pa) {
@@ -795,6 +961,15 @@ __attribute__((noinline)) struct trap_frame *proc_syscall(struct process *p,
         return f;
     case SYS_RUN_ARG:
         f->x[10] = sys_run_arg(p, f);
+        return f;
+    case SYS_OPEN:          /* v1.6 */
+        f->x[10] = sys_open(p, f);
+        return f;
+    case SYS_CLOSE:
+        f->x[10] = sys_close(p, f->x[10]);
+        return f;
+    case SYS_LSEEK:
+        f->x[10] = sys_lseek(p, f->x[10], f->x[11], f->x[12]);
         return f;
     case SYS_YIELD:
         p->yields++;

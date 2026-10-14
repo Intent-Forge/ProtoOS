@@ -30,6 +30,10 @@
 #define SYS_FS_DELETE UINT64_C(1015)
 #define SYS_ARGS      UINT64_C(1016)
 #define SYS_RUN_ARG   UINT64_C(1017)
+/* v1.6: file descriptors 3..6 */
+#define SYS_OPEN      UINT64_C(1018)
+#define SYS_CLOSE     UINT64_C(1019)
+#define SYS_LSEEK     UINT64_C(1020)
 #define SYS_EPERM  ((uint64_t)-1)
 #define SYS_ENOENT ((uint64_t)-2)
 #define SYS_ESRCH  ((uint64_t)-3)
@@ -37,6 +41,7 @@
 #define SYS_EAGAIN ((uint64_t)-11)
 #define SYS_ENOMEM ((uint64_t)-12)
 #define SYS_EBADF  ((uint64_t)-9)
+#define SYS_EMFILE ((uint64_t)-24)      /* v1.6: four files already open */
 #define SYS_EFAULT ((uint64_t)-14)
 #define SYS_EBUSY  ((uint64_t)-16)
 #define SYS_EINVAL ((uint64_t)-22)
@@ -71,6 +76,19 @@ enum program_id { PROG_NONE, PROG_WORKER, PROG_HELLO, PROG_COUNTER, PROG_CRASH,
 enum proc_state { PROC_UNUSED, PROC_READY, PROC_RUNNING, PROC_EXITED, PROC_FAULTED,
                   PROC_SLEEPING, PROC_BLOCKED };
 
+/* v1.6: one open file. Read mode: a snapshot of the whole file taken at
+ * open (CRC checked); write mode: a buffer saved whole at close. Its pages
+ * are pool pages, kernel-only (U=0), never mapped for the process. */
+#define FD_FIRST  3u
+#define FD_FILES  4u
+#define FD_PAGES  32u                   /* 128 KiB, the largest file */
+enum fd_mode { FD_FREE = 0, FD_READ = 1, FD_WRITE = 2 };
+struct fd {
+    uint64_t mode, size, pos, npages, namelen;
+    char name[16];
+    uint64_t pages[FD_PAGES];
+};
+
 struct process {
     struct trap_frame frame;   /* MUST stay first: trap.S uses sscratch=&frame */
     uint64_t pid;
@@ -97,8 +115,13 @@ struct process {
     /* v1.5: the argument line given by run_arg() (empty for run()) */
     uint64_t arglen;
     char arg[ARG_MAX + 1];
+    /* v1.6: open files, descriptors FD_FIRST.. (kept last: the older
+     * offsets stay as the harness knows them). Their pages count in
+     * PROC_PAGE_LIMIT together with pages[0..npages). */
+    struct fd files[FD_FILES];
 };
 _Static_assert(offsetof(struct process, frame) == 0, "trap.S frame protocol");
+_Static_assert(FD_PAGES * 4096u == 128u * 1024u, "a descriptor holds one whole file");
 
 struct sched_stats {
     uint64_t quantum_ticks;

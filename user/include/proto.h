@@ -21,6 +21,11 @@
 #define E_FBIG    (-27)
 #define E_NOSPC   (-28)
 #define E_ROFS    (-30)
+/* v1.6 */
+#define E_BADF    (-9)
+#define E_MFILE   (-24)
+#define FD_READ   0
+#define FD_WRITE  1
 #define WAIT_FOREGROUND 1
 #define FILE_MAX  (128 * 1024)      /* v1.5: largest file on the disk */
 #define ARG_MAX   55                /* v1.5: longest argument line */
@@ -90,6 +95,14 @@ long fs_list(unsigned long index, char name[16]);      /* size, or E_NOENT past 
 long fs_read(const char *name, unsigned long off, void *buf, unsigned long len);
 long fs_write(const char *name, const void *buf, unsigned long len);   /* 0 when durable */
 long fs_delete(const char *name);
+/* v1.6 files: fd_open gives a descriptor 3..6. FD_READ: a snapshot of the whole
+ * file, read in pieces; FD_WRITE: appended in pieces, saved whole by fd_close
+ * (0 once durable). A process that ends with a file open saves nothing. */
+long fd_open(const char *name, int flags);
+long fd_read(long fd, void *buf, unsigned long len);
+long fd_write(long fd, const void *buf, unsigned long len);
+long fd_close(long fd);
+long fd_seek(long fd, long off, int whence);     /* whence 0 start, 1 here, 2 end */
 /* "<prog>: <what went wrong>" for an error code */
 void print_error(const char *prog, long err);
 void print(const char *s);                      /* any length */

@@ -30,7 +30,7 @@ The v1.0 documents and the addenda `SPEC_V1_1.md` … `SPEC_V1_5.md` stay unchan
 - They **count against the process's 64-page limit**, together with its tables, segments, stack and heap. A 128 KiB file needs 32 pages.
 - If the limit or the pool would be exceeded:
   - `open` for reading gives −12;
-  - a `write` that would need a new page gives −12, and the bytes before it stay in the buffer.
+  - a `write` that would need more pages than the limit or the pool allow gives −12 and appends nothing (all or nothing); the buffer keeps what it had.
 - Every page comes back at `close` or when the process ends, whichever is first. N9 and T15 keep checking the totals.
 
 ### System calls
@@ -38,7 +38,7 @@ Arguments are checked first (−22, −14), then the descriptor (−9), then the
 
 | Call | `a7` | Behaviour |
 |---|---|---|
-| `open(name, namelen, flags)` | 1018 | flags 0 read, 1 write; anything else −22. Returns a descriptor 3–6. Errors: −22 name or flags, −14, −19, −24 four files already open, −2 read of a missing file, −5 damaged file or device failed, −12 no page in the limit, −30 write mode on a read-only disk |
+| `open(name, namelen, flags)` | 1018 | only for programs from the archive or the disk (like `sbrk`; the built-in processes get −22). flags 0 read, 1 write; anything else −22. Returns a descriptor 3–6. Errors: −22 name or flags, −14, −19, −24 four files already open, −2 read of a missing file, −5 damaged file or device failed, −12 no page in the limit, −30 write mode on a read-only disk |
 | `close(fd)` | 1019 | read mode: frees the snapshot, 0. Write mode: saves the file (as `fs_write`), frees the buffer; 0 once durable. Errors: −9 not an open file descriptor, and in write mode −28, −5. After an error the descriptor is closed anyway, and the old file stays |
 | `read(fd, buf, len)` | 63 | fd 0 unchanged (v1.2). fd 3–6 in read mode: copies up to `len` bytes from the current position, advances it; 0 at the end. `len` ≤ 128 KiB, else −22; −14; −9 for a write-mode descriptor or one not open |
 | `write(fd, buf, len)` | 64 | fd 1 unchanged (v1.1). fd 3–6 in write mode: appends; the file stays at most 128 KiB (−27 beyond). −14; −9 for a read-mode descriptor or one not open; −12 |
