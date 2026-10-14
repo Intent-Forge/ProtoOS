@@ -128,6 +128,8 @@ MATRIX = {
     # v1.6 (docs/SPEC_V1_6.md)
     'T28': [('protoos.run=t_fd', 'autorun', 'tests.img',
              {'disk': 'disks/blank.img', 'autorun': 't_fd', 'mem_check': True})],
+    'N16': [('protoos.run=t_fdbad', 'autorun', 'tests.img',
+             {'disk': 'disks/blank.img', 'autorun': 't_fdbad', 'mem_check': True})],
 }
 # Scenarios whose probe types into the UART: the serial port is a UNIX
 # socket (logged to uart.log as before) instead of a plain output file.
@@ -2046,7 +2048,26 @@ def oracle_t_fd(c, obs, ctx):
     queue_ok(c, 'driver', s['vblk'], (ctx['sym']['__kernel_start'], ctx['sym']['__kernel_end']))
 
 
-ORACLES.update({'t_fd': oracle_t_fd})
+def oracle_t_fdbad(c, obs, ctx):
+    s = exit_data(c, obs)
+    r = s['results']
+    want = {1: 0, 2: -9, 3: -9, 4: -9, 5: -9, 6: -9, 7: -9, 8: 1, 9: -9, 10: 1, 11: -9, 12: -9,
+            13: 0, 14: 3, 15: 0, 16: -9, 17: -9, 18: -9, 19: 0, 20: -9, 21: -9, 22: -22, 23: -22,
+            24: -22, 25: -22, 26: -22, 27: -22, 28: -2, 29: -14, 30: -14, 31: -14, 32: 100, 33: 0,
+            34: 1, 35: -27, 36: 0, 37: 2, 38: 100 + 131072, 39: r[0]}
+    expect_results(c, 't_fdbad', r, want)
+    first = steps(obs).get('first_meminfo', {})
+    free0, free1 = first.get('mem', {}).get('free'), s['mem']['free']
+    c('GDB: allocator free-page counter at the first meminfo of the driver = at its exit '
+      '(the killed holder gave its snapshot back)',
+      first.get('hit') and free0 == free1 == r[0], (free0, free1, r[0]))
+    fs = s['disk']['fs']
+    c('kernel: exactly 2 directory updates (seq 3): held and big; every misuse changed nothing',
+      fs['seq'] == 3 and fs['files'] == 2 and not fs['failed'], fs)
+    pfsck_files(c, 'N16', ctx, {'held': pat(100, 3), 'big': pat(131072, 4)}, seq=3)
+
+
+ORACLES.update({'t_fd': oracle_t_fd, 't_fdbad': oracle_t_fdbad})
 ORACLES.update({'t23': oracle_t23, 't_fs': oracle_t_fs, 't_fsro': oracle_t_fsro,
                 't_pw': oracle_t_pw, 't_pr': oracle_t_pr, 't26': oracle_t26, 't27': oracle_t27,
                 'n13': oracle_n13, 't_fsbad': oracle_t_fsbad, 't_nodisk': oracle_t_nodisk})
