@@ -1,0 +1,134 @@
+{
+ "test": "T25",
+ "repetition": 3,
+ "scenario": "protoos.test=persist-r",
+ "probe": "autorun",
+ "program_archive": "tests.img",
+ "disk": {
+  "spec": {
+   "disk": "disks/blank.img",
+   "share": true,
+   "autorun": "t_pr"
+  },
+  "sha_source": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+  "sha_before": "60cb36d568f6af4614c67ab4bbe995f0e3fba4b749324cc9a67e7164026dbd92",
+  "sha_after": "60cb36d568f6af4614c67ab4bbe995f0e3fba4b749324cc9a67e7164026dbd92",
+  "pfsck": {
+   "mounts": true,
+   "reject": null,
+   "slot": 2,
+   "seq": 6,
+   "files": [
+    {
+     "slot": 0,
+     "name": "p1",
+     "size": 200,
+     "first": 38,
+     "count": 1,
+     "crc": 2556167801,
+     "crc_ok": true,
+     "sha256": "1c2a1c1d3934f9ce9174efedeae57c025ab1fb957d978d4ac6812663c36cacbb"
+    },
+    {
+     "slot": 2,
+     "name": "p3",
+     "size": 131072,
+     "first": 6,
+     "count": 32,
+     "crc": 4281324035,
+     "crc_ok": true,
+     "sha256": "65947b59c2225840ccbfc59cad408085352557a38960a0a26c6a655e58f57c3b"
+    }
+   ],
+   "copies": {
+    "A": {
+     "code": 0,
+     "seq": 5
+    },
+    "B": {
+     "code": 0,
+     "seq": 6
+    }
+   },
+   "data_ok": true,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.33,
+ "checks": [
+  {
+   "check": "the test driver exited and its results were read through its own page table",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "check": "t_pr: every result as specified (7 values)",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "t_pr: the driver ran to the end (r[63] = 0x600d)",
+   "ok": true,
+   "detail": "0x600d"
+  },
+  {
+   "check": "boot 2 mounted what boot 1 left: seq 6 (5 changes), 2 files",
+   "ok": true,
+   "detail": "{'blocks': 256, 'slot': 2, 'seq': 6, 'files': 2, 'failed': 0, 'reject_a': 0, 'reject_b': 0, 'entries': [{'slot': 0, 'name': 'p1', 'size': 200, 'first': 38, 'count': 1, 'crc': 2556167801}, {'slot': 2, 'name': 'p3', 'size': 131072, 'first': 6, 'count': 32, 'crc': 4281324035}]}"
+  },
+  {
+   "check": "boot 2 only read: the image is byte-identical after it",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "T25 after boot 2: pfsck: the image mounts and every file is intact",
+   "ok": true,
+   "detail": "{'reject': None, 'slot': 2, 'seq': 6, 'data_ok': True}"
+  },
+  {
+   "check": "T25 after boot 2: pfsck: exactly the expected files with the expected content",
+   "ok": true,
+   "detail": "{'got': ['p1', 'p3'], 'want': ['p1', 'p3']}"
+  },
+  {
+   "check": "T25 after boot 2: pfsck: directory seq 6",
+   "ok": true,
+   "detail": "6"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "436064508807cc51b82bbcf74abcc4886f3696fdb33309b3478c9b8eceffcda5",
+  "gdb.log": "0eef8a8f585f50872d87789d915b3aa14e5ebf3a74f77154bbace9d4a0469f9b",
+  "observations.json": "1237f65278fd7b4d7389fcfc7eeb061ff1d4ae73607cac9406c0d187945bf5fa",
+  "pfsck.json": "5b26929e190d3b33a73356f61230248ab7551aa2ab73d975d1bfcbafa2794001",
+  "probe-config.json": "c2727a634558cd10611a084829df331b1910d6d9728e7cd68800c909a803bb72",
+  "qemu-int.log": "2b4bb389c1ce4f1faf9d10dc7bd59b395bce00a2a8cabca410402c67b25a58a8",
+  "uart.log": "d3a201588eb7ab2036661de15f85f34e84fffed5bb010254df4bbd9c440649ba"
+ }
+}

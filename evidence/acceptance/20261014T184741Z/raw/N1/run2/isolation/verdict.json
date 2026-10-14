@@ -1,0 +1,133 @@
+{
+ "test": "N1",
+ "repetition": 2,
+ "scenario": "protoos.test=isolation",
+ "probe": "cross",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.92,
+ "checks": [
+  {
+   "check": "attacker A in U-mode at the store",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "distinct Sv39 roots A/B/kernel",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "target VA is B data page",
+   "ok": true,
+   "detail": "0x801800"
+  },
+  {
+   "check": "PT walk: target unmapped in A root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "PT walk: target mapped in B root, U+R+W, PA in B data page",
+   "ok": true,
+   "detail": "VRWUAD"
+  },
+  {
+   "check": "PT walk: kernel pages in A root carry U=0",
+   "ok": true,
+   "detail": "VRA"
+  },
+  {
+   "check": "PT walk: A own data mapped U",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B canary written before the attack",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "store page fault (scause=15) on the target",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "fault attributed to A",
+   "ok": true,
+   "detail": "0x802400c0"
+  },
+  {
+   "check": "trace: store_page_fault from A at the store pc",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B data page bytes 8..4095 unchanged (physical)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B stack page unchanged (physical)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no 0x4141.. value anywhere in B data",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "wait1: A never dispatched again",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "wait2: A never dispatched again",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A FAULTED, B alive",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A stage marker shows store never completed",
+   "ok": true,
+   "detail": "1"
+  },
+  {
+   "check": "B continues (counter advances)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "a0d0e722c4a4891fab8e150796704d9adc68b1cb8efe54f24a6f2e16c777ab60",
+  "gdb.log": "a31bd791ede8b216d6bb916b75c10a8d4d32580ceb53a40e0e0c38530891043a",
+  "observations.json": "2ee5f3e4ee6124acdd090cb8bceb4d08bb43fb77b04edd1cb8babac7a982b136",
+  "probe-config.json": "6a91bd51b49de8b61be3f33c322556f0261c315af763f3f96f0a261b8b6d4cd4",
+  "qemu-int.log": "32c9b98ee4a1cfa2171e400dcb9b8baec7a4b7b29acae90a3e7ac02199a973c1",
+  "uart.log": "2975005fa1bfbda6372758b0c7ea9e26715341b1bc5b9ad229d560de42bb21f8"
+ }
+}

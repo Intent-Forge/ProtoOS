@@ -1,0 +1,40 @@
+{
+ "mounts": true,
+ "reject": null,
+ "slot": 2,
+ "seq": 4,
+ "files": [
+  {
+   "slot": 0,
+   "name": "hello",
+   "size": 15192,
+   "first": 3,
+   "count": 4,
+   "crc": 2348286995,
+   "crc_ok": true,
+   "sha256": "67dd525c33ebe81a7d4e566a6a34b902c671f287bfcc258b2539c8c53c467d4f"
+  },
+  {
+   "slot": 1,
+   "name": "memo",
+   "size": 23,
+   "first": 7,
+   "count": 1,
+   "crc": 1564826156,
+   "crc_ok": true,
+   "sha256": "c2097f55f01fc297fc7f4acf21438123e06e4d409a818524428534e850642f4f"
+  }
+ ],
+ "copies": {
+  "A": {
+   "code": 0,
+   "seq": 3
+  },
+  "B": {
+   "code": 0,
+   "seq": 4
+  }
+ },
+ "data_ok": true,
+ "blocks": 256
+}

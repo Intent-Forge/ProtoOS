@@ -130,7 +130,7 @@ A second read of the v1.5 code and of its checks by their author before the inde
 Besides, before the audit: 3.5 million fuzzed system calls (a prototype of the v1.6 fuzzer, outside this repository) and 40 extra random crash scripts of the host test found no defect.
 
 ## Independent audit before release
-The v1.5 code at 8d359de was audited read-only by OpenAI Codex (2026-10-14). Every finding was checked against the code and confirmed; all are fixed (commit noted in the release) and covered:
+The v1.5 code at 8d359de was audited read-only by OpenAI Codex (2026-10-14). Every finding was checked against the code and confirmed; all are fixed in cb13a12 and covered:
 
 | # | Finding | Severity (Codex) | Change |
 |---|---|---|---|

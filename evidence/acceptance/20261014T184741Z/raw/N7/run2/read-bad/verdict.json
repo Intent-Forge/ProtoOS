@@ -1,0 +1,118 @@
+{
+ "test": "N7",
+ "repetition": 2,
+ "scenario": "protoos.test=read-bad",
+ "probe": "n7",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 1.17,
+ "checks": [
+  {
+   "check": "A passed all rejected calls in U-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "wrong fd: returns -9",
+   "ok": true,
+   "detail": "0xfffffffffffffff7"
+  },
+  {
+   "check": "kernel page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "B's page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "A's own read-only text page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "crosses into guard page: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "len > 256: returns -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "NULL: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "address wrap-around: returns -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "len 0: returns 0",
+   "ok": true,
+   "detail": "0x0"
+  },
+  {
+   "check": "PT walk: kernel page U=0, text page not W, B page and guard unmapped in A root",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "rejected calls neither blocked nor consumed input",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "the valid read blocks (BLOCKED, not dispatched)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "then returns 1 with the typed byte",
+   "ok": true,
+   "detail": "(1, '7a000000')"
+  },
+  {
+   "check": "A not faulted, keeps running; B keeps running",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no exception from A other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "442d25a24dd9bc6a12acd1569b7d0b04812778f356abb1eb279daaceb0b45705",
+  "gdb.log": "c583bd1d89f3e60a7a97a6ef0b6e3c9cd20095678d33fc8e598eccd0be3742bf",
+  "observations.json": "2fe02ee898b6f2fa40c62ffd7ae55319374b60241ec4e4047abc59bba2b633f7",
+  "probe-config.json": "96f43949da9431febce97c4485be3558f0d5b04b86a3f279e39ae17172cb1b82",
+  "qemu-int.log": "8f9a01191a67fe4ffb6c9661b0f953130bf32f076e22b509088a4f0230611033",
+  "uart.log": "db27b05950c0fa6d8745be17024b5ac2bbe7f8dc85ec8a2b0633def51bde0c5d"
+ }
+}

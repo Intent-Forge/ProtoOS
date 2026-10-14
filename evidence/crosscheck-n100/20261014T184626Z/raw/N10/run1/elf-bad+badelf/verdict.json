@@ -1,0 +1,118 @@
+{
+ "test": "N10",
+ "repetition": 1,
+ "scenario": "protoos.test=elf-bad",
+ "probe": "n10",
+ "program_archive": "badelf.img",
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "A tried all 30 malformed files",
+   "ok": true,
+   "detail": "30"
+  },
+  {
+   "check": "run() refused every one with -8",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "each for the defect it was built with (kernel reason = images.json)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "checked before allocation: across the 30 refusals the allocator handed out and took back nothing (allocations, frees and free pages unchanged), nothing started",
+   "ok": true,
+   "detail": "({'base': 2151677952, 'pages': 31232, 'free': 31123, 'allocs': 0, 'frees': 0, 'reserved': 109}, {'base': 2151677952, 'pages': 31232, 'free': 31123, 'allocs': 0, 'frees': 0, 'reserved': 109})"
+  },
+  {
+   "check": "in all: loads refused = 30, the valid file loaded once, allocations = frees",
+   "ok": true,
+   "detail": "(30, 1, {'base': 2151677952, 'pages': 31232, 'free': 31123, 'allocs': 10, 'frees': 10, 'reserved': 109})"
+  },
+  {
+   "check": "name not in the archive: -2",
+   "ok": true,
+   "detail": "0xfffffffffffffffe"
+  },
+  {
+   "check": "empty name: -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "name longer than 15: -22",
+   "ok": true,
+   "detail": "0xffffffffffffffea"
+  },
+  {
+   "check": "name in B's memory: -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "name in kernel memory: -14",
+   "ok": true,
+   "detail": "0xfffffffffffffff2"
+  },
+  {
+   "check": "the valid file still starts (pid 3): 3",
+   "ok": true,
+   "detail": "0x3"
+  },
+  {
+   "check": "... and exits with 42: 42",
+   "ok": true,
+   "detail": "0x2a"
+  },
+  {
+   "check": "free = baseline at the end",
+   "ok": true,
+   "detail": "(31123, 31123)"
+  },
+  {
+   "check": "no run-time process alive",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no user exception other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "e2f56c4d7b79a0975ad41d55bb4f0b4ab91f435318648896071fc82edc6e948f"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "16c3310765061733cae87827b1d92a15cb95ee26ed3cb84e16f010c2f8130358",
+  "gdb.log": "a7658648623f44cf7c15525160002d14228ea0001f63d3a927f2fb1bc2edaf83",
+  "observations.json": "8b6f98c32e9e255b5627c74f7a3962934cd4257de429b864fa0d157849bf728e",
+  "probe-config.json": "c0e9797094d070afc626a17a00520c49870b1ff28fecd88a031a24b668ec5955",
+  "qemu-int.log": "19d52716e248b35f0e8100d7f2f9bd77069d195141626ded33b17f75e5307be6",
+  "uart.log": "e80dae490d171b2bf807870482af6e8a589c4387414be5997847b4342ecf4ebc"
+ }
+}

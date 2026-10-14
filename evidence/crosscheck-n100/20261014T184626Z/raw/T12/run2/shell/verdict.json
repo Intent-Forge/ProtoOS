@@ -1,0 +1,123 @@
+{
+ "test": "T12",
+ "repetition": 2,
+ "scenario": "protoos.mode=shell",
+ "probe": "t12",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 2.22,
+ "checks": [
+  {
+   "check": "shell started: banner and prompt",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "idle_1: at the prompt A is BLOCKED and not dispatched for 50 ticks",
+   "ok": true,
+   "detail": "({'reached': True, 'watch_hit': None}, 'BLOCKED')"
+  },
+  {
+   "check": "idle_2: at the prompt A is BLOCKED and not dispatched for 50 ticks",
+   "ok": true,
+   "detail": "({'reached': True, 'watch_hit': None}, 'BLOCKED')"
+  },
+  {
+   "check": "every command finished with a new prompt",
+   "ok": true,
+   "detail": "([True, True, True, True, True, True, True], 8)"
+  },
+  {
+   "check": "each typed command was echoed",
+   "ok": true,
+   "detail": "['help', 'ps', 'uptime', 'echo hello from the test', 'attack', 'ps', 'uptime', '']"
+  },
+  {
+   "check": "help lists the commands",
+   "ok": true,
+   "detail": "['commands: help, ps, uptime, echo <text>, attack']"
+  },
+  {
+   "check": "ps #1: pid 1 A RUNNING, pid 2 B READY",
+   "ok": true,
+   "detail": "['pid 1 A RUNNING preempted 0 syscalls 21', 'pid 2 B READY preempted 54 syscalls 0']"
+  },
+  {
+   "check": "ps #2: pid 1 A RUNNING, pid 2 B READY",
+   "ok": true,
+   "detail": "['pid 1 A RUNNING preempted 7 syscalls 125', 'pid 2 B READY preempted 65 syscalls 0']"
+  },
+  {
+   "check": "ps: B was preempted again between the two ps (B keeps running)",
+   "ok": true,
+   "detail": "('54', '65')"
+  },
+  {
+   "check": "ps: the shell made more system calls",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "uptime printed twice and grows",
+   "ok": true,
+   "detail": "[['uptime: 0.60 s'], ['uptime: 0.80 s']]"
+  },
+  {
+   "check": "echo prints its argument",
+   "ok": true,
+   "detail": "['hello from the test']"
+  },
+  {
+   "check": "attack: the kernel refuses with -14",
+   "ok": true,
+   "detail": "[\"attack: asking the kernel to print 8 bytes of B's memory...\", \"kernel answered -14: access denied, B's memory is not mapped for A\"]"
+  },
+  {
+   "check": "no process faulted: A BLOCKED, B READY/RUNNING",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "kernel received exactly the 57 typed bytes, none dropped",
+   "ok": true,
+   "detail": "{'count': 0, 'head': 57, 'irqs': 32, 'received': 57, 'dropped': 0, 'spurious': 0}"
+  },
+  {
+   "check": "trace: S external interrupts (cause 9) taken from U-mode",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no exception from user code other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "adea754b31c3655f782336549ca92352fbf35fbf5bcb0293902e92e75efcf566",
+  "gdb.log": "e9b50a0d8fc6bed729c56cf507bb9a8b55581bbc568413ca3cbe302da558182b",
+  "observations.json": "872d210db0081309afe220e550f91e5035a7ad29bcb487a8f3d9f8cd26318bf2",
+  "probe-config.json": "48a9cd4e066d8c809f0b9a9857ccdd2e1a0d1f77175dc047b4f80041f978f1dc",
+  "qemu-int.log": "ca3120ff27c143b6c8c0ddbb53ef4ef20b0443bc5e5d96a1c2f3e9320f3a681b",
+  "uart.log": "0a21a57818e186e7976551e0cc20f516593adc699699f9ff71eae4992dfbee56"
+ }
+}

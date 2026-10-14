@@ -1,0 +1,91 @@
+{
+ "test": "N13",
+ "repetition": 2,
+ "scenario": "protoos.mode=shell",
+ "probe": "n13",
+ "program_archive": "programs.img",
+ "disk": {
+  "spec": {
+   "disk": "disks/bad/sb_huge.img"
+  },
+  "sha_source": "3c037a08d5abf934960735880ac4592b4f778a99a1b034091599adc0487d0e28",
+  "sha_before": "3c037a08d5abf934960735880ac4592b4f778a99a1b034091599adc0487d0e28",
+  "sha_after": "3c037a08d5abf934960735880ac4592b4f778a99a1b034091599adc0487d0e28",
+  "pfsck": {
+   "mounts": false,
+   "reject": 5,
+   "slot": null,
+   "seq": null,
+   "files": [],
+   "copies": {},
+   "data_ok": null
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "the system came up (shell prompt) with this disk",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "refused with code 5 (kernel state)",
+   "ok": true,
+   "detail": "{'mounted': 0, 'reject': 5, 'ops': 0, 'errors': 0, 'fs': {'blocks': 0, 'slot': 0, 'seq': 0, 'files': 0, 'failed': 0, 'reject_a': 0, 'reject_b': 0, 'entries': []}, 'boot': {'virtio_count': 8, 'virtio': [268468224, 268464128, 268460032, 268455936, 268451840, 268447744, 268443648, 268439552]}}"
+  },
+  {
+   "check": "UART: DISK rejected code=-5",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "pfsck refuses it with the same code",
+   "ok": true,
+   "detail": "5"
+  },
+  {
+   "check": "the device itself was fine (driver ready)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "the image is unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "d9b176082c8b4f72d484b9813674d662cef1dc00c6f3994d8f5d7322c2d5efe4"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "cb668ca3ade848da6a39c75836678d30c50414903582c628a2ddf0458fbc4c5f",
+  "gdb.log": "12bb8c2b76dfb8a69d3defeb877fd0b1c1beebcedf202148fa12a0aa319502f7",
+  "observations.json": "d24a732d082a987e040658f7e576d8caaa595c62bc209505647838b96cb1d941",
+  "pfsck.json": "13585eb04588d4c12f5ba1af095cfd83fccf78466fbbdeb52ee19293b38493ba",
+  "probe-config.json": "b7a572bd36581b96cde024b760b03fd0aaf868737ed163a9d613745f4956875d",
+  "qemu-int.log": "9cd36de27e6045623091bfdf9f3756ec261caef82fb02ada44c41081eec568a4",
+  "uart.log": "6bbd344f207fce0b6c71cfd2267f1a787927c7864bf9318d6221e84f5b339aab"
+ }
+}

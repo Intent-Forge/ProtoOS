@@ -1,0 +1,70 @@
+{
+ "mounts": true,
+ "reject": null,
+ "slot": 2,
+ "seq": 2,
+ "files": [
+  {
+   "slot": 0,
+   "name": "good",
+   "size": 3000,
+   "first": 3,
+   "count": 1,
+   "crc": 2971966666,
+   "crc_ok": true,
+   "sha256": "6aa9006170212d44f7b6adf17257f2f561d294797893ee655593674a7d198847"
+  },
+  {
+   "slot": 1,
+   "name": "dmg",
+   "size": 9000,
+   "first": 4,
+   "count": 3,
+   "crc": 1270602441,
+   "crc_ok": false,
+   "sha256": "52a85866612410254de8c563cbb96301f7ee2eb5535c16c259553945a9d5aa0d"
+  },
+  {
+   "slot": 2,
+   "name": "badelf",
+   "size": 15120,
+   "first": 7,
+   "count": 4,
+   "crc": 1848297135,
+   "crc_ok": true,
+   "sha256": "22f57b8c2e11c32dc566e712969ffed39f4a61d5d3aed48219acfa3b1bfa93c2"
+  },
+  {
+   "slot": 3,
+   "name": "dmgprog",
+   "size": 15120,
+   "first": 11,
+   "count": 4,
+   "crc": 3492760475,
+   "crc_ok": false,
+   "sha256": "d29fb780de159599031e654fcbb509264d2d1f7d3b69d5f386ce6e772c2a6690"
+  },
+  {
+   "slot": 4,
+   "name": "ok",
+   "size": 3,
+   "first": 15,
+   "count": 1,
+   "crc": 891568578,
+   "crc_ok": true,
+   "sha256": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  }
+ ],
+ "copies": {
+  "A": {
+   "code": 0,
+   "seq": 1
+  },
+  "B": {
+   "code": 0,
+   "seq": 2
+  }
+ },
+ "data_ok": false,
+ "blocks": 256
+}

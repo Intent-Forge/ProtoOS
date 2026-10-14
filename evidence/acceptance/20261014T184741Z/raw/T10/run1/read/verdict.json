@@ -1,0 +1,128 @@
+{
+ "test": "T10",
+ "repetition": 1,
+ "scenario": "protoos.test=read",
+ "probe": "t10",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.77,
+ "checks": [
+  {
+   "check": "read ecall from A: a7=63, fd=0, len=16",
+   "ok": true,
+   "detail": "(63, 0, 16)"
+  },
+  {
+   "check": "buffer first/last byte U+R+W in A root (PT walk)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no input: A not dispatched for 30 timer ticks",
+   "ok": true,
+   "detail": "{'reached': True, 'watch_hit': None}"
+  },
+  {
+   "check": "A is BLOCKED with one pending 16-byte read",
+   "ok": true,
+   "detail": "BLOCKED"
+  },
+  {
+   "check": "A dispatch count unchanged while blocked",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B kept running meanwhile (counter advances)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "nothing received before the harness typed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "read 1: returns 3 at ecall+4 in U-mode under A root",
+   "ok": true,
+   "detail": "0x3"
+  },
+  {
+   "check": "read 1: A buffer (physical) holds the typed bytes",
+   "ok": true,
+   "detail": "b'abc'"
+  },
+  {
+   "check": "read 1: SUM=0 back in U-mode",
+   "ok": true,
+   "detail": "0x200000022"
+  },
+  {
+   "check": "read 1: kernel counted reads/bytes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "read 2: returns 2 at ecall+4 in U-mode under A root",
+   "ok": true,
+   "detail": "0x2"
+  },
+  {
+   "check": "read 2: A buffer (physical) holds the typed bytes",
+   "ok": true,
+   "detail": "b'abcXY'"
+  },
+  {
+   "check": "read 2: SUM=0 back in U-mode",
+   "ok": true,
+   "detail": "0x200000022"
+  },
+  {
+   "check": "read 2: kernel counted reads/bytes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "kernel: external interrupts serviced, 5 bytes, none dropped or left",
+   "ok": true,
+   "detail": "{'count': 0, 'head': 5, 'irqs': 5, 'received': 5, 'dropped': 0, 'spurious': 0}"
+  },
+  {
+   "check": "trace: S external interrupts (cause 9) taken from U-mode",
+   "ok": true,
+   "detail": "5"
+  },
+  {
+   "check": "trace: no exception from user code other than ecall",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "5b728e50135ec5b00a3bd1b552e672d8a37d2956b4c065c96c4d1b9d8a546861",
+  "gdb.log": "bd98214f4eab880d4c945c06e7e210a42dbf0b0a5d794bc71a7f19c8c042dee2",
+  "observations.json": "4b77de548a75307f59008cf78a2b69e15ef829e17a8ee098d9aa2c895b341d1d",
+  "probe-config.json": "f4f5059da6cbfa292be2faa94e78bead1e05f82c4d472fd02ad2b39280b1b4db",
+  "qemu-int.log": "99a5a675e540e90270bfde5a0ca3de10a7dd274c716028bebe0748a5a0e631c7",
+  "uart.log": "f8fcd95ce3af91ddd1af2ab0a1ea8dca676d6d902428c81f29ff08beb772a5b8"
+ }
+}

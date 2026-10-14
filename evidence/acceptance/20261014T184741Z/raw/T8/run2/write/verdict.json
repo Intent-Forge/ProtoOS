@@ -1,0 +1,108 @@
+{
+ "test": "T8",
+ "repetition": 2,
+ "scenario": "protoos.test=write",
+ "probe": "t8",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.82,
+ "checks": [
+  {
+   "check": "write 1: ecall trap a7=64, fd=1, len=35",
+   "ok": true,
+   "detail": "(64, 1, 35)"
+  },
+  {
+   "check": "write 1: buffer first byte is U+R in A root (PT walk)",
+   "ok": true,
+   "detail": "VRXUA"
+  },
+  {
+   "check": "write 1: buffer last byte is U+R in A root (PT walk)",
+   "ok": true,
+   "detail": "VRXUA"
+  },
+  {
+   "check": "write 1: returns len to ecall+4 in U-mode",
+   "ok": true,
+   "detail": "0x23"
+  },
+  {
+   "check": "write 1: SUM=0 back in U-mode",
+   "ok": true,
+   "detail": "0x200000022"
+  },
+  {
+   "check": "write 2: ecall trap a7=64, fd=1, len=35",
+   "ok": true,
+   "detail": "(64, 1, 35)"
+  },
+  {
+   "check": "write 2: buffer first byte is U+R in A root (PT walk)",
+   "ok": true,
+   "detail": "VRXUA"
+  },
+  {
+   "check": "write 2: buffer last byte is U+R in A root (PT walk)",
+   "ok": true,
+   "detail": "VRXUA"
+  },
+  {
+   "check": "write 2: returns len to ecall+4 in U-mode",
+   "ok": true,
+   "detail": "0x23"
+  },
+  {
+   "check": "write 2: SUM=0 back in U-mode",
+   "ok": true,
+   "detail": "0x200000022"
+  },
+  {
+   "check": "UART: message printed exactly twice",
+   "ok": true,
+   "detail": "2"
+  },
+  {
+   "check": "kernel counted 2 writes, 2*len bytes",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A continues (worker counter advances), no error",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: exactly two user ecalls from A",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "c52192c4f43e9806ddbbb1789ef9b124f837bccee2c20c72d5f957eef98f55bb",
+  "gdb.log": "cad7f7e4dbd0ef838ad2f07beb477dc798fa5a8775222d4fa3d5f23e5cc73022",
+  "observations.json": "f6138fb1f2955e00d37ae5f8f862bc4ed5f2e4512164d6cc3ac0340b9555c735",
+  "probe-config.json": "be741037c94ef4e790f3f8db68dfe150a0c1faa8c3d2e731b7dbd42036e757a9",
+  "qemu-int.log": "fb76a482f4e0f5fcc75f55291e776e22ec5751c0b0345c5ba84ee6ac0e1c47e6",
+  "uart.log": "21d4588f66ce757dead1e987267b97d9de628629e7e2ef3a5b23d9d9cf5ef08c"
+ }
+}

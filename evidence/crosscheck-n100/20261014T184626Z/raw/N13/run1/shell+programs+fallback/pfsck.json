@@ -1,0 +1,30 @@
+{
+ "mounts": true,
+ "reject": null,
+ "slot": 2,
+ "seq": 0,
+ "files": [
+  {
+   "slot": 0,
+   "name": "a",
+   "size": 6,
+   "first": 3,
+   "count": 1,
+   "crc": 909783072,
+   "crc_ok": true,
+   "sha256": "5891b5b522d5df086d0ff0b110fbd9d21bb4fc7163af34d08286a2e846f6be03"
+  }
+ ],
+ "copies": {
+  "A": {
+   "code": 12,
+   "seq": null
+  },
+  "B": {
+   "code": 0,
+   "seq": 0
+  }
+ },
+ "data_ok": true,
+ "blocks": 256
+}

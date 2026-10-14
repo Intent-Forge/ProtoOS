@@ -1,0 +1,123 @@
+{
+ "test": "T3",
+ "repetition": 3,
+ "scenario": "protoos.test=preempt",
+ "probe": "t3",
+ "program_archive": null,
+ "disk": null,
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.32,
+ "checks": [
+  {
+   "check": "A preempted by S timer interrupt (scause=0x8000000000000005)",
+   "ok": true,
+   "detail": "0x8000000000000005"
+  },
+  {
+   "check": "interrupted A pc is user code",
+   "ok": true,
+   "detail": "0x4001a0"
+  },
+  {
+   "check": "A made no syscall (no yield)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: async cause 5 at the saved A epc",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "trace: no user ecall at all in this scenario",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B traps before A executes again",
+   "ok": true,
+   "detail": "B"
+  },
+  {
+   "check": "B trap came from U-mode (saved sstatus.SPP=0) at B user pc",
+   "ok": true,
+   "detail": "('0x200000020', '0x8000cc')"
+  },
+  {
+   "check": "B executed in between (B dispatched again since A was preempted)",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A not dispatched while B ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "B trap taken under B root",
+   "ok": true,
+   "detail": "0x8000000000080236"
+  },
+  {
+   "check": "A resumed",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "A resumed: privilege U (priv=0)",
+   "ok": true,
+   "detail": "0"
+  },
+  {
+   "check": "A resumed: satp is the process root",
+   "ok": true,
+   "detail": "0x800000000008022c"
+  },
+  {
+   "check": "A resumed: pc inside its user text",
+   "ok": true,
+   "detail": "0x4001a0"
+  },
+  {
+   "check": "A resumed exactly at interrupted pc (no skipped instruction)",
+   "ok": true,
+   "detail": "('0x4001a0', '0x4001a0')"
+  },
+  {
+   "check": "all 31 GPRs of A restored bit-exactly",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "B was preempted in between (>= 2 timer ticks)",
+   "ok": true,
+   "detail": "(0, 2)"
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "9d62eb7c53925e27656ec0ddfc8866f117e7971100d708d1a460c87caf41c734",
+  "gdb.log": "2bfcb3d0b8a78e9ab9cbe79db2415281cebef38db7b67cc370eb0b6fb32c017e",
+  "observations.json": "a9d67931ebd91685bcb58fec4194e19baa3521a8f1f577d9abbb58e2782bb540",
+  "probe-config.json": "46b2490f526bbccef7f3cebde8ab12f89aae8a44edae3ade888cae4902a0e37d",
+  "qemu-int.log": "e99a2b5704cd8efae8cfda0619dbdcbf5bdb1a85f72666309ca6324db89e52fe",
+  "uart.log": "67b58ac48b0a40e97f431a35c7a1819be90715d1d4330086441f6db67581992a"
+ }
+}

@@ -1,0 +1,19 @@
+{
+ "mounts": false,
+ "reject": 11,
+ "slot": null,
+ "seq": null,
+ "files": [],
+ "copies": {
+  "A": {
+   "code": 11,
+   "seq": null
+  },
+  "B": {
+   "code": 11,
+   "seq": null
+  }
+ },
+ "data_ok": null,
+ "blocks": 256
+}

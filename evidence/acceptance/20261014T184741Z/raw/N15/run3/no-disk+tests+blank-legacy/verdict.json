@@ -1,0 +1,108 @@
+{
+ "test": "N15",
+ "repetition": 3,
+ "scenario": "protoos.test=no-disk",
+ "probe": "autorun",
+ "program_archive": "tests.img",
+ "disk": {
+  "spec": {
+   "disk": "disks/blank.img",
+   "mode": "legacy",
+   "autorun": "t_nodisk"
+  },
+  "sha_source": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+  "sha_before": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+  "sha_after": "0bec8cadce5dd8d3458fc4358167ae5e49ba4a154c8a2259d1c379e716127625",
+  "pfsck": {
+   "mounts": true,
+   "reject": null,
+   "slot": 1,
+   "seq": 1,
+   "files": [],
+   "copies": {
+    "A": {
+     "code": 0,
+     "seq": 1
+    },
+    "B": {
+     "code": 0,
+     "seq": 0
+    }
+   },
+   "data_ok": true,
+   "blocks": 256
+  },
+  "size": 1048576
+ },
+ "status": "PASS",
+ "note": "",
+ "elf_sha256": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194",
+ "seconds": 0.27,
+ "checks": [
+  {
+   "check": "the test driver exited and its results were read through its own page table",
+   "ok": true,
+   "detail": "3"
+  },
+  {
+   "check": "t_nodisk: every result as specified (8 values)",
+   "ok": true,
+   "detail": "{}"
+  },
+  {
+   "check": "t_nodisk: the driver ran to the end (r[63] = 0x600d)",
+   "ok": true,
+   "detail": "0x600d"
+  },
+  {
+   "check": "kernel: no disk mounted",
+   "ok": true,
+   "detail": "{'mounted': 0, 'reject': 0, 'ops': 0, 'errors': 0, 'fs': {'blocks': 0, 'slot': 0, 'seq': 0, 'files': 0, 'failed': 0, 'reject_a': 0, 'reject_b': 0, 'entries': []}, 'boot': {'virtio_count': 8, 'virtio': [268468224, 268464128, 268460032, 268455936, 268451840, 268447744, 268443648, 268439552]}}"
+  },
+  {
+   "check": "legacy device refused cleanly",
+   "ok": true,
+   "detail": "{'base': 0, 'state': 3, 'reason': 0, 'device_features': 0, 'features': 0, 'capacity': 0, 'qsize': 0, 'avail_idx': 0, 'used_seen': 0, 'reads': 0, 'writes': 0, 'flushes': 0, 'legacy_base': 268468224, 'last_len': 0, 'vq_avail_idx': 0, 'vq_used_idx': 0, 'desc': [{'addr': 0, 'len': 0, 'next': 0, 'flags': 0}, {'addr': 0, 'len': 0, 'next': 0, 'flags': 0}, {'addr': 0, 'len': 0, 'next': 0, 'flags': 0}], 'buffers': {'req': 2149875728, 'bounce': 2149867520, 'status': 2149875712, 'vq': 2149871616}}"
+  },
+  {
+   "check": "UART: exactly the refusal line",
+   "ok": true,
+   "detail": "['DISK refused: legacy virtio-mmio block device at 0x0000000010008000']"
+  },
+  {
+   "check": "the image is unchanged",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "no S-mode exception except SBI ecall (trace)",
+   "ok": true,
+   "detail": "[]"
+  },
+  {
+   "check": "no KERNEL_PANIC on UART",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "check": "ELF unchanged during run",
+   "ok": true,
+   "detail": "399d8a2b72710031636a6cf9947a1ccfea7c1c73bf18dbf25b6ae826427aa194"
+  },
+  {
+   "check": "program archive unchanged during run",
+   "ok": true,
+   "detail": "6f9efb31c35276ac2553d36973dbfd0285c30434c9630f87741ff0d2e0ba27e1"
+  }
+ ],
+ "summary": null,
+ "raw_sha256": {
+  "command.json": "5fbacc76493b2dd020beb8f2f019b8052abfcd08a71e53facdfd9c5b40d43efb",
+  "gdb.log": "0eef8a8f585f50872d87789d915b3aa14e5ebf3a74f77154bbace9d4a0469f9b",
+  "observations.json": "6551508b851c72c6cc5d65aa0fcae5af397424c037e66221670c8985bfeb9005",
+  "pfsck.json": "e941a718020986bd6d8ab7e08d5c1573157e36297abed9eadb3223429361c5bd",
+  "probe-config.json": "775a0558a902b6696706389e2344049ddf4c1b2414fb315bbc0cb4921e19dcd0",
+  "qemu-int.log": "066a526eeb40e9f3fd1094b2149a6e4be9ac6d2ef9809f7bd29c7a63210325c7",
+  "uart.log": "7b80f80bcfae30e3dab47029fe49c097e4bd53cc6da610054c15be2230fe46d2"
+ }
+}
