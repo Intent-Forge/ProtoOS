@@ -1138,6 +1138,16 @@ def disk_state():
     return d
 
 
+def held_pages():
+    """v1.6: pages every process slot holds (its own and its descriptors')."""
+    n = 0
+    for i in range(8):
+        n += ev(f'procs[{i}].npages')
+        for j in range(4):
+            n += ev(f'procs[{i}].files[{j}].npages')
+    return n
+
+
 def autorun_exit(prog, wall=120.0):
     """Stop when the boot-started test driver calls exit(); read its r[]
     through its own page table, and the kernel's disk, driver and memory."""
@@ -1151,6 +1161,8 @@ def autorun_exit(prog, wall=120.0):
         data['results'] = [int.from_bytes(raw[8 * k:8 * k + 8], 'little') for k in range(64)]
         data['exit_code'] = ev('*(unsigned long *)($a1 + 80)')     # its a0
     data.update(mem=mem14(), sched=sched14(), disk=disk_state(), vblk=vblk_state())
+    if CFG.get('mem_check'):        # v1.6: page accounting and the boot processes
+        data.update(held=held_pages(), ab_state=[ev('procs[0].state'), ev('procs[1].state')])
     return data
 
 
@@ -1161,8 +1173,9 @@ def probe_autorun():
         cond = (f'*(unsigned long *)($a1 + 136) == 1006 && '
                 f'*(unsigned long *)($a0 + {PID_OFF}) == sched.autorun_pid')
         hit = stop_at(SYM['proc_syscall'], cond, wall=60.0)
-        step('first_meminfo', hit=hit, mem=mem14() if hit else {})
-    step('exit', **autorun_exit(CFG['autorun']))
+        step('first_meminfo', hit=hit, mem=mem14() if hit else {},
+             held=held_pages() if hit else None)
+    step('exit', **autorun_exit(CFG['autorun'], wall=float(CFG.get('wall') or 120)))
 
 
 def probe_t23():

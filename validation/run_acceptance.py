@@ -128,6 +128,14 @@ MATRIX = {
     # v1.6 (docs/SPEC_V1_6.md)
     'T28': [('protoos.run=t_fd', 'autorun', 'tests.img',
              {'disk': 'disks/blank.img', 'autorun': 't_fd', 'mem_check': True})],
+    # T29: a process that dies with a file open, then the T27 kill series through descriptors
+    'T29': [('protoos.run=t_fdcrash', 'autorun', 'tests.img',
+             {'disk': 'disks/blank.img', 'autorun': 't_fdcrash'}),
+            ('protoos.run=t_fdloop', 't27', 'tests.img', {'disk': 'disks/blank.img', 'share': True})],
+    # N17: the fuzzer, 3 seeds x 20 000 calls, on a copy of the release disk
+    'N17': [(f'protoos.run=fuzz {seed} 20000', 'autorun', 'tests.img',
+             {'disk': 'disk.img', 'autorun': 'fuzz', 'mem_check': True, 'wall': 900})
+            for seed in (1, 2, 3)],
     'N16': [('protoos.run=t_fdbad', 'autorun', 'tests.img',
              {'disk': 'disks/blank.img', 'autorun': 't_fdbad', 'mem_check': True})],
 }
@@ -253,7 +261,7 @@ def boot_with_gdb(elf, args, probe, rundir, sym, uva, initrd=None, usym=None, di
     cfg = {'probe': probe, 'symbols': sym, 'user_va': uva, 'elf': str(elf), 'port': port,
            'observations': str(rundir / 'observations.json'), 'uart_sock': sock,
            'user_symbols': usym or {}, 'autorun': (disk or {}).get('autorun'),
-           'mem_check': bool((disk or {}).get('mem_check'))}
+           'mem_check': bool((disk or {}).get('mem_check')), 'wall': (disk or {}).get('wall')}
     (rundir / 'probe-config.json').write_text(json.dumps(cfg, indent=1))
     (rundir / 'command.json').write_text(json.dumps({'qemu': cmd}, indent=1))
     env = dict(os.environ, PROTOOS_PROBE_CFG=str(rundir / 'probe-config.json'))
@@ -279,6 +287,10 @@ def boot_with_gdb(elf, args, probe, rundir, sym, uva, initrd=None, usym=None, di
                                                          'error': 'no observations'}
 
 
+# v1.5 t_crash (T27) and v1.6 t_fdloop (T29) announce where they continue from
+CRASH_START = r'\b(?:t_crash|t_fdloop): starting after generation (\d+)'
+
+
 def boot_crash_series(elf, args, rundir, initrd, disk, seed, kills=20):
     """v1.5 T27: boot `kills` times on the same disk copy, no debugger; each
     boot is killed (SIGKILL) at a random moment, from a seeded RNG, after the
@@ -302,7 +314,9 @@ def boot_crash_series(elf, args, rundir, initrd, disk, seed, kills=20):
             while time.monotonic() < end and not started:
                 time.sleep(0.05)
                 log = bdir / 'uart.log'
-                started = log.exists() and 't_crash: starting' in log.read_text(errors='replace')
+                # the driver's line follows the shell prompt on the same line
+                started = log.exists() and bool(re.search(CRASH_START,
+                                                          log.read_text(errors='replace')))
             time.sleep(delay)
         finally:
             vm.kill()
@@ -322,8 +336,7 @@ def boot_crash_series(elf, args, rundir, initrd, disk, seed, kills=20):
         steps.append({'name': f'kill{i:02d}', 'started': started, 'delay': round(delay, 3),
                       'saved_last': {f: (v[-1] if v else None) for f, v in saved.items()},
                       'saved_count': {f: len(v) for f, v in saved.items()},
-                      'start_gen': [int(x) for x in re.findall(
-                          r't_crash: starting after generation (\d+)', uart)],
+                      'start_gen': [int(x) for x in re.findall(CRASH_START, uart)],
                       'pfsck': {k: res[k] for k in ('mounts', 'reject', 'slot', 'seq', 'data_ok')},
                       'files': files, 'disk_sha256': hashlib.sha256(img).hexdigest()})
     return {'probe': 't27', 'steps': steps, 'complete': True, 'error': None, 'seed': seed}
@@ -2067,7 +2080,40 @@ def oracle_t_fdbad(c, obs, ctx):
     pfsck_files(c, 'N16', ctx, {'held': pat(100, 3), 'big': pat(131072, 4)}, seq=3)
 
 
-ORACLES.update({'t_fd': oracle_t_fd, 't_fdbad': oracle_t_fdbad})
+def oracle_t_fdcrash(c, obs, ctx):
+    s = exit_data(c, obs)
+    r = s['results']
+    want = {1: 0}
+    for k, status in enumerate((137, 139, 0, 0)):
+        want.update({2 + 4 * k: 1, 3 + 4 * k: status, 4 + 4 * k: 1, 5 + 4 * k: 1})
+    expect_results(c, 't_fdcrash', r, want)
+    fs = s['disk']['fs']
+    c('kernel: only the first write and the closed one reached the directory (seq 3)',
+      fs['seq'] == 3 and fs['files'] == 1 and not fs['failed'], fs)
+    pfsck_files(c, 'T29 part 1', ctx, {'x': pat(5000, 2)}, seq=3)
+
+
+def oracle_fuzz(c, obs, ctx):
+    s = exit_data(c, obs)
+    r = s['results']
+    c('the fuzzer made all its 20 000 calls and ran to the end', r[0] == 20000 and r[63] == 0x600d,
+      (r[0], hex(r[63])))
+    c('every unknown system call number gave -38 (odd results 0)', r[1] == 0, r[1])
+    first = steps(obs).get('first_meminfo', {})
+    m0, m1 = first.get('mem', {}), s['mem']
+    lost0 = m0.get('allocs', 0) - m0.get('frees', 0) - (first.get('held') or 0)
+    lost1 = m1['allocs'] - m1['frees'] - s['held']
+    c('GDB: no page lost (pages allocated minus pages the processes hold: same at the start and '
+      'at the end)', first.get('hit') and lost0 == lost1, (lost0, lost1, s['held']))
+    c('GDB: the boot processes A and B are still alive', all(st in (1, 2) or st > 4 for st in s['ab_state']),
+      s['ab_state'])
+    p = ctx['disk']['pfsck']
+    c('pfsck: the disk still mounts and every file is intact', p['mounts'] and p['data_ok'],
+      {k: p.get(k) for k in ('reject', 'seq', 'data_ok')})
+
+
+ORACLES.update({'t_fd': oracle_t_fd, 't_fdbad': oracle_t_fdbad, 't_fdcrash': oracle_t_fdcrash,
+                'fuzz': oracle_fuzz})
 ORACLES.update({'t23': oracle_t23, 't_fs': oracle_t_fs, 't_fsro': oracle_t_fsro,
                 't_pw': oracle_t_pw, 't_pr': oracle_t_pr, 't26': oracle_t26, 't27': oracle_t27,
                 'n13': oracle_n13, 't_fsbad': oracle_t_fsbad, 't_nodisk': oracle_t_nodisk})
