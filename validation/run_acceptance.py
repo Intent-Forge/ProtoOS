@@ -134,7 +134,7 @@ MATRIX = {
             ('protoos.run=t_fdloop', 't27', 'tests.img', {'disk': 'disks/blank.img', 'share': True})],
     # N17: the fuzzer, 3 seeds x 20 000 calls, on a copy of the release disk
     'N17': [(f'protoos.run=fuzz {seed} 20000', 'autorun', 'tests.img',
-             {'disk': 'disk.img', 'autorun': 'fuzz', 'mem_check': True, 'wall': 900})
+             {'disk': 'disk.img', 'autorun': 'fuzz', 'mem_check': True, 'wall': 300})
             for seed in (1, 2, 3)],
     'N16': [('protoos.run=t_fdbad', 'autorun', 'tests.img',
              {'disk': 'disks/blank.img', 'autorun': 't_fdbad', 'mem_check': True})],
