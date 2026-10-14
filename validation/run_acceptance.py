@@ -125,6 +125,9 @@ MATRIX = {
     'N15': [('protoos.run=t_nodisk', 'autorun', 'tests.img', {'autorun': 't_nodisk'}),
             ('protoos.run=t_nodisk', 'autorun', 'tests.img',
              {'disk': 'disks/blank.img', 'mode': 'legacy', 'autorun': 't_nodisk'})],
+    # v1.6 (docs/SPEC_V1_6.md)
+    'T28': [('protoos.run=t_fd', 'autorun', 'tests.img',
+             {'disk': 'disks/blank.img', 'autorun': 't_fd', 'mem_check': True})],
 }
 # Scenarios whose probe types into the UART: the serial port is a UNIX
 # socket (logged to uart.log as before) instead of a plain output file.
@@ -2016,6 +2019,34 @@ def oracle_t_nodisk(c, obs, ctx):
           lines)
 
 
+T28_SIZES = [0, 1, 4095, 4096, 4097, 131072]
+
+
+def oracle_t_fd(c, obs, ctx):
+    s = exit_data(c, obs)
+    r = s['results']
+    want = {1 + k: 0 for k in range(6)}
+    want.update({7 + k: n for k, n in enumerate(T28_SIZES)})
+    want.update({13: 3, 14: 4097, 15: 4096, 16: 1, 17: 1, 18: 100, 19: 150, 20: 1, 21: -22, 22: -22,
+                 23: -22, 24: 0, 25: 0, 26: 1, 27: 0, 28: 1, 29: 3, 30: 1, 31: 0, 32: 1, 33: 1,
+                 34: -24, 35: 0, 36: 3, 37: -12, 38: 4, 39: -12, 40: 1, 41: 0, 42: 65535, 43: 0,
+                 44: 1, 45: r[0]})
+    expect_results(c, 't_fd', r, want)
+    c('t_fd exit code 0', s['exit_code'] == 0, s['exit_code'])
+    first = steps(obs).get('first_meminfo', {})
+    free0, free1 = first.get('mem', {}).get('free'), s['mem']['free']
+    c('GDB: allocator free-page counter at the first meminfo of the driver = at its exit',
+      first.get('hit') and free0 == free1 == r[0], (free0, free1, r[0]))
+    fs = s['disk']['fs']
+    # 9 directory updates: 6 closes, the fs_write of f3, the close of f1, the close of w1
+    c('kernel: 9 directory updates (seq 10), 7 files, no failure',
+      fs['seq'] == 10 and fs['files'] == 7 and not fs['failed'] and s['disk']['mounted'] == 1, fs)
+    pfsck_files(c, 'T28', ctx, {'f0': b'', 'f1': pat(3, 7), 'f2': pat(4095, 3), 'f3': pat(4096, 9),
+                                'f4': pat(4097, 5), 'f5': pat(131072, 6), 'w1': pat(65536, 8)}, seq=10)
+    queue_ok(c, 'driver', s['vblk'], (ctx['sym']['__kernel_start'], ctx['sym']['__kernel_end']))
+
+
+ORACLES.update({'t_fd': oracle_t_fd})
 ORACLES.update({'t23': oracle_t23, 't_fs': oracle_t_fs, 't_fsro': oracle_t_fsro,
                 't_pw': oracle_t_pw, 't_pr': oracle_t_pr, 't26': oracle_t26, 't27': oracle_t27,
                 'n13': oracle_n13, 't_fsbad': oracle_t_fsbad, 't_nodisk': oracle_t_nodisk})
