@@ -27,6 +27,12 @@ int main(void)
         used += (unsigned long)n;
         buf[used++] = '\n';
     }
+    /* An empty first line: nothing typed, so nothing is saved (an existing
+     * file is not replaced by an empty one by mistake). */
+    if (used == 0) {
+        print("note: nothing typed, nothing saved\n");
+        return 0;
+    }
     long r = fs_write(name, buf, used);
     if (r < 0) {
         print_error("note", r);

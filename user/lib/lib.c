@@ -87,6 +87,10 @@ void print_error(const char *prog, long err)
     print(prog);
     print(": ");
     print(what);
+    if (what[0] == 'e' && what[1] == 'r') {     /* not a known code: show its number */
+        print(" ");
+        print_int(err);
+    }
     print("\n");
 }
 

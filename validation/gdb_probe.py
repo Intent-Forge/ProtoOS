@@ -1155,7 +1155,13 @@ def autorun_exit(prog, wall=120.0):
 
 
 def probe_autorun():
-    """T24, T25, N14, N15: the driver named in the probe config."""
+    """T24, T25, N14, N15: the driver named in the probe config. With mem_check
+    (N14) also the allocator's counters at the driver's first meminfo call."""
+    if CFG.get('mem_check'):
+        cond = (f'*(unsigned long *)($a1 + 136) == 1006 && '
+                f'*(unsigned long *)($a0 + {PID_OFF}) == sched.autorun_pid')
+        hit = stop_at(SYM['proc_syscall'], cond, wall=60.0)
+        step('first_meminfo', hit=hit, mem=mem14() if hit else {})
     step('exit', **autorun_exit(CFG['autorun']))
 
 
@@ -1182,7 +1188,9 @@ def probe_n13():
 # T26 session: (typed line, 1 if the shell prompt comes back after it). The
 # lines for note are typed while note runs; its empty line saves and ends it.
 T26_SESSION = [('run hello world', 1), ('run files', 1), ('run note memo', 0), ('first line', 0),
-               ('second line', 0), ('', 1), ('run cat memo', 1), ('run note tmp', 0),
+               ('second line', 0), ('', 1), ('run cat memo', 1),
+               ('run note memo', 0), ('', 1),       # nothing typed: memo must stay
+               ('run note tmp', 0),
                ('scratch', 0), ('', 1), ('run rm tmp', 1), ('run files', 1),
                ('run cat nosuch', 1)]
 

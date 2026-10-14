@@ -121,7 +121,7 @@ MATRIX = {
             for n in BAD_DISKS] + [('protoos.mode=shell', 'n13', 'programs.img',
                                     {'disk': 'disks/fallback.img'})],
     'N14': [('protoos.test=fs-bad', 'autorun', 'tests.img',
-             {'disk': 'disks/crcbad.img', 'autorun': 't_fsbad'})],
+             {'disk': 'disks/crcbad.img', 'autorun': 't_fsbad', 'mem_check': True})],
     'N15': [('protoos.test=no-disk', 'autorun', 'tests.img', {'autorun': 't_nodisk'}),
             ('protoos.test=no-disk', 'autorun', 'tests.img',
              {'disk': 'disks/blank.img', 'mode': 'legacy', 'autorun': 't_nodisk'})],
@@ -247,7 +247,8 @@ def boot_with_gdb(elf, args, probe, rundir, sym, uva, initrd=None, usym=None, di
     cmd = qemu_cmd(elf, args, rundir, gdb_port=port, uart_sock=sock, initrd=initrd, disk=disk)
     cfg = {'probe': probe, 'symbols': sym, 'user_va': uva, 'elf': str(elf), 'port': port,
            'observations': str(rundir / 'observations.json'), 'uart_sock': sock,
-           'user_symbols': usym or {}, 'autorun': (disk or {}).get('autorun')}
+           'user_symbols': usym or {}, 'autorun': (disk or {}).get('autorun'),
+           'mem_check': bool((disk or {}).get('mem_check'))}
     (rundir / 'probe-config.json').write_text(json.dumps(cfg, indent=1))
     (rundir / 'command.json').write_text(json.dumps({'qemu': cmd}, indent=1))
     env = dict(os.environ, PROTOOS_PROBE_CFG=str(rundir / 'probe-config.json'))
@@ -1862,7 +1863,8 @@ def oracle_t23(c, obs, ctx):
     c('its registers (read physically): magic "virt", version 2, block device, DRIVER_OK',
       m.get('magic') == 0x74726976 and m.get('version') == 2 and m.get('device_id') == 2
       and m.get('status') == 0xf, m)
-    c('capacity = image size / 512', v['capacity'] == ctx['disk']['pfsck']['blocks'] * 8, v['capacity'])
+    c('capacity = image file size / 512', v['capacity'] == ctx['disk']['size'] // 512,
+      (v['capacity'], ctx['disk']['size']))
     c('negotiated exactly VERSION_1 and FLUSH', v['features'] == VIRTIO_F_VERSION_1 | BLK_F_FLUSH,
       hex(v['features']))
     c('driver ready, queue of 8', v['state'] == 1 and v['qsize'] == 8, v)
@@ -1911,6 +1913,8 @@ def oracle_t26(c, obs, ctx):
       'saved memo: 23 bytes' in notes and 'saved tmp: 8 bytes' in notes and
       b.get('run rm tmp', [[]])[0][:1] == ['removed tmp'])
     c('run cat memo printed it', b.get('run cat memo', [[]])[0][:2] == ['first line', 'second line'])
+    c('note memo with an empty first line saved nothing (memo kept, no directory update)',
+      'note: nothing typed, nothing saved' in notes and notes.count('saved memo: 23 bytes') == 1)
     c('run cat nosuch: no such file', b.get('run cat nosuch', [[]])[0][:1] == ['cat: no such file'])
     fs = st['end']['disk']['fs']
     c('kernel: 3 directory updates (seq 4), files hello and memo',
@@ -1977,6 +1981,10 @@ def oracle_t_fsbad(c, obs, ctx):
                  21: 0, 22: 3, 23: r[0]})
     expect_results(c, 't_fsbad', r, want)
     c('no page leaked (free pages before = after the bad calls)', r[23] == r[0], (r[0], r[23]))
+    first = steps(obs).get('first_meminfo', {})
+    free0, free1 = first.get('mem', {}).get('free'), s['mem']['free']
+    c('GDB: allocator free-page counter at the first meminfo of the driver = at its exit',
+      first.get('hit') and free0 == free1 == r[0], (free0, free1, r[0]))
     fs = s['disk']['fs']
     c('the file system did not stop: CRC damage is EIO for that file only',
       not fs['failed'] and s['disk']['mounted'] == 1, fs)
@@ -2109,7 +2117,7 @@ def main():
                     raw = pathlib.Path(disk['path']).read_bytes()
                     disk_ctx = {'spec': spec, 'sha_source': v14['images_sha256'].get(spec['disk']),
                                 'sha_before': disk_before, 'sha_after': sha256(disk['path']),
-                                'pfsck': pfsck.check(raw), 'data': {}}
+                                'pfsck': pfsck.check(raw), 'data': {}, 'size': len(raw)}
                     for f in disk_ctx['pfsck']['files']:
                         disk_ctx['data'][f['name']] = raw[f['first'] * 4096:
                                                           f['first'] * 4096 + f['size']]
