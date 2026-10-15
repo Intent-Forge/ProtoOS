@@ -25,7 +25,8 @@ PROGRAMS = ['guess', 'primes', 'clock', 'files', 'cat', 'note', 'rm']
 TESTS = ['t_elf', 't_sbrk', 't_exit42', 't_spin', 't_sleepy', 't_reader', 't_fgbusy',
          'b_text', 'b_rodata', 'b_kernel', 'b_exec', 'b_stack', 'b_heap', 'b_fpu', 'b_csr',
          't_fs', 't_fsro', 't_pw', 't_pr', 't_crash', 't_fsbad', 't_nodisk',
-         't_fd', 't_fdbad', 't_fdhold', 't_fdw', 't_fdcrash', 't_fdloop', 'fuzz']
+         't_fd', 't_fdbad', 't_fdhold', 't_fdw', 't_fdcrash', 't_fdloop', 'fuzz',
+         't_diskw', 't_diska', 't_diskr']
 
 
 def newc(files, mode=0o100555, trailer=True):

@@ -139,6 +139,16 @@ MATRIX = {
             for seed in (1, 2, 3)],
     'N16': [('protoos.run=t_fdbad', 'autorun', 'tests.img',
              {'disk': 'disks/blank.img', 'autorun': 't_fdbad', 'mem_check': True})],
+    # N18: the disk fails (blkdebug): a directory write in the middle of a change,
+    # then the same disk healthy again; and a data read on another copy
+    'N18': [('protoos.run=t_diskw', 'autorun', 'tests.img',
+             {'disk': 'disk.img', 'share': True, 'fault': 'write-copy-a', 'autorun': 't_diskw',
+              'mem_check': True}),
+            ('protoos.run=t_diska', 'autorun', 'tests.img',
+             {'disk': 'disk.img', 'share': True, 'autorun': 't_diska'}),
+            ('protoos.run=t_diskr', 'autorun', 'tests.img',
+             {'disk': 'disk.img', 'fault': 'read-block-3', 'autorun': 't_diskr',
+              'mem_check': True})],
 }
 # Scenarios whose probe types into the UART: the serial port is a UNIX
 # socket (logged to uart.log as before) instead of a plain output file.
@@ -214,6 +224,14 @@ def in_range(v, rng):
 
 
 # ------------------------------------------------------------- one boot
+# v1.6 N18: blkdebug rules (sectors of 512 bytes). Directory copy A is block 1
+# (sectors 8-15); in disk.img the program hello starts at block 3 (sector 24).
+DISK_FAULTS = {
+    'write-copy-a': '[inject-error]\nevent = "pwritev"\nerrno = "5"\nsector = "8"\n',
+    'read-block-3': '[inject-error]\nevent = "read_aio"\nerrno = "5"\nsector = "24"\n',
+}
+
+
 def drive_args(disk):
     """v1.5: QEMU options for a disk {'path', 'mode'}. rw: virtio-mmio v2 with
     flush; noflush: write-through and no WCE, so no VIRTIO_BLK_F_FLUSH (both
@@ -223,7 +241,15 @@ def drive_args(disk):
         return []
     mode = disk.get('mode', 'rw')
     opt = {'noflush': ',cache=writethrough', 'ro': ',readonly=on'}.get(mode, '')
-    out = ['-drive', f'if=none,file={disk["path"]},format=raw,id=hd0{opt}',
+    image = disk['path']
+    if disk.get('fault'):
+        # v1.6 N18: QEMU's blkdebug driver between the device and the image
+        # fails the requests the rule names with EIO (the guest sees
+        # VIRTIO_BLK_S_IOERR); the rule file is kept next to the disk copy.
+        conf = pathlib.Path(image).with_suffix('.blkdebug')
+        conf.write_text(DISK_FAULTS[disk['fault']])
+        image = f'blkdebug:{conf}:{image}'
+    out = ['-drive', f'if=none,file={image},format=raw,id=hd0{opt}',
            '-device', 'virtio-blk-device,drive=hd0']
     if mode == 'noflush':
         out += ['-global', 'virtio-blk-device.config-wce=off']
@@ -2106,6 +2132,76 @@ def oracle_t_fdcrash(c, obs, ctx):
     pfsck_files(c, 'T29 part 1', ctx, {'x': pat(5000, 2)}, seq=3)
 
 
+def source_files(ctx):
+    """{name: bytes} of the disk image the boot's copy was made from (pfsck)."""
+    sys.path.insert(0, str(ROOT / 'build-scripts'))
+    import pfsck
+    raw = pathlib.Path(ctx['disk']['source']).read_bytes()
+    return {f['name']: raw[f['first'] * 4096:f['first'] * 4096 + f['size']]
+            for f in pfsck.check(raw)['files']}
+
+
+def disk_failed_ok(c, s):
+    """N18: the device failed for an I/O error, and the file system stopped."""
+    v, fs = s['vblk'], s['disk']['fs']
+    c('GDB: the driver marked the device failed for a request error (state 2, reason 7) '
+      'and set FAILED in its status register',
+      v['state'] == 2 and v['reason'] == 7 and v.get('mmio', {}).get('status', 0) & 0x80,
+      (v['state'], v['reason'], v.get('mmio')))
+    c('GDB: the file system is stopped (failed = 1), the disk still mounted',
+      fs['failed'] == 1 and s['disk']['mounted'] == 1, fs)
+
+
+def mem_back_gdb(c, obs, s, r0):
+    first = steps(obs).get('first_meminfo', {})
+    free0, free1 = first.get('mem', {}).get('free'), s['mem']['free']
+    c('GDB: allocator free-page counter at the first meminfo of the driver = at its exit',
+      first.get('hit') and free0 == free1 == r0, (free0, free1, r0))
+
+
+def oracle_t_diskw(c, obs, ctx):
+    s = exit_data(c, obs)
+    r = s['results']
+    want = {1: 0, 2: 3, 3: 4, 4: 20000, 14: 1, 15: 42, 16: 3000, 17: 1, 18: 0, 19: 1}
+    want.update({k: -5 for k in range(5, 14)})
+    expect_results(c, 't_diskw', r, want)
+    disk_failed_ok(c, s)
+    c('kernel: the failed change left the mounted directory as it was (seq 2, copy B, 2 files)',
+      s['disk']['fs']['seq'] == 2 and s['disk']['fs']['slot'] == 2 and s['disk']['fs']['files'] == 2,
+      s['disk']['fs'])
+    mem_back_gdb(c, obs, s, r[0])
+    p = ctx['disk']['pfsck']
+    c('pfsck: copy A is the old one (seq 1, valid), copy B the last saved change (seq 2)',
+      p['copies']['A'] == {'code': 0, 'seq': 1} and p['copies']['B'] == {'code': 0, 'seq': 2},
+      p['copies'])
+    pfsck_files(c, 'N18 after the failed write', ctx,
+                {'hello': source_files(ctx)['hello'], 'a': pat(3000, 1)}, seq=2)
+
+
+def oracle_t_diska(c, obs, ctx):
+    s = exit_data(c, obs)
+    expect_results(c, 't_diska', s['results'], {0: 2, 1: 3000, 2: 1, 3: -2, 4: 1, 5: 0, 6: 0, 7: 3})
+    fs = s['disk']['fs']
+    c('kernel: boot 2 mounted the state before the failed change and wrote copy A (seq 3), '
+      'no failure', fs['seq'] == 3 and fs['slot'] == 1 and fs['files'] == 3 and not fs['failed'], fs)
+    pfsck_files(c, 'N18 after boot 2', ctx, {'hello': source_files(ctx)['hello'],
+                                              'a': pat(3000, 1), 'c': pat(10, 3)}, seq=3)
+
+
+def oracle_t_diskr(c, obs, ctx):
+    s = exit_data(c, obs)
+    r = s['results']
+    want = {1: len(source_files(ctx)['hello']), 8: 1, 9: 42, 10: 1}
+    want.update({k: -5 for k in range(2, 8)})
+    expect_results(c, 't_diskr', r, want)
+    disk_failed_ok(c, s)
+    c('driver: not one write or flush reached the device', s['vblk']['writes'] == 0
+      and s['vblk']['flushes'] == 0, {k: s['vblk'][k] for k in ('reads', 'writes', 'flushes')})
+    mem_back_gdb(c, obs, s, r[0])
+    d = ctx['disk']
+    c('the disk image is byte-identical after the boot', d['sha_after'] == d['sha_before'])
+
+
 def oracle_fuzz(c, obs, ctx):
     s = exit_data(c, obs)
     r = s['results']
@@ -2126,7 +2222,8 @@ def oracle_fuzz(c, obs, ctx):
 
 
 ORACLES.update({'t_fd': oracle_t_fd, 't_fdbad': oracle_t_fdbad, 't_fdcrash': oracle_t_fdcrash,
-                'fuzz': oracle_fuzz})
+                'fuzz': oracle_fuzz, 't_diskw': oracle_t_diskw, 't_diska': oracle_t_diska,
+                't_diskr': oracle_t_diskr})
 ORACLES.update({'t23': oracle_t23, 't_fs': oracle_t_fs, 't_fsro': oracle_t_fsro,
                 't_pw': oracle_t_pw, 't_pr': oracle_t_pr, 't26': oracle_t26, 't27': oracle_t27,
                 'n13': oracle_n13, 't_fsbad': oracle_t_fsbad, 't_nodisk': oracle_t_nodisk})
@@ -2234,7 +2331,8 @@ def main():
                     sys.path.insert(0, str(ROOT / 'build-scripts'))
                     import pfsck
                     raw = pathlib.Path(disk['path']).read_bytes()
-                    disk_ctx = {'spec': spec, 'sha_source': v14['images_sha256'].get(spec['disk']),
+                    disk_ctx = {'spec': spec, 'source': str(v14['work_images'] / spec['disk']),
+                                'sha_source': v14['images_sha256'].get(spec['disk']),
                                 'sha_before': disk_before, 'sha_after': sha256(disk['path']),
                                 'pfsck': pfsck.check(raw), 'data': {}, 'size': len(raw)}
                     for f in disk_ctx['pfsck']['files']:

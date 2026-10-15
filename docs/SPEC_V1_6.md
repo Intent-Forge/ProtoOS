@@ -80,12 +80,13 @@ Each call still runs whole in the kernel with interrupts off.
 | T29 | (1) `protoos.run=t_fdcrash`: a child `t_fdw` opens `x` for writing, writes 5000 bytes, and is killed, faults, exits without `close`, or closes; (2) `protoos.run=t_fdloop`: the T27 series (20 seeded QEMU kills on one disk copy) with the files replaced through descriptors in pieces of 1000 bytes | (1) kill, fault, exit: `x` keeps its old 3000 bytes, the exit status is 137 / 139 / 0, every page back; close: the new 5000 bytes; only 2 directory updates. (2) as T27: after every kill pfsck mounts, every file is one whole generation, a file reported saved survived, progress | results, GDB, pfsck, UART, seed |
 | N16 | `protoos.run=t_fdbad` (and its helper `t_fdhold`), blank disk | descriptors −1, 0 for write, 1 for read, 2, 7, 1000, one that is open in another process, a closed one, `close` twice → −9; the wrong mode → −9; flags 2 and −1, bad names and lengths, `whence` 3 → −22 before the descriptor; a missing file −2; kernel pointers for the name and both buffers → −14; `write` past 128 KiB → −27; only the two files written on purpose reach the disk (seq 3); every page back, through GDB too, including the snapshot of the killed holder | results, GDB, pfsck |
 | N17 | `protoos.run=fuzz <seed> 20000` for seeds 1, 2, 3, `tests.img`, a copy of `disk.img` | the fuzzer made all its calls and ended; every unknown number gave −38; no S-mode exception except SBI calls and no `KERNEL_PANIC` (QEMU trace, as every check); GDB: pages allocated minus pages all processes hold is the same at the fuzzer's first `meminfo` and at its end (no page lost), A and B alive; pfsck: the disk mounts and every file is intact | QEMU trace, GDB, pfsck |
+| N18 | the disk fails, through QEMU's `blkdebug` driver (EIO for the named requests; the guest sees `VIRTIO_BLK_S_IOERR`): (1) `protoos.run=t_diskw` on a copy of `disk.img` whose writes to directory copy A fail; (2) `protoos.run=t_diska` on the same copy, healthy; (3) `protoos.run=t_diskr` on another copy whose reads of block 3 (the first block of `hello`) fail | (1) the first change succeeds (copy B, seq 2); the second, a `close` of a write descriptor, gives −5; from then on `fs_list`, `fs_read` (also of a missing file), `fs_write`, `fs_delete`, `open` in both modes and starting `hello` from the disk all give −5; a program from the archive still runs (exit 42); a snapshot taken before still reads its 3000 bytes; the driver marked the device failed (reason 7) and set FAILED in its status register; every page back; pfsck: copy A old and valid (seq 1), copy B seq 2, exactly `hello` and `a`. (2) the state before the failed change is mounted, `hello` runs, a new change works (copy A, seq 3). (3) the directory read at mount is fine; the first read of `hello` gives −5 and stops the file system as in (1); no write or flush reaches the device; the image is unchanged | results, GDB, pfsck |
 
-v1.6 is accepted when T1–T29 and N1–N17 all PASS in 3 clean boots each.
+v1.6 is accepted when T1–T29 and N1–N18 all PASS in 3 clean boots each.
 
 - **Host tests:** the descriptor logic (positions, bounds, the page accounting) as pure code, plain and with ASan/UBSan, like PFS in v1.5.
 - **Nightly:** the fuzzer with new seeds every night on the mini-PC; a failing seed is reported with the command that repeats it.
-- **Mutants**: 8 new kernels with one plausible bug each (`tools/v16`, outside the repository), plus the 10 of v1.5; each must not pass its check:
+- **Mutants**: 11 new kernels with one plausible bug each (`tools/v16`, outside the repository), plus the 10 of v1.5; each must not pass its check:
 
 | # | Bug put in | Check |
 |---|---|---|
@@ -97,6 +98,9 @@ v1.6 is accepted when T1–T29 and N1–N17 all PASS in 3 clean boots each.
 | M31 | a page lost when a descriptor is given back | T28 |
 | M32 | the kernel faults on unknown numbers 1090–1099 | N17 (the fuzzer reaches them; the QEMU trace and the UART show the fault) |
 | M33 | a write-mode file visible before `close` (written through) | T28 |
+| M34 | `open` does not see a stopped file system | N18 |
+| M35 | `fs_list` answers after the file system stopped (v1.5 audit, finding 4) | N18 |
+| M36 | a request the device reported failed is taken as done | N18 |
 
 A boot whose probe could not finish is a **FAIL** (not INCONCLUSIVE) when the outside evidence shows a violation: an S-mode exception in the QEMU trace or `KERNEL_PANIC` on the UART. M32 needed this: the fuzzer's kernel panicked, so the probe never saw the fuzzer end.
 
@@ -105,8 +109,9 @@ A boot whose probe could not finish is a **FAIL** (not INCONCLUSIVE) when the ou
 - Snapshots make reading a large file cost its whole size in memory. There is no streaming read in v1.6.
 - Write mode always replaces the whole file. Append and editing in place stay out of scope (v1.8 plans atomic editing).
 - Unchanged from v1.5: QEMU only, no real disks.
-- A stopped file system (a failed write or flush, v1.5) also makes `open` return −5, in both modes, as every other file call. QEMU cannot make the device fail on demand, so no acceptance check reaches this path; it is covered by review only, as the same rule for the v1.5 calls.
+- A stopped file system (a failed write, flush or read, v1.5) also makes `open` return −5, in both modes, as every other file call. N18 makes the device fail with QEMU's `blkdebug` driver, which reports an error for chosen requests; it does not model a disk that loses or tears writes (the host tests of v1.5 do that). N18 was added before the audit, after the self-review found that no check reached this path.
 
 ## Owner answers (2026-10-13)
 1. At most **4 open files** per process in v1.6; v1.7 decides again together with pipes.
 2. The modes stay separate: `read` on a write-mode descriptor (and `write` on a read-mode one) gives −9.
+3. (2026-10-14) Check **N18** (a disk that fails, through `blkdebug`) is added to v1.6 before the audit.
